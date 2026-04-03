@@ -96,7 +96,7 @@ export default function AdminDashboard() {
         desc: "Ringkasan akun yang terdaftar pada sistem.",
       },
     ],
-    [stats]
+    [stats],
   );
 
   return (
@@ -116,8 +116,8 @@ export default function AdminDashboard() {
               Kontrol penuh dalam satu tampilan.
             </h2>
             <p className="text-sm text-slate-500 mt-1">
-              Pantau event, relawan, dan pengguna untuk memastikan sistem berjalan
-              dengan baik.
+              Pantau event, relawan, dan pengguna untuk memastikan sistem
+              berjalan dengan baik.
             </p>
 
             {user && (
@@ -172,9 +172,7 @@ export default function AdminDashboard() {
           to="/admin/events"
           className="group bg-gradient-to-br from-white via-white to-yellow-50 rounded-2xl shadow-sm border border-slate-100 p-4 hover:shadow-md hover:-translate-y-0.5 transition"
         >
-          <h3 className="font-semibold text-slate-900">
-            Data Event / Bencana
-          </h3>
+          <h3 className="font-semibold text-slate-900">Data Event / Bencana</h3>
           <p className="text-sm text-slate-500 mt-2">
             Tambah, ubah, atau arsipkan event/bencana yang tampil di aplikasi.
           </p>
