@@ -189,8 +189,9 @@ node ace seed:admin
 
 ## Authors
 
-- **Achmad Aulia Irsyad** - Backend Developer
-- **Amalia Azzahra** - Frontend Developer
+- \*_Wisnu Prastyo_ - Backend Developer
+- **Alif Fahri Aditya** - Frontend Developer
+- **Surya Putra Pratama** - UI/UX Figma Designer
 
 ## Support
 
