@@ -189,7 +189,7 @@ node ace seed:admin
 
 ## Authors
 
-- \*_Wisnu Prastyo_ - Backend Developer
+- **Wisnu Prastyo** - Backend Developer
 - **Alif Fahri Aditya** - Frontend Developer
 - **Surya Putra Pratama** - UI/UX Figma Designer
 
