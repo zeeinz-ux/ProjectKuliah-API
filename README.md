@@ -1,6 +1,6 @@
 # VoulenteerEvent Project-API
 
-Aplikasi web untuk ANALISIS KEBUTUHAN DAN PERANCANGAN SISTEM INFORMASI MONITORING PROYEK INTERIOR BERBASIS WEB PADA PT. MEDTIC INTERIORdengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
+Aplikasi web untuk ANALISIS KEBUTUHAN DAN PERANCANGAN SISTEM INFORMASI MONITORING PROYEK INTERIOR BERBASIS WEB PADA PT. MEDTIC INTERIOR dengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
 
 ## Daftar Isi
 
