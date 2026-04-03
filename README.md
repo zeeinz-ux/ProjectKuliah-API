@@ -1,6 +1,6 @@
 # VoulenteerEvent Project-API
 
-Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
+Aplikasi web untuk ANALISIS KEBUTUHAN DAN PERANCANGAN SISTEM INFORMASI MONITORING PROYEK INTERIOR BERBASIS WEB PADA PT. MEDTIC INTERIORdengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
 
 ## Daftar Isi
 
@@ -9,10 +9,10 @@ Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fulls
 - [Setup Frontend](#setup-frontend)
 - [Seeder Usage](#seeder-usage)
 
-
 ## Teknologi
 
 ### Backend
+
 - **Framework**: AdonisJS v6
 - **Database**: MongoDB (Mongoose)
 - **Authentication**: JWT + Google OAuth
@@ -21,6 +21,7 @@ Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fulls
 - **OAuth**: Google Auth Library
 
 ### Frontend
+
 - **Framework**: React 19
 - **Styling**: TailwindCSS v4
 - **Routing**: React Router DOM v7
@@ -30,6 +31,7 @@ Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fulls
 ## Setup Backend
 
 ### Prerequisites
+
 - Node.js (v18+)
 - MongoDB Atlas Account
 - Google Cloud Console Account (untuk OAuth)
@@ -39,26 +41,30 @@ Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fulls
 ### Installation
 
 1. **Clone Repository**
+
    ```bash
    git clone <repository-url>
    cd Project-API/backend
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Environment Setup**
+
    ```bash
    # Copy environment template
    cp .env.example .env
-   
+
    # Generate APP_KEY
    node ace generate:key
    ```
 
 4. **Configure .env**
+
    ```env
    TZ=UTC
    PORT=3333
@@ -67,12 +73,12 @@ Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fulls
    APP_KEY=your_generated_app_key_here
    NODE_ENV=development
    JWT_SECRET=your_jwt_secret_here
-   
+
    MONGODB_URI=your_mongodb_connection_string
    MONGO_DB_NAME=VoulenteerEvent
-   
+
    GOOGLE_CLIENT_ID=your_google_client_id_here
-   
+
    WEATHER_API_KEY=your_openweather_api_key_here
    WEATHER_API_BASE_URL=https://api.openweathermap.org/data/2.5/weather
    ```
@@ -90,6 +96,7 @@ Aplikasi web untuk manajemen event volunteer dan bencana dengan arsitektur fulls
    - Copy API key ke .env
 
 7. **Run Development Server**
+
    ```bash
    npm run dev
    ```
@@ -112,11 +119,13 @@ npm run typecheck  # TypeScript type checking
 ### Installation
 
 1. **Navigate to Frontend**
+
    ```bash
    cd Project-API/frontend
    ```
 
 2. **Install Dependencies**
+
    ```bash
    npm install
    ```
@@ -126,6 +135,7 @@ npm run typecheck  # TypeScript type checking
    - Setup Google OAuth client ID untuk frontend
 
 4. **Run Development Server**
+
    ```bash
    npm run dev
    ```
@@ -155,6 +165,7 @@ node ace seed:admin
 ### Data yang Akan Dibuat:
 
 #### **Admin Account**
+
 - **Email**: `admin@example.com`
 - **Password**: `adminpassword`
 - **Role**: `admin`
@@ -163,12 +174,11 @@ node ace seed:admin
 **Note:** Jika admin sudah ada, seeder akan skip dan tidak membuat duplikat.
 
 ### Kapan Menggunakan Seeder:
+
 - Setup development environment baru
 - Reset database dengan data fresh
 - Demo/testing dengan data konsisten
 - Onboarding developer baru
-
-
 
 ## Notes
 
