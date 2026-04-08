@@ -11,7 +11,7 @@ export default function Footer() {
             {/* Brand */}
             <div className="space-y-3">
               <h2 className="text-lg font-bold tracking-wide">
-                Volunteer Event
+                PT. Medtic Indonesia
               </h2>
               <p className="text-sm text-blue-50/90 leading-relaxed">
                 Platform yang menghubungkan relawan dengan kegiatan sosial dan
@@ -71,7 +71,7 @@ export default function Footer() {
           {/* bottom */}
           <div className="mt-10 border-t border-white/20 pt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-xs text-blue-100/80">
-              © {new Date().getFullYear()} Volunteer Event Platform. All rights
+              © {new Date().getFullYear()} PT. Medtic Indonesia. All rights
               reserved.
             </p>
 

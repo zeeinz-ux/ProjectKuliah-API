@@ -1,9 +1,8 @@
-// src/pages/Login.jsx
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login, googleLogin } from "../api/authApi";
+import { login } from "../api/authApi";
 import GoogleLoginButton from "../components/GoogleLoginButton";
+import "../css/Login.css";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,17 +12,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // callback ketika login Google sukses
   const handleGoogleSuccess = (data) => {
-    // GoogleLoginButton sudah handle request ke backend dan simpan token
-    // Kita hanya perlu redirect berdasarkan role
     localStorage.setItem("user", JSON.stringify(data.user));
 
-    // 🔥 Cek role, arahkan ke halaman yang tepat
     if (data.user?.role === "admin") {
-      navigate("/admin"); // -> AdminLayout + sidebar
+      navigate("/admin");
     } else {
-      navigate("/"); // -> Home user biasa
+      navigate("/");
     }
   };
 
@@ -38,7 +33,6 @@ export default function Login() {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      // 🔥 Sama di sini: cek role
       if (user?.role === "admin") {
         navigate("/admin");
       } else {
@@ -52,93 +46,90 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-md border border-slate-100 px-6 py-7 md:px-8">
-          {/* HEADER */}
-          <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-              Masuk
-            </p>
-            <h1 className="mt-1 text-xl md:text-2xl font-bold text-slate-900">
-              Login ke akun Anda
-            </h1>
+    <div className="login-page">
+      <div className="login-wrapper">
+        <div className="login-layout">
+          <div className="login-image-panel">
+            <img
+              src="https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1200&q=80"
+              alt="Interior modern"
+              className="login-side-image"
+            />
           </div>
 
-          {/* ERROR */}
-          {error && (
-            <div className="mb-4 text-xs text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded-xl">
-              {error}
+          <div className="login-form-panel">
+            <div className="login-brand">Medtic Indonesia</div>
+
+            <div className="login-card">
+              <div className="login-header">
+                <p className="login-label">Masuk</p>
+                <h1 className="login-title">Welcome back</h1>
+                <p className="login-subtitle">Please enter your details</p>
+              </div>
+
+              {error && <div className="login-error">{error}</div>}
+
+              <form onSubmit={handleSubmit} className="login-form">
+                <div className="login-field">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@gmail.com"
+                  />
+                </div>
+
+                <div className="login-field">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Masukkan kata sandi"
+                  />
+                </div>
+
+                <div className="login-forgot-wrap">
+                  <Link to="/forgot-password" className="login-forgot-link">
+                    Forgot password?
+                  </Link>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className={`login-submit-btn ${
+                    loading ? "login-submit-disabled" : ""
+                  }`}
+                >
+                  {loading ? "Memproses..." : "Sign in"}
+                </button>
+              </form>
+
+              <div className="login-divider">
+                <span></span>
+                <small>atau</small>
+                <span></span>
+              </div>
+
+              <div className="login-google-wrap">
+                <GoogleLoginButton
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => setError("Google login gagal")}
+                />
+              </div>
+
+              <p className="login-footer-text">
+                Don&apos;t have an account?{" "}
+                <Link to="/register" className="login-footer-link">
+                  Sign up
+                </Link>
+              </p>
             </div>
-          )}
-
-          {/* GOOGLE LOGIN */}
-          <GoogleLoginButton
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError("Google login gagal")}
-          />
-
-          {/* Divider */}
-          <div className="my-4 flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-200"></div>
-            <span className="text-[11px] text-slate-500">atau</span>
-            <div className="flex-1 h-px bg-slate-200"></div>
           </div>
-
-          {/* FORM EMAIL / PASSWORD */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                placeholder="contoh@mail.com"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Kata sandi
-              </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
-                placeholder="Masukkan kata sandi"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full mt-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition
-                ${
-                  loading
-                    ? "bg-slate-300 text-slate-600"
-                    : "bg-blue-700 text-white hover:bg-blue-800"
-                }`}
-            >
-              {loading ? "Memproses..." : "Masuk"}
-            </button>
-          </form>
-
-          {/* Footer */}
-          <p className="mt-5 text-[11px] text-slate-500 text-center">
-            Belum punya akun?{" "}
-            <Link
-              to="/register"
-              className="font-semibold text-blue-700 hover:text-blue-800"
-            >
-              Daftar di sini
-            </Link>
-          </p>
         </div>
       </div>
     </div>

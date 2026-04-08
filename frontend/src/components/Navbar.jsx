@@ -41,8 +41,8 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="mb-0 sticky top-0 left-0 w-full z-50 bg-gradient-to-r from-blue-700 via-blue-800 to-blue-900 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 lg:px-6">
+    <nav className="mb-0 sticky top-0 left0 w-full z-50 bg-black/20 bacdrop-blur-sm border-b border-white/10">
+      <div className="max-w-7x1 mx-auto px-4 lg:px-6">
         <div className="flex items-center justify-between py-3">
           {/* LOGO + BRAND */}
           <Link to="/" className="flex items-center gap-2">
@@ -53,7 +53,7 @@ const Navbar = () => {
               className="w-8 h-8 object-contain"
             />
             <span className="text-white font-semibold text-lg tracking-wide">
-              VolunteerEvent
+              {/* PT Medtic Indonesia */}
             </span>
           </Link>
 
@@ -64,9 +64,9 @@ const Navbar = () => {
               Home
             </NavItem>
 
-            {/* Events */}
-            <NavItem to="/events" active={isActive("/events")}>
-              Events
+            {/* Gallery */}
+            <NavItem to="/gallery" active={isActive("/gallery")}>
+              Gallery
             </NavItem>
 
             {/* Admin menu jika role admin */}
