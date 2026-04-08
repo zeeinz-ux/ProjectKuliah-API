@@ -1,6 +1,6 @@
-# VoulenteerEvent Project-API
+# PT. Medict Indonesia Project-API
 
-Aplikasi web untuk ANALISIS KEBUTUHAN DAN PERANCANGAN SISTEM INFORMASI MONITORING PROYEK INTERIOR BERBASIS WEB PADA PT. MEDTIC INTERIOR dengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
+Aplikasi web untuk Rancang Bangun Sistem Informasi Monitoring Proyek Interior Berbasis Web pada PT Medtic Indonesia dengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
 
 ## Daftar Isi
 
@@ -75,9 +75,9 @@ Aplikasi web untuk ANALISIS KEBUTUHAN DAN PERANCANGAN SISTEM INFORMASI MONITORIN
    JWT_SECRET=your_jwt_secret_here
 
    MONGODB_URI=your_mongodb_connection_string
-   MONGO_DB_NAME=VoulenteerEvent
+   MONGO_DB_NAME=ProjectKuliah_db
 
-   GOOGLE_CLIENT_ID=your_google_client_id_here
+   GOOGLE_CLIENT_ID=891586780403-47mfmrjek0ec8kru3jt7jagblo5473st.apps.googleusercontent.com
 
    WEATHER_API_KEY=your_openweather_api_key_here
    WEATHER_API_BASE_URL=https://api.openweathermap.org/data/2.5/weather
