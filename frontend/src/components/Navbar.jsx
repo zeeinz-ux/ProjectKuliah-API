@@ -48,7 +48,7 @@ const Navbar = () => {
           <Link to="/" className="flex items-center gap-2">
             {/* Logo SVG: letakkan file di frontend/public/logo.svg */}
             <img
-              src="/logo.svg"
+              src={`${import.meta.env.BASE_URL}logo.svg`}
               alt="Logo"
               className="w-8 h-8 object-contain"
             />
