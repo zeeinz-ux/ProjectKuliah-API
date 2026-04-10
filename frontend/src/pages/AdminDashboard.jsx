@@ -1,193 +1,291 @@
-import { Link } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { adminFetchStats } from "../api/adminApi";
+import React from "react";
+import "../css/AdminDashboard.css";
 
-function StatCard({ label, value, desc, loading }) {
-  return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3 flex flex-col gap-1">
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-        {label}
-      </p>
+const summaryCards = [
+  { title: "Proyek Aktif", value: "12", note: "4 proyek mendekati deadline" },
+  { title: "Proyek Selesai", value: "28", note: "Bulan ini +6 proyek" },
+  { title: "Stok Kritis", value: "7", note: "Perlu restock material" },
+  { title: "Jumlah Karyawan", value: "34", note: "Tim lapangan & admin" },
+];
 
-      {loading ? (
-        <div className="h-6 w-16 rounded bg-slate-200 animate-pulse" />
-      ) : (
-        <p className="text-lg font-bold text-slate-900">{value}</p>
-      )}
+const projectRows = [
+  {
+    name: "Renovasi Kantor Direksi",
+    client: "PT Sinar Makmur",
+    progress: "82%",
+    deadline: "18 Apr 2026",
+    status: "On Progress",
+  },
+  {
+    name: "Interior Lobby Hotel",
+    client: "Hotel Arunika",
+    progress: "45%",
+    deadline: "01 Mei 2026",
+    status: "Monitoring",
+  },
+  {
+    name: "Fit Out Showroom",
+    client: "Astra Living",
+    progress: "100%",
+    deadline: "05 Apr 2026",
+    status: "Selesai",
+  },
+  {
+    name: "Custom Office Workspace",
+    client: "PT Nusantara Digital",
+    progress: "63%",
+    deadline: "24 Apr 2026",
+    status: "On Progress",
+  },
+];
 
-      <p className="text-[11px] text-slate-500">{desc}</p>
-    </div>
-  );
-}
+const stockRows = [
+  { material: "HPL Walnut", stock: "18 lembar", status: "Aman" },
+  { material: "Cat Interior Putih", stock: "6 kaleng", status: "Menipis" },
+  { material: "Plywood 18mm", stock: "12 lembar", status: "Aman" },
+  { material: "Lampu Downlight", stock: "4 pcs", status: "Kritis" },
+];
+
+const teamRows = [
+  {
+    name: "Raka Pratama",
+    role: "Site Supervisor",
+    project: "Renovasi Kantor Direksi",
+  },
+  {
+    name: "Nadia Putri",
+    role: "Admin Proyek",
+    project: "Interior Lobby Hotel",
+  },
+  { name: "Aldo Saputra", role: "QC Interior", project: "Fit Out Showroom" },
+  {
+    name: "Dimas Fajar",
+    role: "Logistik Material",
+    project: "Custom Office Workspace",
+  },
+];
+
+const reports = [
+  {
+    title: "Laporan Progres Mingguan",
+    desc: "Ringkasan progres seluruh proyek minggu ini.",
+  },
+  {
+    title: "Laporan Material",
+    desc: "Data stok, material masuk, dan penggunaan proyek.",
+  },
+  {
+    title: "Laporan Karyawan",
+    desc: "Distribusi tim, absensi, dan penugasan lapangan.",
+  },
+];
+
+const adminActions = [
+  "Tambah Data Proyek",
+  "Edit Data Proyek",
+  "Hapus Data Proyek",
+  "Kelola Data Karyawan",
+  "Kelola Material",
+  "Cetak Laporan",
+];
+
+const statusClass = (status) => {
+  if (status === "Selesai") return "done";
+  if (status === "Monitoring") return "monitoring";
+  return "progress";
+};
+
+const stockClass = (status) => {
+  if (status === "Kritis") return "critical";
+  if (status === "Menipis") return "low";
+  return "safe";
+};
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({
-    totalRelawan: 0,
-    totalEventBencana: 0,
-    totalPengguna: 0,
-  });
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [statsError, setStatsError] = useState("");
-
-  const aliveRef = useRef(true);
-  const reqIdRef = useRef(0);
-
-  let user = null;
-  try {
-    const raw = localStorage.getItem("user");
-    if (raw) user = JSON.parse(raw);
-  } catch {
-    // ignore
-  }
-
-  const loadStats = async ({ silent = false } = {}) => {
-    const myReqId = ++reqIdRef.current;
-
-    if (!silent) setLoadingStats(true);
-    setStatsError("");
-
-    try {
-      const data = await adminFetchStats();
-
-      if (!aliveRef.current || myReqId !== reqIdRef.current) return;
-      setStats(data);
-    } catch (e) {
-      if (!aliveRef.current || myReqId !== reqIdRef.current) return;
-      setStatsError(e?.message || "Gagal memuat statistik.");
-    } finally {
-      if (!aliveRef.current || myReqId !== reqIdRef.current) return;
-      setLoadingStats(false);
-    }
-  };
-
-  useEffect(() => {
-    aliveRef.current = true;
-
-    // Load awal
-    loadStats({ silent: false });
-
-    // Auto refresh tiap 60 detik (silent)
-    const interval = setInterval(() => {
-      loadStats({ silent: true });
-    }, 60000);
-
-    return () => {
-      aliveRef.current = false;
-      clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const statItems = useMemo(
-    () => [
-      {
-        label: "Relawan",
-        value: stats.totalRelawan,
-        desc: "Total relawan terdaftar (approved) pada berbagai event.",
-      },
-      {
-        label: "Event / Bencana",
-        value: stats.totalEventBencana,
-        desc: "Monitoring jumlah event yang tersedia di sistem.",
-      },
-      {
-        label: "Pengguna",
-        value: stats.totalPengguna,
-        desc: "Ringkasan akun yang terdaftar pada sistem.",
-      },
-    ],
-    [stats],
-  );
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <header className="space-y-2">
-        <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 border border-blue-100">
-          <span className="h-2 w-2 rounded-full bg-blue-600" />
-          <span className="text-[11px] font-semibold tracking-[0.16em] uppercase text-blue-700">
-            Dashboard Admin
-          </span>
+    <div className="dashboard-page">
+      <section className="dashboard-hero">
+        <div>
+          <p className="dashboard-hero-badge">Dashboard Internal Perusahaan</p>
+          <h2>Monitoring Project Interior PT. MEDTIC INTERIOR</h2>
+          <p className="dashboard-hero-text">
+            Kelola proyek, stok material, laporan, dan data karyawan dalam satu
+            dashboard yang modern, profesional, dan mudah digunakan.
+          </p>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
-          <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">
-              Kontrol penuh dalam satu tampilan.
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Pantau event, relawan, dan pengguna untuk memastikan sistem
-              berjalan dengan baik.
-            </p>
+        <div className="dashboard-hero-actions">
+          <a href="#monitoring-proyek" className="dashboard-primary-btn">
+            Lihat Monitoring
+          </a>
+          <a href="#admin-tools" className="dashboard-secondary-btn">
+            Aksi Admin
+          </a>
+        </div>
+      </section>
 
-            {user && (
-              <p className="text-sm text-slate-700 mt-2">
-                Selamat datang,{" "}
-                <span className="font-semibold text-blue-700">
-                  {user.name || user.email}
-                </span>
-                .
-              </p>
-            )}
+      <section className="dashboard-summary-grid">
+        {summaryCards.map((item) => (
+          <div key={item.title} className="dashboard-summary-card">
+            <p>{item.title}</p>
+            <h3>{item.value}</h3>
+            <span>{item.note}</span>
           </div>
-
-          <span className="inline-flex items-center rounded-xl bg-yellow-300 px-3 py-1 text-xs font-semibold text-blue-900 shadow-sm">
-            ⚡ Akses penuh admin
-          </span>
-        </div>
-      </header>
-
-      {/* Statistik */}
-      <section className="grid gap-4 md:grid-cols-3">
-        {statItems.map((it) => (
-          <StatCard
-            key={it.label}
-            label={it.label}
-            value={it.value}
-            desc={it.desc}
-            loading={loadingStats}
-          />
         ))}
       </section>
 
-      {statsError && (
-        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {statsError}
+      <section id="monitoring-proyek" className="dashboard-panel">
+        <div className="dashboard-panel-head">
+          <div>
+            <p className="dashboard-section-label">Monitoring Proyek</p>
+            <h3>Daftar Proyek Interior</h3>
+          </div>
+
+          <div className="dashboard-action-group">
+            <button>Tambah</button>
+            <button>Edit</button>
+            <button className="danger">Hapus</button>
+          </div>
         </div>
-      )}
 
-      {/* Navigasi utama */}
-      <section className="grid gap-4 md:grid-cols-3">
-        <Link
-          to="/admin/volunteers"
-          className="group bg-gradient-to-br from-white via-white to-blue-50 rounded-2xl shadow-sm border border-slate-100 p-4 hover:shadow-md hover:-translate-y-0.5 transition"
-        >
-          <h3 className="font-semibold text-slate-900">Data Relawan</h3>
-          <p className="text-sm text-slate-500 mt-2">
-            Lihat dan kelola pendaftaran relawan pada setiap event/bencana.
-          </p>
-        </Link>
-
-        <Link
-          to="/admin/events"
-          className="group bg-gradient-to-br from-white via-white to-yellow-50 rounded-2xl shadow-sm border border-slate-100 p-4 hover:shadow-md hover:-translate-y-0.5 transition"
-        >
-          <h3 className="font-semibold text-slate-900">Data Event / Bencana</h3>
-          <p className="text-sm text-slate-500 mt-2">
-            Tambah, ubah, atau arsipkan event/bencana yang tampil di aplikasi.
-          </p>
-        </Link>
-
-        <Link
-          to="/admin/users"
-          className="group bg-gradient-to-br from-white via-white to-slate-50 rounded-2xl shadow-sm border border-slate-100 p-4 hover:shadow-md hover:-translate-y-0.5 transition"
-        >
-          <h3 className="font-semibold text-slate-900">Data Pengguna</h3>
-          <p className="text-sm text-slate-500 mt-2">
-            Kelola akun pengguna, akses, dan informasi profil dengan mudah.
-          </p>
-        </Link>
+        <div className="dashboard-table-wrap">
+          <table className="dashboard-table">
+            <thead>
+              <tr>
+                <th>Nama Proyek</th>
+                <th>Client</th>
+                <th>Progress</th>
+                <th>Deadline</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projectRows.map((item) => (
+                <tr key={item.name}>
+                  <td>{item.name}</td>
+                  <td>{item.client}</td>
+                  <td>{item.progress}</td>
+                  <td>{item.deadline}</td>
+                  <td>
+                    <span
+                      className={`status-badge ${statusClass(item.status)}`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </section>
+
+      <div className="dashboard-two-column">
+        <section id="stok-material" className="dashboard-panel">
+          <div className="dashboard-panel-head">
+            <div>
+              <p className="dashboard-section-label">Stok Material</p>
+              <h3>Kontrol Persediaan</h3>
+            </div>
+            <button className="dashboard-link-btn">Kelola Stok</button>
+          </div>
+
+          <div className="dashboard-mini-list">
+            {stockRows.map((item) => (
+              <div key={item.material} className="dashboard-mini-card">
+                <div>
+                  <h4>{item.material}</h4>
+                  <p>{item.stock}</p>
+                </div>
+                <span className={`stock-badge ${stockClass(item.status)}`}>
+                  {item.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="jumlah-karyawan" className="dashboard-panel">
+          <div className="dashboard-panel-head">
+            <div>
+              <p className="dashboard-section-label">Jumlah Karyawan</p>
+              <h3>Tim yang Sedang Bertugas</h3>
+            </div>
+            <button className="dashboard-link-btn">Kelola Tim</button>
+          </div>
+
+          <div className="dashboard-team-list">
+            {teamRows.map((item) => (
+              <div key={item.name} className="dashboard-team-card">
+                <div className="team-avatar">
+                  {item.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)}
+                </div>
+                <div>
+                  <h4>{item.name}</h4>
+                  <p>{item.role}</p>
+                  <span>{item.project}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="dashboard-two-column">
+        <section id="laporan-proyek" className="dashboard-panel">
+          <div className="dashboard-panel-head">
+            <div>
+              <p className="dashboard-section-label">Laporan</p>
+              <h3>Ringkasan dan Dokumen</h3>
+            </div>
+            <button className="dashboard-link-btn">Lihat Semua</button>
+          </div>
+
+          <div className="dashboard-report-list">
+            {reports.map((item) => (
+              <div key={item.title} className="dashboard-report-card">
+                <h4>{item.title}</h4>
+                <p>{item.desc}</p>
+                <div className="dashboard-report-actions">
+                  <button>Preview</button>
+                  <button>Download</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="admin-tools" className="dashboard-panel">
+          <div className="dashboard-panel-head">
+            <div>
+              <p className="dashboard-section-label">Admin</p>
+              <h3>Aksi CRUD Cepat</h3>
+            </div>
+            <button className="dashboard-link-btn">Panel Admin</button>
+          </div>
+
+          <div className="dashboard-admin-grid">
+            {adminActions.map((item) => (
+              <button key={item} className="dashboard-admin-action">
+                {item}
+              </button>
+            ))}
+          </div>
+
+          <div className="dashboard-note-box">
+            <strong>Catatan:</strong>
+            <p>
+              Tombol di atas sudah disiapkan sebagai area aksi CRUD. Nanti
+              tinggal disambungkan ke modal/form atau halaman data sesuai
+              struktur backend yang kamu pakai.
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

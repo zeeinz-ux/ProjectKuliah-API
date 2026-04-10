@@ -13,9 +13,14 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const handleGoogleSuccess = (data) => {
-    localStorage.setItem("user", JSON.stringify(data.user));
+    console.log("Google success:", data);
 
-    if (data.user?.role === "admin") {
+    const user = data.user;
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    // sementara pakai email admin
+    if (user?.email === "aliffahriaditya10@gmail.com") {
       navigate("/admin");
     } else {
       navigate("/");

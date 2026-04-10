@@ -1,7 +1,7 @@
 // src/components/GoogleLoginButton.jsx
 import { useEffect, useRef } from "react";
 
-const API_BASE_URL = "http://localhost:3333";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
 
 export default function GoogleLoginButton({ onSuccess, onError }) {
   const buttonRef = useRef(null);
@@ -25,15 +25,14 @@ export default function GoogleLoginButton({ onSuccess, onError }) {
             });
 
             const data = await res.json();
-            console.log('Google login response:', data);
-            
+            console.log("Google login response:", data);
+
             if (!res.ok) {
               throw new Error(data.message || "Login Google gagal");
             }
-            
+
             // Backend mengirim token untuk sukses, bukan success field
-            if (data.token) {
-              localStorage.setItem("token", data.token);
+            if (data.token || data.data?.token) {
               onSuccess?.(data);
             } else {
               throw new Error(data.message || "Login Google gagal");
