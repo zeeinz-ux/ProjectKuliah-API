@@ -13,20 +13,24 @@ export default class AuthController {
     try {
       const { name, email, password } = request.only(['name', 'email', 'password'])
 
-      // Check if user already exists
+      if (!name || !email || !password) {
+        return response.badRequest({
+          message: 'Nama, email, dan password wajib diisi',
+        })
+      }
+
       const existingUser = await User.findOne({ email })
       if (existingUser) {
         return response.badRequest({ message: 'Email sudah terdaftar' })
       }
 
-      // Hash password
       const hashedPassword = await bcrypt.hash(password, 10)
 
-      // Create user
       const user = await User.create({
         name,
         email,
         password: hashedPassword,
+        role: 'user',
       })
 
       return response.created({
@@ -35,9 +39,11 @@ export default class AuthController {
           id: user._id,
           name: user.name,
           email: user.email,
+          role: user.role,
         },
       })
     } catch (error) {
+      console.error('Register error:', error)
       return response.internalServerError({ message: 'Terjadi kesalahan server' })
     }
   }
@@ -141,7 +147,7 @@ export default class AuthController {
             email,
             googleId,
             password: '', // atau biarkan null kalau schema mengizinkan
-            // role: 'relawan', // isi ini kalau tidak ada default di schema
+            // role: 'user', // isi ini kalau tidak ada default di schema
           })
         }
       }
@@ -158,15 +164,18 @@ export default class AuthController {
         { expiresIn: '24h' }
       )
 
+      const redirectTo = user.role === 'admin' ? '/admin' : '/monitoring'
+
       return response.ok({
-        message: 'Login dengan Google berhasil',
+        message: 'Login berhasil',
         token,
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
-          role: user.role,
+          role: user.role || 'user',
         },
+        redirectTo,
       })
     } catch (error) {
       console.error('Google login error:', error)

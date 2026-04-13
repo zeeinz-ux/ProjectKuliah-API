@@ -5,8 +5,6 @@ import { useEffect, useState } from "react";
 
 const adminMenu = [
   { to: "/admin", label: "Dashboard", exact: true },
-  { to: "/admin/volunteers", label: "Data Relawan" },
-  { to: "/admin/events", label: "Data Event/Bencana" },
   { to: "/admin/users", label: "Data Pengguna" },
 ];
 

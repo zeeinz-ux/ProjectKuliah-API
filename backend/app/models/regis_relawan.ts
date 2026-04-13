@@ -1,4 +1,4 @@
-import mongoose from '#config/mongo'
+import { mongoose } from '#config/mongo'
 
 const RegisRelawanSchema = new mongoose.Schema(
   {

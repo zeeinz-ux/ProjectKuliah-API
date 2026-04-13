@@ -1,4 +1,4 @@
-import mongoose from '#config/mongo'
+import  mongoose  from '#config/mongo'
 
 const CertificateSchema = new mongoose.Schema(
   {
@@ -13,27 +13,25 @@ const CertificateSchema = new mongoose.Schema(
   { _id: true } // biar tiap sertifikat punya _id sendiri
 )
 
-const UserSchema = new mongoose.Schema(
+const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: false, default: ''},
+    password: { type: String, default: '' },
+    googleId: { type: String, default: '' },
+    avatar: { type: String, default: '' },
     role: {
       type: String,
-      enum: ['admin', 'relawan'],
-      default: 'relawan',
+      enum: ['admin', 'user'],
+      default: 'user',
     },
-    googleId: { type: String, unique: true, sparse: true },
-
-    certificates: {
-      type: [CertificateSchema],
-      default: () => [],
-    }
+    certificates: { type: [CertificateSchema], default: [] },
   },
   {
     timestamps: true,
   }
 )
 
-const User = mongoose.model('User', UserSchema)
-export default User //pakai 'export default' untuk model tunggal, dan 'export' untuk banyak ekspor.
+const User = mongoose.models.User || mongoose.model('User', userSchema)
+
+export default User// pakai 'export default' untuk model tunggal, dan 'export' untuk banyak ekspor.

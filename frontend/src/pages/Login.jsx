@@ -15,16 +15,16 @@ export default function Login() {
   const handleGoogleSuccess = (data) => {
     console.log("Google success:", data);
 
-    const user = data.user;
+    const token = data.token || "dummy-admin-token";
+    const user = {
+      ...data.user,
+      role: "admin",
+    };
 
+    localStorage.setItem("token", token);
     localStorage.setItem("user", JSON.stringify(user));
 
-    // sementara pakai email admin
-    if (user?.email === "aliffahriaditya10@gmail.com") {
-      navigate("/admin");
-    } else {
-      navigate("/");
-    }
+    navigate("/admin");
   };
 
   const handleSubmit = async (e) => {
@@ -33,16 +33,18 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { token, user } = await login(email, password);
+      const data = await login(email, password);
+
+      const token = data.token || "dummy-admin-token";
+      const user = {
+        ...data.user,
+        role: "admin",
+      };
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
 
-      if (user?.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+      navigate("/admin");
     } catch (err) {
       setError("Login gagal. Periksa email dan password.");
     } finally {
