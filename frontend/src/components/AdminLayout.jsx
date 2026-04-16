@@ -20,7 +20,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 
-const COMPANY_NAME = "Medtic Interior";
+const COMPANY_NAME = "Medtic Indonesia";
 const COMPANY_LOGO = logo;
 
 const menuSections = [
@@ -49,7 +49,7 @@ const menuSections = [
       {
         type: "link",
         to: "/admin/materials",
-        label: "Material / Stok",
+        label: "Stok Material",
         icon: FiBox,
       },
     ],
@@ -177,10 +177,10 @@ export default function AdminLayout() {
   };
 
   const displayName = user?.name || user?.email || "Administrator";
-  
+
   const roleLabel = user?.role
-  ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
-  : "Admin";
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    : "Admin";
 
   return (
     <div className={`admin-layout ${isCollapsed ? "sidebar-collapsed" : ""}`}>

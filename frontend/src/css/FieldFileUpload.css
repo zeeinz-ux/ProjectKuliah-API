@@ -1,0 +1,253 @@
+* {
+  box-sizing: border-box;
+}
+
+.upload-card {
+  width: 100%;
+  max-width: 760px;
+  background: #ffffff;
+  border: 1px solid #d9e0e5;
+  border-radius: 24px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+  overflow: hidden;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: #101828;
+}
+
+.upload-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e9eef2;
+  background: #fbfcfc;
+}
+
+.upload-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f1728;
+}
+
+.upload-header p {
+  margin: 8px 0 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.upload-body {
+  padding: 24px;
+}
+
+.upload-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 190px;
+  border: 2px dashed #cfd8dc;
+  border-radius: 20px;
+  background: #f8fbf9;
+  color: #344054;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 24px;
+}
+
+.upload-dropzone:hover {
+  border-color: #12a150;
+  background: #f2fbf5;
+}
+
+.upload-dropzone input {
+  display: none;
+}
+
+.upload-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8f5ec;
+  color: #0f9d58;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.upload-dropzone strong {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.upload-dropzone small {
+  color: #667085;
+  font-size: 13px;
+}
+
+.file-info {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background: #fafafa;
+}
+
+.file-info p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #344054;
+}
+
+.file-info span {
+  font-weight: 700;
+  color: #101828;
+}
+
+.upload-actions {
+  margin-top: 18px;
+}
+
+.upload-btn {
+  height: 46px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  background: #0f9d58;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-btn:hover:not(:disabled) {
+  background: #0b8449;
+}
+
+.upload-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.message {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.message.error {
+  background: #fef3f2;
+  color: #b42318;
+  border: 1px solid #fecdca;
+}
+
+.message.success {
+  background: #ecfdf3;
+  color: #067647;
+  border: 1px solid #abefc6;
+}
+
+.result-box {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid #e4e7ec;
+  border-radius: 18px;
+  background: #fcfcfd;
+}
+
+.result-box h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: #101828;
+}
+
+.preview-wrapper {
+  width: 180px;
+  height: 180px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #e4e7ec;
+  background: #f2f4f7;
+  margin-bottom: 16px;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Kalau file yang diupload adalah PDF */
+.pdf-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 14px;
+  background: #f9fafb;
+  border: 1px solid #e4e7ec;
+  margin-bottom: 16px;
+}
+
+.pdf-badge {
+  min-width: 54px;
+  height: 34px;
+  border-radius: 999px;
+  background: #ecfdf3;
+  color: #067647;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.url-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.url-box label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #344054;
+}
+
+.url-box textarea {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  border: 1px solid #d0d5dd;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #101828;
+  background: #ffffff;
+  outline: none;
+}
+
+.url-box textarea:focus {
+  border-color: #12a150;
+}
+
+@media (max-width: 768px) {
+  .upload-card {
+    border-radius: 18px;
+  }
+
+  .upload-header h2 {
+    font-size: 22px;
+  }
+
+  .preview-wrapper {
+    width: 140px;
+    height: 140px;
+  }
+}

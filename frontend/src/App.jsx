@@ -1,44 +1,35 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Footer from "./components/Footer";
 
-// Halaman publik & user
-import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Profile from "./pages/Profile";
 
-// Proteksi route
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Halaman admin
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProject from "./pages/AdminProject";
+import StokMaterial from "./pages/StokMaterial";
+import ClientManagement from "./pages/ClientManagement";
 import AdminLayout from "./components/AdminLayout";
+import FieldFileUpload from "./pages/FieldFileUpload";
+import Laporan from "./pages/Laporan";
+import UserManagement from "./pages/UserManagement";
+import ProfileSettings from "./pages/ProfileSettings";
 
 function App() {
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith("/admin");
+  const isAuthRoute =
+    location.pathname === "/" ||
+    location.pathname === "/login" ||
+    location.pathname === "/register";
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      {!isAdminRoute && <Navbar />}
-
-      <main className={isAdminRoute ? "flex-1" : "flex-1 pt-0"}>
+      <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
 
           <Route
             path="/admin"
@@ -50,11 +41,17 @@ function App() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="projects" element={<AdminProject />} />
+            <Route path="materials" element={<StokMaterial />} />
+            <Route path="clients" element={<ClientManagement />} />
+            <Route path="documentation" element={<FieldFileUpload />} />
+            <Route path="laporan" element={<Laporan />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="settings" element={<ProfileSettings />} />
           </Route>
         </Routes>
       </main>
 
-      {!isAdminRoute && <Footer />}
+      {isAuthRoute && <Footer />}
     </div>
   );
 }

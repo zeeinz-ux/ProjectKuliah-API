@@ -10,7 +10,11 @@
   display: flex;
   overflow: hidden;
   background:
-    radial-gradient(circle at top right, rgba(1, 19, 48, 0.16), transparent 28%),
+    radial-gradient(
+      circle at top right,
+      rgba(1, 19, 48, 0.16),
+      transparent 28%
+    ),
     linear-gradient(180deg, #f4f8ff 0%, #edf3ff 100%);
   color: #0f172a;
   position: relative;
@@ -28,7 +32,9 @@
   overflow: hidden;
   flex-shrink: 0;
   box-shadow: 18px 0 40px rgba(7, 20, 44, 0.18);
-  transition: width 0.28s ease, transform 0.28s ease;
+  transition:
+    width 0.28s ease,
+    transform 0.28s ease;
   z-index: 30;
   position: relative;
 }
@@ -77,7 +83,9 @@
 
 .brand-meta {
   min-width: 0;
-  transition: opacity 0.2s ease, width 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    width 0.2s ease;
 }
 
 .brand-meta h1 {
@@ -160,7 +168,9 @@
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: rgba(191, 219, 254, 0.78);
-  transition: opacity 0.25s ease, width 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    width 0.25s ease;
 }
 
 .menu-section__items {
@@ -181,7 +191,10 @@
   background: transparent;
   color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
-  transition: background0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    background0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
   font: inherit;
 }
 
@@ -227,7 +240,9 @@
   text-align: left;
   font-size: 0.95rem;
   font-weight: 600;
-  transition: opacity 0.25s ease, width 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    width 0.25s ease;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -238,7 +253,10 @@
   align-items: center;
   justify-content: center;
   color: currentColor;
-  transition: transform 0.25s ease, opacity 0.25s ease, width 0.25s ease;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease,
+    width 0.25s ease;
 }
 
 .menu-chevron--open {
@@ -289,7 +307,11 @@
   z-index: 3;
   padding: 12px 12px 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(11, 31, 77, 0.96) 0%, rgba(11, 31, 77, 1) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(11, 31, 77, 0.96) 0%,
+    rgba(11, 31, 77, 1) 100%
+  );
 }
 
 .profile-card {
@@ -322,7 +344,9 @@
 
 .profile-info {
   min-width: 0;
-  transition: opacity 0.25s ease, width 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    width 0.25s ease;
 }
 
 .profile-info strong {

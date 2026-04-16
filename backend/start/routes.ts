@@ -9,11 +9,18 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
+const FileController = () => import('../app/controllers/FileController.js')
 
 // Login routes (public)
 router.post('/register', '#controllers/authController.register')
 router.post('/login', '#controllers/authController.login')
 router.post('/google-login', '#controllers/authController.googleLogin')
+
+// Endpoint untuk simpan data setelah upload Cloudinary
+router.post('/api/files', [FileController, 'saveFileMetadata'])
+
+// Endpoint untuk ambil riwayat project
+router.get('/api/files/project/:projectId', [FileController, 'getFilesByProject'])
 
 //CRUD admin
 router
@@ -32,11 +39,17 @@ router
   .group(() => {
     router.post('/users/:id/certificates', '#controllers/usersController.addCertificate')
     router.put('/users/:id/certificates/:certId', '#controllers/usersController.updateCertificate')
-    router.delete('/users/:id/certificates/:certId', '#controllers/usersController.deleteCertificate')
+    router.delete(
+      '/users/:id/certificates/:certId',
+      '#controllers/usersController.deleteCertificate'
+    )
   })
   .use(middleware.auth())
 
-router.get('/admin/stats', '#controllers/usersController.getAdminStats').use(middleware.auth()).use(middleware.admin())
+router
+  .get('/admin/stats', '#controllers/usersController.getAdminStats')
+  .use(middleware.auth())
+  .use(middleware.admin())
 
 router
   .group(() => {

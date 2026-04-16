@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { register } from "../api/authApi"; // sesuaikan dengan project-mu
+import { register } from "../api/authApi";
+import "../css/Register.css";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ export default function RegisterPage() {
       setError(
         err?.response?.data?.message ||
           err?.message ||
-          "Pendaftaran gagal. Silakan coba lagi."
+          "Pendaftaran gagal. Silakan coba lagi.",
       );
     } finally {
       setLoading(false);
@@ -41,109 +42,71 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-md border border-slate-100 px-6 py-7 md:px-8">
-          {/* Header */}
-          <div className="mb-6">
-            <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
-              Daftar
-            </p>
-            <h1 className="mt-1 text-xl md:text-2xl font-bold text-slate-900">
-              Buat akun baru
-            </h1>
+    <div className="register-page">
+      <div className="register-container">
+        <div className="register-card">
+          <div className="register-header">
+            <p className="register-subtitle">Daftar</p>
+            <h1 className="register-title">Buat akun baru</h1>
+            <p className="register-desc">Silakan isi data untuk membuat akun</p>
           </div>
 
-          {/* Error */}
-          {error && (
-            <div className="mb-4 text-xs text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded-xl">
-              {error}
-            </div>
-          )}
+          {error && <div className="register-alert error-alert">{error}</div>}
 
-          {/* Success */}
           {success && (
-            <div className="mb-4 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded-xl">
-              {success}
-            </div>
+            <div className="register-alert success-alert">{success}</div>
           )}
 
-          {/* FORM REGISTER */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Nama lengkap */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Nama lengkap
-              </label>
+          <form onSubmit={handleSubmit} className="register-form">
+            <div className="form-group">
+              <label htmlFor="fullName">Nama lengkap</label>
               <input
+                id="fullName"
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm
-                          placeholder:text-slate-400 text-slate-900
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Contoh: Andi Pratama"
+                placeholder="Contoh: Fullstack Plenger"
               />
             </div>
 
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Email
-              </label>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
               <input
+                id="email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm
-                          placeholder:text-slate-400 text-slate-900
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="contoh@mail.com"
+                placeholder="Contoh@gmail.com"
               />
             </div>
 
-            {/* Password */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-medium text-slate-700">
-                Kata sandi
-              </label>
+            <div className="form-group">
+              <label htmlFor="password">Kata sandi</label>
               <input
+                id="password"
                 type="password"
                 required
                 minLength={6}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-xl border border-slate-200 px-3 py-2 text-sm
-                          placeholder:text-slate-400 text-slate-900
-                          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Minimal 6 karakter"
               />
             </div>
 
-            {/* Tombol submit */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition
-                ${
-                  loading
-                    ? "bg-slate-300 text-slate-600 cursor-not-allowed"
-                    : "bg-blue-700 text-white hover:bg-blue-800"
-                }`}
+              className={`register-button ${loading ? "loading" : ""}`}
             >
               {loading ? "Memproses..." : "Daftar"}
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="mt-5 text-[11px] text-slate-500 text-center">
+          <p className="register-footer-text">
             Sudah punya akun?{" "}
-            <Link
-              to="/login"
-              className="font-semibold text-blue-700 hover:text-blue-800"
-            >
+            <Link to="/login" className="register-link">
               Masuk di sini
             </Link>
           </p>
