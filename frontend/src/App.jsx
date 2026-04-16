@@ -13,6 +13,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 // Halaman admin
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProject from "./pages/AdminProject";
 import AdminLayout from "./components/AdminLayout";
 
 function App() {
@@ -48,6 +49,7 @@ function App() {
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="projects" element={<AdminProject />} />
           </Route>
         </Routes>
       </main>

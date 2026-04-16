@@ -1,16 +1,124 @@
 // src/components/AdminLayout.jsx
 
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import "../css/AdminLayout.css";
+import logo from "../assets/logo.svg";
+import {
+  FiChevronDown,
+  FiChevronLeft,
+  FiChevronRight,
+  FiGrid,
+  FiTrendingUp,
+  FiBox,
+  FiUsers,
+  FiFolder,
+  FiFileText,
+  FiUserCheck,
+  FiSettings,
+  FiLogOut,
+  FiUser,
+} from "react-icons/fi";
 
-const adminMenu = [
-  { to: "/admin", label: "Dashboard", exact: true },
-  { to: "/admin/users", label: "Data Pengguna" },
+const COMPANY_NAME = "Medtic Interior";
+const COMPANY_LOGO = logo;
+
+const menuSections = [
+  {
+    title: "Overview",
+    items: [
+      {
+        type: "link",
+        to: "/admin",
+        label: "Dashboard",
+        exact: true,
+        icon: FiGrid,
+      },
+      {
+        type: "link",
+        to: "/admin/projects",
+        label: "Project",
+        icon: FiTrendingUp,
+      },
+      // {
+      //   type: "link",
+      //   to: "/admin/progress",
+      //   label: "Progress",
+      //   icon: FiTrendingUp,
+      // },
+      {
+        type: "link",
+        to: "/admin/materials",
+        label: "Material / Stok",
+        icon: FiBox,
+      },
+    ],
+  },
+  {
+    title: "Commerce",
+    items: [
+      {
+        type: "link",
+        to: "/admin/clients",
+        label: "Client",
+        icon: FiUsers,
+      },
+      {
+        type: "link",
+        to: "/admin/documentation",
+        label: "Files",
+        icon: FiFolder,
+      },
+      {
+        type: "link",
+        to: "/admin/laporan",
+        label: "Laporan",
+        icon: FiFileText,
+      },
+    ],
+  },
+  {
+    title: "Management",
+    items: [
+      {
+        type: "link",
+        to: "/admin/users",
+        label: "Users",
+        icon: FiUser,
+      },
+      {
+        type: "link",
+        to: "/admin/settings",
+        label: "Settings",
+        icon: FiSettings,
+      },
+    ],
+  },
 ];
+
+function getInitialOpenMenus(pathname) {
+  return {
+    project: pathname.startsWith("/admin/projects"),
+    progress: pathname.startsWith("/admin/progress"),
+    material: pathname.startsWith("/admin/materials"),
+    client: pathname.startsWith("/admin/clients"),
+    documentation: pathname.startsWith("/admin/documentation"),
+    reports: pathname.startsWith("/admin/reports"),
+    users: pathname.startsWith("/admin/users"),
+    settings: pathname.startsWith("/admin/settings"),
+  };
+}
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [user, setUser] = useState(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState(() =>
+    getInitialOpenMenus(location.pathname),
+  );
 
   useEffect(() => {
     const raw = localStorage.getItem("user");
@@ -24,99 +132,248 @@ export default function AdminLayout() {
     }
   }, []);
 
+  useEffect(() => {
+    const autoOpenMenus = getInitialOpenMenus(location.pathname);
+
+    setOpenMenus((prev) => ({
+      ...prev,
+      ...Object.fromEntries(
+        Object.entries(autoOpenMenus).filter(([, value]) => value),
+      ),
+    }));
+
+    setIsMobileSidebarOpen(false);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     navigate("/login");
   };
 
+  const toggleSidebar = () => {
+    setIsCollapsed((prev) => !prev);
+  };
+
+  const isPathActive = (path, exact = false) => {
+    if (exact) return location.pathname === path;
+    return location.pathname.startsWith(path);
+  };
+
+  const isGroupActive = (children = []) => {
+    return children.some((child) => isPathActive(child.to, child.exact));
+  };
+
+  const toggleMenu = (key) => {
+    if (isCollapsed) {
+      setIsCollapsed(false);
+      return;
+    }
+
+    setOpenMenus((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const displayName = user?.name || user?.email || "Administrator";
+  
+  const roleLabel = user?.role
+  ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+  : "Admin";
+
   return (
-    <div className="min-h-screen flex bg-slate-50 text-slate-900">
-      {/* SIDEBAR */}
-      <aside className="w-72 bg-gradient-to-b from-blue-700 via-blue-800 to-blue-900 text-white shadow-2xl flex flex-col">
-        {/* Header sidebar */}
-        <div className="px-5 py-4 border-b border-white/10 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-yellow-300 flex items-center justify-center shadow-md">
-            <span className="font-extrabold text-blue-900 text-lg">A</span>
+    <div className={`admin-layout ${isCollapsed ? "sidebar-collapsed" : ""}`}>
+      {isMobileSidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-overlay"
+          onClick={() => setIsMobileSidebarOpen(false)}
+          aria-label="Tutup sidebar"
+        />
+      )}
+
+      <aside
+        className={`admin-sidebar ${isMobileSidebarOpen ? "mobile-open" : ""}`}
+      >
+        <div className="admin-sidebar__header">
+          <div className="brand-block">
+            <div className="brand-logo">
+              <img
+                src={COMPANY_LOGO}
+                alt="Logo perusahaan"
+                className="brand-logo-image"
+              />
+            </div>
+
+            <div className="brand-meta">
+              <h1>{COMPANY_NAME}</h1>
+            </div>
           </div>
-          <div className="flex-1">
-            <h1 className="text-base font-semibold tracking-wide">
-              Admin Dashboard
-            </h1>
-            {user && (
-              <p className="text-xs text-blue-100 mt-0.5">
-                Login sebagai{" "}
-                <span className="font-medium">{user.name || user.email}</span>
-              </p>
-            )}
-          </div>
+
+          <button
+            type="button"
+            className="sidebar-toggle sidebar-toggle--desktop sidebar-toggle--floating"
+            onClick={toggleSidebar}
+            aria-label={isCollapsed ? "Perbesar sidebar" : "Kecilkan sidebar"}
+            title={isCollapsed ? "Perbesar sidebar" : "Kecilkan sidebar"}
+          >
+            {isCollapsed ? <FiChevronRight /> : <FiChevronLeft />}
+          </button>
+
+          <button
+            type="button"
+            className="sidebar-toggle sidebar-toggle--mobile"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            aria-label="Tutup sidebar mobile"
+            title="Tutup sidebar mobile"
+          >
+            ✕
+          </button>
         </div>
 
-        {/* Menu sidebar */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {adminMenu.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.exact}
-              className={({ isActive }) =>
-                [
-                  "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
-                  "hover:bg-blue-600/70 hover:translate-x-0.5",
-                  isActive
-                    ? "bg-white text-blue-700 shadow-sm"
-                    : "text-blue-50/90",
-                ].join(" ")
-              }
-            >
-              {/* Bullet / accent kecil */}
-              <span className="h-2 w-2 rounded-full bg-yellow-300 group-[.active]:bg-blue-600" />
-              <span>{item.label}</span>
-            </NavLink>
+        <nav className="admin-sidebar__nav">
+          {menuSections.map((section) => (
+            <div className="menu-section" key={section.title}>
+              <p className="menu-section__title">{section.title}</p>
+
+              <div className="menu-section__items">
+                {section.items.map((item) => {
+                  if (item.type === "link") {
+                    const Icon = item.icon;
+
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={item.exact}
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                        className={({ isActive }) =>
+                          `menu-link ${isActive ? "active" : ""}`
+                        }
+                      >
+                        <span className="menu-icon">
+                          <Icon />
+                        </span>
+                        <span className="menu-text">{item.label}</span>
+                      </NavLink>
+                    );
+                  }
+
+                  const Icon = item.icon;
+                  const groupActive = isGroupActive(item.children);
+                  const groupOpen = openMenus[item.key];
+
+                  return (
+                    <div
+                      className={`menu-group ${
+                        groupActive ? "menu-group--active" : ""
+                      }`}
+                      key={item.key}
+                    >
+                      <button
+                        type="button"
+                        className={`menu-link menu-link--button ${
+                          groupActive ? "active-parent" : ""
+                        }`}
+                        onClick={() => toggleMenu(item.key)}
+                      >
+                        <span className="menu-icon">
+                          <Icon />
+                        </span>
+                        <span className="menu-text">{item.label}</span>
+                        <span
+                          className={`menu-chevron ${
+                            groupOpen ? "menu-chevron--open" : ""
+                          }`}
+                        >
+                          <FiChevronDown />
+                        </span>
+                      </button>
+
+                      {!isCollapsed && groupOpen && (
+                        <div className="submenu">
+                          {item.children.map((child) => (
+                            <NavLink
+                              key={child.to}
+                              to={child.to}
+                              onClick={() => setIsMobileSidebarOpen(false)}
+                              className={({ isActive }) =>
+                                `submenu-link ${isActive ? "active" : ""}`
+                              }
+                            >
+                              <span className="submenu-bullet" />
+                              <span>{child.label}</span>
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           ))}
         </nav>
 
-        {/* Footer sidebar */}
-        <div className="px-4 py-4 border-t border-white/10">
-          <button
-            onClick={handleLogout}
-            className="w-full text-sm px-3 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-yellow-300 font-semibold tracking-wide transition"
-          >
-            Logout
-          </button>
-          <p className="mt-2 text-[11px] text-blue-100/80">
-            Memastikan admin memiliki akses penuh terhadap seluruh fitur web.
-          </p>
+        <div className="admin-sidebar__footer">
+          <div className="profile-card">
+            <div className="profile-card__left">
+              <div className="profile-avatar">
+                <FiUser />
+              </div>
+
+              <div className="profile-info">
+                <strong>{displayName}</strong>
+                <span>{roleLabel}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="profile-logout-btn"
+              onClick={handleLogout}
+              aria-label="Logout"
+              title="Logout"
+            >
+              <FiLogOut />
+            </button>
+          </div>
         </div>
       </aside>
 
-      {/* KONTEN UTAMA ADMIN */}
-      <section className="flex-1 p-6 md:p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
-          {/* Bar di atas konten admin */}
-          <div className="flex items-center justify-between gap-3">
+      <div className="admin-main">
+        <header className="admin-topbar">
+          <div className="admin-topbar__left">
+            <button
+              type="button"
+              className="mobile-menu-btn"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              aria-label="Buka sidebar"
+            >
+              ☰
+            </button>
+
             <div>
-              <p className="text-xs font-semibold tracking-[0.15em] uppercase text-blue-600">
-                Admin Area
-              </p>
-              <p className="text-sm text-slate-500">
-                Kelola data dan konfigurasi aplikasi dari satu tempat.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-1 text-[11px] font-medium text-green-700 border border-green-200">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-500" />
-                Online
-              </span>
+              <p className="admin-kicker">Admin Area</p>
+              <h2 className="admin-title">Sistem Monitoring Interior</h2>
             </div>
           </div>
 
-          {/* Outlet akan diisi oleh page admin: Dashboard, Volunteers, Events, Users */}
-          <div className="bg-white rounded-2xl shadow-md border border-slate-100 p-5 md:p-6">
+          <div className="admin-topbar__right">
+            <span className="status-badge">
+              <span className="status-dot" />
+              Online
+            </span>
+          </div>
+        </header>
+
+        <section className="admin-content">
+          <div className="admin-content__card">
             <Outlet />
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

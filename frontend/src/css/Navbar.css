@@ -43,6 +43,7 @@
 
 .navbar-title {
   color: white;
+  gradient: linear-gradient(90deg, #3b82f6, #2563eb);
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.5px;
