@@ -3,10 +3,36 @@
 }
 
 .user-management-page {
-  min-height: 100vh;
-  padding: 28px;
-  background: linear-gradient(180deg, #f8fafc 0%, #f3f7f5 100%);
-  color: #0f172a;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+}
+
+.user-management-page .toolbar-card {
+  position: relative;
+  z-index: 5;
+  overflow: visible;
+}
+
+.user-management-page .actions-row,
+.user-management-page .table-actions,
+.user-management-page .columns-wrapper {
+  overflow: visible;
+}
+
+.user-management-page .columns-wrapper {
+  position: relative;
+  z-index: 6;
+}
+
+.user-management-page .columns-dropdown {
+  z-index: 20;
+}
+
+.user-management-page .table-card {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
 }
 
 .user-management-top {
@@ -69,8 +95,8 @@
 }
 
 .toolbar-card {
-  padding: 18px;
-  margin-bottom: 20px;
+  position: relative;
+  z-index: 5;
 }
 
 .tabs-row {

@@ -335,3 +335,98 @@
     font-size: 22px;
   }
 }
+
+/* =========================
+   CHANGE PASSWORD SECTION
+========================= */
+.profile-section-divider {
+  margin-top: 30px;
+  padding-top: 26px;
+  border-top: 1px solid #e7ecef;
+}
+
+.profile-section-divider h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.profile-section-divider p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.password-form-grid {
+  margin-top: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  padding-right: 48px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border: none;
+  outline: none;
+  border-radius: 12px;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.25s ease;
+}
+
+.password-toggle-btn:hover {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.password-toggle-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================
+   RESPONSIVE PASSWORD
+========================= */
+@media (max-width: 1200px) {
+  .password-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .password-field:last-child {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-section-divider {
+    margin-top: 24px;
+    padding-top: 22px;
+  }
+
+  .password-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .password-field:last-child {
+    grid-column: span 1;
+  }
+}

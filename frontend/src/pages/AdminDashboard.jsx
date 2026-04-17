@@ -294,7 +294,13 @@ function OverviewChart({ data }) {
     "Nov",
     "Dec",
   ];
-  const yLabels = ["$60k", "$45k", "$30k", "$15k", "$0k"];
+  const yLabels = [
+    "Rp.1.031.814,27",
+    "Rp.773.860,71",
+    "Rp.515.907,14",
+    "Rp.257.953,57",
+    "Rp.0",
+  ];
   const yValues = [60, 45, 30, 15, 0];
 
   return (

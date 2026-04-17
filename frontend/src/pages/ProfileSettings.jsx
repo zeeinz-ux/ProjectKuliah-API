@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../css/ProfileSettings.css";
 
 const fallbackUser = {
@@ -20,6 +21,18 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     email: "",
     bio: "",
     avatar: "",
+  });
+
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
+  });
+
+  const [showPassword, setShowPassword] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmNewPassword: false,
   });
 
   const [loadingUser, setLoadingUser] = useState(true);
@@ -88,6 +101,11 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     };
   }, [currentUser]);
 
+  const clearMessages = () => {
+    if (successMessage) setSuccessMessage("");
+    if (errorMessage) setErrorMessage("");
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -96,8 +114,25 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
       [name]: value,
     }));
 
-    if (successMessage) setSuccessMessage("");
-    if (errorMessage) setErrorMessage("");
+    clearMessages();
+  };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    clearMessages();
+  };
+
+  const togglePasswordVisibility = (fieldName) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [fieldName]: !prev[fieldName],
+    }));
   };
 
   const handleOpenFilePicker = () => {
@@ -179,6 +214,18 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
         bio: user.bio || "",
         avatar: user.avatar || "",
       });
+
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+
+      setShowPassword({
+        currentPassword: false,
+        newPassword: false,
+        confirmNewPassword: false,
+      });
     } catch (error) {
       setErrorMessage("Gagal mereset data.");
     } finally {
@@ -186,12 +233,47 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     }
   };
 
+  const validatePassword = () => {
+    const { currentPassword, newPassword, confirmNewPassword } = passwordData;
+
+    const isPasswordFilled =
+      currentPassword || newPassword || confirmNewPassword;
+
+    if (!isPasswordFilled) {
+      return true;
+    }
+
+    if (!currentPassword) {
+      setErrorMessage(
+        "Current Password wajib diisi jika ingin mengganti password.",
+      );
+      return false;
+    }
+
+    if (newPassword.length < 6) {
+      setErrorMessage("New Password minimal harus 6 karakter.");
+      return false;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setErrorMessage("New Password dan Confirm New Password harus sama.");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
-    setIsSaving(true);
     setSuccessMessage("");
     setErrorMessage("");
+
+    if (!validatePassword()) {
+      return;
+    }
+
+    setIsSaving(true);
 
     const payload = {
       firstName: formData.firstName.trim(),
@@ -201,13 +283,22 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
       avatar: formData.avatar,
     };
 
+    const isUpdatingPassword =
+      passwordData.currentPassword ||
+      passwordData.newPassword ||
+      passwordData.confirmNewPassword;
+
     try {
       // SIMULASI SAVE KE DATABASE / API
+      // Nanti kalau sudah ada backend, bagian ini bisa diganti fetch/axios ke endpoint update profile dan update password.
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       const updatedUser = {
         ...(currentUser || fallbackUser),
         ...payload,
+        passwordUpdatedAt: isUpdatingPassword
+          ? new Date().toISOString()
+          : undefined,
       };
 
       localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
@@ -216,7 +307,23 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
         setCurrentUser(updatedUser);
       }
 
-      setSuccessMessage("Changes Saved!");
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+      });
+
+      setShowPassword({
+        currentPassword: false,
+        newPassword: false,
+        confirmNewPassword: false,
+      });
+
+      setSuccessMessage(
+        isUpdatingPassword
+          ? "Profile dan password berhasil diperbarui!"
+          : "Changes Saved!",
+      );
     } catch (error) {
       setErrorMessage("Gagal menyimpan perubahan.");
     } finally {
@@ -341,6 +448,92 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
                 onChange={handleChange}
                 disabled={loadingUser}
               />
+            </div>
+          </div>
+
+          <div className="profile-section-divider">
+            <div>
+              <h2>Change Password</h2>
+              <p>
+                Isi bagian ini hanya jika kamu ingin mengganti password akun.
+              </p>
+            </div>
+          </div>
+
+          <div className="profile-form-grid password-form-grid">
+            <div className="form-group password-field">
+              <label htmlFor="currentPassword">Current Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="currentPassword"
+                  name="currentPassword"
+                  type={showPassword.currentPassword ? "text" : "password"}
+                  placeholder="Masukkan password lama"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordChange}
+                  disabled={loadingUser}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => togglePasswordVisibility("currentPassword")}
+                  disabled={loadingUser}
+                  aria-label="Toggle current password visibility"
+                >
+                  {showPassword.currentPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group password-field">
+              <label htmlFor="newPassword">New Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="newPassword"
+                  name="newPassword"
+                  type={showPassword.newPassword ? "text" : "password"}
+                  placeholder="Minimal 6 karakter"
+                  value={passwordData.newPassword}
+                  onChange={handlePasswordChange}
+                  disabled={loadingUser}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => togglePasswordVisibility("newPassword")}
+                  disabled={loadingUser}
+                  aria-label="Toggle new password visibility"
+                >
+                  {showPassword.newPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group password-field">
+              <label htmlFor="confirmNewPassword">Confirm New Password</label>
+              <div className="password-input-wrapper">
+                <input
+                  id="confirmNewPassword"
+                  name="confirmNewPassword"
+                  type={showPassword.confirmNewPassword ? "text" : "password"}
+                  placeholder="Ulangi password baru"
+                  value={passwordData.confirmNewPassword}
+                  onChange={handlePasswordChange}
+                  disabled={loadingUser}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => togglePasswordVisibility("confirmNewPassword")}
+                  disabled={loadingUser}
+                  aria-label="Toggle confirm password visibility"
+                >
+                  {showPassword.confirmNewPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
             </div>
           </div>
 
