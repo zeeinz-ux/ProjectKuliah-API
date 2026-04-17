@@ -1,4 +1,4 @@
-# PT. Medict Indonesia Project-API
+# PT. Medtic Indonesia Project-API
 
 Aplikasi web untuk Rancang Bangun Sistem Informasi Monitoring Proyek Interior Berbasis Web pada PT Medtic Indonesia dengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
 
@@ -23,7 +23,7 @@ Aplikasi web untuk Rancang Bangun Sistem Informasi Monitoring Proyek Interior Be
 ### Frontend
 
 - **Framework**: React 19
-- **Styling**: TailwindCSS v4
+- **Styling**: CSS
 - **Routing**: React Router DOM v7
 - **HTTP Client**: Axios
 - **Build Tool**: Vite
