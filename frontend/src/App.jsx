@@ -18,6 +18,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 
 function App() {
   const location = useLocation();
+
   const isAuthRoute =
     location.pathname === "/" ||
     location.pathname === "/login" ||
@@ -34,7 +35,9 @@ function App() {
           <Route
             path="/admin"
             element={
-              <ProtectedRoute requiredRole="admin">
+              <ProtectedRoute
+                allowedRoles={["super_admin", "project_manager", "finance"]}
+              >
                 <AdminLayout />
               </ProtectedRoute>
             }
@@ -48,6 +51,8 @@ function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="settings" element={<ProfileSettings />} />
           </Route>
+
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </main>
 

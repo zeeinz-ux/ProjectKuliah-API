@@ -1,12 +1,10 @@
-// frontend/src/api/authApi.js
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
-const API_BASE_URL = "http://localhost:3333"; // sesuaikan kalau beda
-
-export const login = async (email, password) => {
+export const login = async (email, password, role) => {
   const res = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, role }),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -15,16 +13,14 @@ export const login = async (email, password) => {
     throw new Error(data.message || "Login gagal");
   }
 
-  // expected shape dari BE:
-  // { message, token, user: { id, name, email, role } }
   return data;
 };
 
-export const register = async (name, email, password) => {
+export const register = async (payload) => {
   const res = await fetch(`${API_BASE_URL}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
+    body: JSON.stringify(payload),
   });
 
   const data = await res.json().catch(() => ({}));
@@ -49,6 +45,5 @@ export const googleLogin = async (idToken) => {
     throw new Error(data.message || "Login Google gagal");
   }
 
-  // expected shape sama: { message, token, user }
   return data;
 };

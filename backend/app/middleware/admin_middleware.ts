@@ -8,9 +8,11 @@ export default class AdminMiddleware {
     if (!user) {
       return response.unauthorized({ message: 'Akses tidak sah' })
     }
-    if (user.role !== 'admin') {
-        return response.unauthorized({ message: 'Hanya admin yang bisa akses' })
+
+    if (user.role !== 'super_admin') {
+      return response.forbidden({ message: 'Hanya Super Admin yang bisa melakukan aksi ini' })
     }
+
     return await next()
-  } 
+  }
 }

@@ -1,20 +1,44 @@
-// src/pages/Register.jsx
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { register } from "../api/authApi";
 import "../css/Register.css";
+import logoMedtic from "../assets/logo.svg";
 
-export default function RegisterPage() {
+const ROLE_OPTIONS = [
+  { value: "super_admin", label: "Super Admin" },
+  { value: "project_manager", label: "Project Manager" },
+  { value: "finance", label: "Finance" },
+];
+
+const DEPARTEMEN_OPTIONS = [
+  { value: "IT/Sistem", label: "IT/Sistem" },
+  { value: "Pengawas", label: "Pengawas" },
+  { value: "Keuangan", label: "Keuangan" },
+];
+
+export default function Register() {
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    full_name: "",
+    email: "",
+    password: "",
+    role: "",
+    departemen: "",
+  });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,19 +47,22 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const { token, user } = await register(fullName, email, password);
+      const data = await register(form);
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      setSuccess(data.message || "Registrasi berhasil. Silakan login.");
+      setForm({
+        full_name: "",
+        email: "",
+        password: "",
+        role: "",
+        departemen: "",
+      });
 
-      setSuccess("Pendaftaran berhasil! Mengalihkan ke dashboard...");
-      setTimeout(() => navigate("/"), 1200);
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
     } catch (err) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Pendaftaran gagal. Silakan coba lagi.",
-      );
+      setError(err.message || "Terjadi kesalahan saat registrasi");
     } finally {
       setLoading(false);
     }
@@ -43,70 +70,124 @@ export default function RegisterPage() {
 
   return (
     <div className="register-page">
-      <div className="register-container">
+      <div className="register-wrapper">
         <div className="register-card">
-          <div className="register-header">
-            <p className="register-subtitle">Daftar</p>
-            <h1 className="register-title">Buat akun baru</h1>
-            <p className="register-desc">Silakan isi data untuk membuat akun</p>
+          <div className="register-brand-block">
+            <img
+              src={logoMedtic}
+              alt="Logo Medtic Indonesia"
+              className="register-company-logo"
+            />
+            <h2 className="register-company-name">Medtic Indonesia</h2>
           </div>
 
-          {error && <div className="register-alert error-alert">{error}</div>}
+          <div className="register-header">
+            <p className="register-label">Pendaftaran</p>
+            <h1 className="register-title">Create account</h1>
+            <p className="register-subtitle">
+              Silakan lengkapi data untuk membuat akun baru
+            </p>
+          </div>
+
+          {error && (
+            <div className="register-alert register-alert-error">{error}</div>
+          )}
 
           {success && (
-            <div className="register-alert success-alert">{success}</div>
+            <div className="register-alert register-alert-success">
+              {success}
+            </div>
           )}
 
           <form onSubmit={handleSubmit} className="register-form">
-            <div className="form-group">
-              <label htmlFor="fullName">Nama lengkap</label>
+            <div className="register-field">
+              <label htmlFor="full_name">Nama Lengkap</label>
               <input
-                id="fullName"
+                id="full_name"
                 type="text"
+                name="full_name"
+                value={form.full_name}
+                onChange={handleChange}
+                placeholder="Masukkan nama lengkap"
                 required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Contoh: Fullstack Plenger"
               />
             </div>
 
-            <div className="form-group">
+            <div className="register-field">
               <label htmlFor="email">Email</label>
               <input
                 id="email"
                 type="email"
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                placeholder="Masukkan email"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Contoh@gmail.com"
               />
             </div>
 
-            <div className="form-group">
-              <label htmlFor="password">Kata sandi</label>
+            <div className="register-field">
+              <label htmlFor="password">Password</label>
               <input
                 id="password"
                 type="password"
-                required
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                placeholder="Masukkan password"
                 minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Minimal 6 karakter"
+                required
               />
+            </div>
+
+            <div className="register-field">
+              <label htmlFor="role">Role</label>
+              <select
+                id="role"
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Pilih role</option>
+                {ROLE_OPTIONS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="register-field">
+              <label htmlFor="departemen">Departemen</label>
+              <select
+                id="departemen"
+                name="departemen"
+                value={form.departemen}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Pilih departemen</option>
+                {DEPARTEMEN_OPTIONS.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <button
               type="submit"
+              className={`register-submit-btn ${loading ? "is-loading" : ""}`}
               disabled={loading}
-              className={`register-button ${loading ? "loading" : ""}`}
             >
-              {loading ? "Memproses..." : "Daftar"}
+              {loading ? "Memproses..." : "Daftar Sekarang"}
             </button>
           </form>
 
           <p className="register-footer-text">
             Sudah punya akun?{" "}
-            <Link to="/login" className="register-link">
+            <Link to="/login" className="register-footer-link">
               Masuk di sini
             </Link>
           </p>

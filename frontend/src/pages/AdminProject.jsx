@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   FiGrid,
   FiArrowLeft,
@@ -9,14 +10,12 @@ import {
   FiCalendar,
   FiUser,
   FiMapPin,
-  FiUpload,
   FiCheck,
   FiHome,
   FiSearch,
   FiEdit2,
   FiTrash2,
   FiX,
-  FiFileText,
 } from "react-icons/fi";
 import "../css/AdminProject.css";
 
@@ -201,7 +200,11 @@ const EMPTY_FORM = {
 
 function formatDeadline(dateValue) {
   if (!dateValue) return "-";
-  return new Date(dateValue).toLocaleDateString("id-ID", {
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -672,7 +675,7 @@ function ProjectDetail({
 }
 
 function ProjectModal({ form, setForm, onClose, onSubmit, isEdit }) {
-  return (
+  return createPortal(
     <>
       <div className="modal-overlay" onClick={onClose} />
       <div className="project-modal">
@@ -809,7 +812,8 @@ function ProjectModal({ form, setForm, onClose, onSubmit, isEdit }) {
           </button>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 }
 
@@ -822,6 +826,18 @@ export default function AdminProject() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
 
   const selected =
     projects.find((project) => project.id === selectedId) || null;

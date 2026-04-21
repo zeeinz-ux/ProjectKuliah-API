@@ -1,7 +1,6 @@
-// src/components/GoogleLoginButton.jsx
 import { useEffect, useRef } from "react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 export default function GoogleLoginButton({ onSuccess, onError }) {
   const buttonRef = useRef(null);
@@ -13,7 +12,9 @@ export default function GoogleLoginButton({ onSuccess, onError }) {
       return;
     }
 
-    function initGoogle() {
+    const initGoogle = () => {
+      if (!window.google?.accounts?.id || !buttonRef.current) return;
+
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: async (response) => {
@@ -24,19 +25,18 @@ export default function GoogleLoginButton({ onSuccess, onError }) {
               body: JSON.stringify({ idToken: response.credential }),
             });
 
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
             console.log("Google login response:", data);
 
             if (!res.ok) {
               throw new Error(data.message || "Login Google gagal");
             }
 
-            // Backend mengirim token untuk sukses, bukan success field
-            if (data.token || data.data?.token) {
-              onSuccess?.(data);
-            } else {
-              throw new Error(data.message || "Login Google gagal");
+            if (!data.token || !data.user) {
+              throw new Error("Response Google login tidak valid");
             }
+
+            onSuccess?.(data);
           } catch (err) {
             console.error("Google login error:", err);
             onError?.(err);
@@ -44,21 +44,35 @@ export default function GoogleLoginButton({ onSuccess, onError }) {
         },
       });
 
+      buttonRef.current.innerHTML = "";
+
       window.google.accounts.id.renderButton(buttonRef.current, {
         theme: "outline",
         size: "large",
-        width: 300,
+        width: "100%",
       });
-    }
+    };
 
-    // load script kalau belum ada
     if (!window.google?.accounts?.id) {
+      const existingScript = document.querySelector(
+        'script[src="https://accounts.google.com/gsi/client"]',
+      );
+
+      if (existingScript) {
+        existingScript.addEventListener("load", initGoogle);
+        return () => existingScript.removeEventListener("load", initGoogle);
+      }
+
       const script = document.createElement("script");
       script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.defer = true;
       script.onload = initGoogle;
       document.body.appendChild(script);
+
+      return () => {
+        script.onload = null;
+      };
     } else {
       initGoogle();
     }
@@ -67,7 +81,7 @@ export default function GoogleLoginButton({ onSuccess, onError }) {
   return (
     <div
       ref={buttonRef}
-      style={{ display: "flex", justifyContent: "center" }}
+      style={{ width: "100%", display: "flex", justifyContent: "center" }}
     />
   );
 }

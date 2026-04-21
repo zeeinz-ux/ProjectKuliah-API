@@ -176,10 +176,13 @@ export default function AdminLayout() {
     }));
   };
 
-  const displayName = user?.name || user?.email || "Administrator";
+  const displayName = user?.full_name || user?.email || "Administrator";
 
   const roleLabel = user?.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
+    ? user.role
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
     : "Admin";
 
   return (

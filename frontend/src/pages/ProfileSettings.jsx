@@ -2,15 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "../css/ProfileSettings.css";
 
-const fallbackUser = {
-  id: 1,
-  firstName: "Alya",
-  lastName: "Rahma",
-  email: "alya@company.com",
-  bio: "Project coordinator for interior development and reporting.",
-  avatar: "https://res.cloudinary.com/demo/image/upload/v1312461204/sample.jpg",
-  role: "Admin",
-};
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   const fileInputRef = useRef(null);
@@ -21,6 +13,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     email: "",
     bio: "",
     avatar: "",
+    role: "",
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -44,67 +37,103 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+  const getToken = () => localStorage.getItem("token");
+
+  const splitFullName = (fullName = "") => {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      return { firstName: "", lastName: "" };
+    }
+
+    const parts = trimmed.split(" ");
+    const firstName = parts.shift() || "";
+    const lastName = parts.join(" ");
+
+    return { firstName, lastName };
+  };
+
+  const buildFullName = (firstName, lastName) => {
+    return `${firstName || ""} ${lastName || ""}`.trim();
+  };
+
   const getInitials = (firstName, lastName) => {
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
   };
-
-  const mockFetchLoggedInUser = async () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (currentUser) {
-          resolve(currentUser);
-          return;
-        }
-
-        const savedUser = localStorage.getItem("loggedInUser");
-        if (savedUser) {
-          resolve(JSON.parse(savedUser));
-          return;
-        }
-
-        resolve(fallbackUser);
-      }, 500);
-    });
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadUser = async () => {
-      try {
-        setLoadingUser(true);
-
-        const user = await mockFetchLoggedInUser();
-
-        if (!isMounted) return;
-
-        setFormData({
-          firstName: user.firstName || "",
-          lastName: user.lastName || "",
-          email: user.email || "",
-          bio: user.bio || "",
-          avatar: user.avatar || "",
-        });
-      } catch (error) {
-        setErrorMessage("Gagal mengambil data user.");
-      } finally {
-        if (isMounted) {
-          setLoadingUser(false);
-        }
-      }
-    };
-
-    loadUser();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [currentUser]);
 
   const clearMessages = () => {
     if (successMessage) setSuccessMessage("");
     if (errorMessage) setErrorMessage("");
   };
+
+  const loadProfile = async () => {
+    try {
+      setLoadingUser(true);
+      setErrorMessage("");
+
+      const token = getToken();
+      const response = await fetch(`${API_URL}/me`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mengambil data profil");
+      }
+
+      const user = data?.user || data;
+      const { firstName, lastName } = splitFullName(user.full_name || "");
+
+      setFormData({
+        firstName,
+        lastName,
+        email: user.email || "",
+        bio: user.bio || "",
+        avatar: user.avatar || "",
+        role: user.role || "",
+      });
+
+      const updatedLocalUser = {
+        ...(currentUser || {}),
+        ...user,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedLocalUser));
+
+      if (setCurrentUser) {
+        setCurrentUser(updatedLocalUser);
+      }
+    } catch (error) {
+      const localUser = JSON.parse(localStorage.getItem("user") || "null");
+
+      if (localUser) {
+        const { firstName, lastName } = splitFullName(
+          localUser.full_name || localUser.name || "",
+        );
+
+        setFormData({
+          firstName,
+          lastName,
+          email: localUser.email || "",
+          bio: localUser.bio || "",
+          avatar: localUser.avatar || "",
+          role: localUser.role || "",
+        });
+      } else {
+        setErrorMessage(error.message || "Gagal mengambil data user.");
+      }
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -202,35 +231,20 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   const handleReset = async () => {
     setSuccessMessage("");
     setErrorMessage("");
-    setLoadingUser(true);
 
-    try {
-      const user = await mockFetchLoggedInUser();
+    setPasswordData({
+      currentPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
+    });
 
-      setFormData({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
-        email: user.email || "",
-        bio: user.bio || "",
-        avatar: user.avatar || "",
-      });
+    setShowPassword({
+      currentPassword: false,
+      newPassword: false,
+      confirmNewPassword: false,
+    });
 
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmNewPassword: "",
-      });
-
-      setShowPassword({
-        currentPassword: false,
-        newPassword: false,
-        confirmNewPassword: false,
-      });
-    } catch (error) {
-      setErrorMessage("Gagal mereset data.");
-    } finally {
-      setLoadingUser(false);
-    }
+    await loadProfile();
   };
 
   const validatePassword = () => {
@@ -239,9 +253,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     const isPasswordFilled =
       currentPassword || newPassword || confirmNewPassword;
 
-    if (!isPasswordFilled) {
-      return true;
-    }
+    if (!isPasswordFilled) return true;
 
     if (!currentPassword) {
       setErrorMessage(
@@ -269,39 +281,71 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     setSuccessMessage("");
     setErrorMessage("");
 
-    if (!validatePassword()) {
-      return;
-    }
-
-    setIsSaving(true);
-
-    const payload = {
-      firstName: formData.firstName.trim(),
-      lastName: formData.lastName.trim(),
-      email: formData.email.trim(),
-      bio: formData.bio.trim(),
-      avatar: formData.avatar,
-    };
-
-    const isUpdatingPassword =
-      passwordData.currentPassword ||
-      passwordData.newPassword ||
-      passwordData.confirmNewPassword;
+    if (!validatePassword()) return;
 
     try {
-      // SIMULASI SAVE KE DATABASE / API
-      // Nanti kalau sudah ada backend, bagian ini bisa diganti fetch/axios ke endpoint update profile dan update password.
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      setIsSaving(true);
 
-      const updatedUser = {
-        ...(currentUser || fallbackUser),
-        ...payload,
-        passwordUpdatedAt: isUpdatingPassword
-          ? new Date().toISOString()
-          : undefined,
+      const token = getToken();
+      const fullName = buildFullName(formData.firstName, formData.lastName);
+
+      if (!fullName) {
+        setErrorMessage("Nama lengkap wajib diisi.");
+        return;
+      }
+
+      const profilePayload = {
+        full_name: fullName,
+        email: formData.email.trim(),
+        bio: formData.bio.trim(),
+        avatar: formData.avatar,
       };
 
-      localStorage.setItem("loggedInUser", JSON.stringify(updatedUser));
+      const profileResponse = await fetch(`${API_URL}/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(profilePayload),
+      });
+
+      const profileData = await profileResponse.json().catch(() => ({}));
+
+      if (!profileResponse.ok) {
+        throw new Error(profileData.message || "Gagal memperbarui profil");
+      }
+
+      const isUpdatingPassword =
+        passwordData.currentPassword ||
+        passwordData.newPassword ||
+        passwordData.confirmNewPassword;
+
+      if (isUpdatingPassword) {
+        const passwordResponse = await fetch(`${API_URL}/me/password`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            currentPassword: passwordData.currentPassword,
+            newPassword: passwordData.newPassword,
+          }),
+        });
+
+        const passwordResult = await passwordResponse.json().catch(() => ({}));
+
+        if (!passwordResponse.ok) {
+          throw new Error(
+            passwordResult.message || "Gagal memperbarui password",
+          );
+        }
+      }
+
+      const updatedUser = profileData.user || profileData;
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
 
       if (setCurrentUser) {
         setCurrentUser(updatedUser);
@@ -321,11 +365,13 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
 
       setSuccessMessage(
         isUpdatingPassword
-          ? "Profile dan password berhasil diperbarui!"
-          : "Changes Saved!",
+          ? "Profil dan password berhasil diperbarui!"
+          : "Profil berhasil diperbarui!",
       );
+
+      await loadProfile();
     } catch (error) {
-      setErrorMessage("Gagal menyimpan perubahan.");
+      setErrorMessage(error.message || "Gagal menyimpan perubahan.");
     } finally {
       setIsSaving(false);
     }
@@ -363,6 +409,14 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
             {formData.firstName || "First"} {formData.lastName || "Last"}
           </h3>
           <p>{formData.email || "email@example.com"}</p>
+          <small className="avatar-role-text">
+            {formData.role
+              ? formData.role
+                  .split("_")
+                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                  .join(" ")
+              : "User"}
+          </small>
 
           <input
             type="file"

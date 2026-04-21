@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import "../css/StokMaterial.css";
 
-// Data dummy awal
 const initialMaterials = [
   {
     id: 1,
@@ -66,11 +66,10 @@ function StokMaterial() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua");
   const [isOpen, setIsOpen] = useState(false);
-  const [modalMode, setModalMode] = useState("add"); // add | edit
+  const [modalMode, setModalMode] = useState("add");
   const [selectedId, setSelectedId] = useState(null);
   const [formData, setFormData] = useState(emptyForm);
 
-  // Ambil daftar kategori unik untuk dropdown
   const categories = useMemo(() => {
     const uniqueCategories = [
       ...new Set(materials.map((item) => item.category)),
@@ -78,7 +77,6 @@ function StokMaterial() {
     return ["Semua", ...uniqueCategories];
   }, [materials]);
 
-  // Filter pencarian + kategori
   const filteredMaterials = useMemo(() => {
     return materials.filter((item) => {
       const matchSearch =
@@ -92,24 +90,30 @@ function StokMaterial() {
     });
   }, [materials, searchTerm, selectedCategory]);
 
-  // Ringkasan kartu statistik
   const summary = useMemo(() => {
     const totalBarang = materials.length;
     const stokMenipis = materials.filter((item) => item.stock <= 10).length;
 
-    // Dummy statis untuk kebutuhan tampilan dashboard
-    const barangMasuk = 38;
-    const barangKeluar = 21;
-
     return {
       totalBarang,
       stokMenipis,
-      barangMasuk,
-      barangKeluar,
+      barangMasuk: 38,
+      barangKeluar: 21,
     };
   }, [materials]);
 
-  // Buka modal tambah barang
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
   const handleOpenAddModal = () => {
     setModalMode("add");
     setSelectedId(null);
@@ -117,7 +121,6 @@ function StokMaterial() {
     setIsOpen(true);
   };
 
-  // Buka modal edit barang
   const handleOpenEditModal = (item) => {
     setModalMode("edit");
     setSelectedId(item.id);
@@ -131,14 +134,12 @@ function StokMaterial() {
     setIsOpen(true);
   };
 
-  // Tutup modal
   const handleCloseModal = () => {
     setIsOpen(false);
     setFormData(emptyForm);
     setSelectedId(null);
   };
 
-  // Handle perubahan input form
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -147,7 +148,6 @@ function StokMaterial() {
     }));
   };
 
-  // Submit form tambah / edit
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -165,11 +165,11 @@ function StokMaterial() {
     if (modalMode === "add") {
       const newItem = {
         id: Date.now(),
-        name: formData.name,
-        category: formData.category,
-        sku: formData.sku,
+        name: formData.name.trim(),
+        category: formData.category.trim(),
+        sku: formData.sku.trim(),
         stock: Number(formData.stock),
-        unit: formData.unit,
+        unit: formData.unit.trim(),
       };
 
       setMaterials((prev) => [newItem, ...prev]);
@@ -179,11 +179,11 @@ function StokMaterial() {
           item.id === selectedId
             ? {
                 ...item,
-                name: formData.name,
-                category: formData.category,
-                sku: formData.sku,
+                name: formData.name.trim(),
+                category: formData.category.trim(),
+                sku: formData.sku.trim(),
                 stock: Number(formData.stock),
-                unit: formData.unit,
+                unit: formData.unit.trim(),
               }
             : item,
         ),
@@ -193,7 +193,6 @@ function StokMaterial() {
     handleCloseModal();
   };
 
-  // Hapus data
   const handleDelete = (id) => {
     const confirmDelete = window.confirm("Yakin ingin menghapus barang ini?");
     if (!confirmDelete) return;
@@ -201,7 +200,6 @@ function StokMaterial() {
     setMaterials((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Stock masuk / keluar sederhana
   const handleStockChange = (id, amount) => {
     setMaterials((prev) =>
       prev.map((item) =>
@@ -215,7 +213,6 @@ function StokMaterial() {
     );
   };
 
-  // Status stok untuk badge
   const getStockStatus = (stock) => {
     if (stock <= 5) return "critical";
     if (stock <= 10) return "warning";
@@ -224,7 +221,6 @@ function StokMaterial() {
 
   return (
     <div className="material-stock-page">
-      {/* Header halaman */}
       <div className="material-stock-header card">
         <div>
           <p className="material-stock-eyebrow">Inventory Management</p>
@@ -239,7 +235,6 @@ function StokMaterial() {
         </button>
       </div>
 
-      {/* Summary cards */}
       <div className="summary-grid">
         <div className="summary-card card">
           <div className="summary-top">
@@ -278,7 +273,6 @@ function StokMaterial() {
         </div>
       </div>
 
-      {/* Filter dan search */}
       <div className="filter-bar card">
         <div className="filter-left">
           <input
@@ -309,7 +303,6 @@ function StokMaterial() {
         </div>
       </div>
 
-      {/* Tabel data */}
       <div className="table-card card">
         <div className="table-header">
           <div>
@@ -401,102 +394,115 @@ function StokMaterial() {
         </div>
       </div>
 
-      {/* Modal tambah / edit barang */}
-      {isOpen && (
-        <div className="modal-overlay" onClick={handleCloseModal}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <div>
-                <h3>
-                  {modalMode === "add" ? "Tambah Barang Baru" : "Edit Barang"}
-                </h3>
-                <p>Isi data material dengan lengkap.</p>
-              </div>
-
-              <button className="modal-close" onClick={handleCloseModal}>
-                ✕
-              </button>
-            </div>
-
-            <form className="material-form" onSubmit={handleSubmit}>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Nama Barang</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Contoh: Cat Dulux"
-                  />
+      {isOpen &&
+        createPortal(
+          <div className="material-modal-overlay" onClick={handleCloseModal}>
+            <div
+              className="material-modal"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="material-modal__header">
+                <div>
+                  <h3>
+                    {modalMode === "add" ? "Tambah Barang Baru" : "Edit Barang"}
+                  </h3>
+                  <p>
+                    {modalMode === "add"
+                      ? "Isi data material dengan lengkap."
+                      : "Perbarui data material yang sudah tersimpan."}
+                  </p>
                 </div>
 
-                <div className="form-group">
-                  <label>Kategori</label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    placeholder="Contoh: Finishing"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>SKU</label>
-                  <input
-                    type="text"
-                    name="sku"
-                    value={formData.sku}
-                    onChange={handleChange}
-                    placeholder="Contoh: MAT-007"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Stok Awal</label>
-                  <input
-                    type="text"
-                    name="stock"
-                    value={formData.stock}
-                    onChange={handleChange}
-                    placeholder="Contoh: 20"
-                  />
-                </div>
-
-                <div className="form-group full-width">
-                  <label>Satuan</label>
-                  <select
-                    name="unit"
-                    value={formData.unit}
-                    onChange={handleChange}
-                  >
-                    <option value="pcs">pcs</option>
-                    <option value="m2">m2</option>
-                    <option value="lembar">lembar</option>
-                    <option value="box">box</option>
-                    <option value="sak">sak</option>
-                    <option value="roll">roll</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="modal-actions">
                 <button
-                  type="button"
-                  className="secondary-btn"
+                  className="material-modal__close"
                   onClick={handleCloseModal}
+                  type="button"
+                  aria-label="Tutup modal"
                 >
-                  Batal
-                </button>
-                <button type="submit" className="primary-btn">
-                  {modalMode === "add" ? "Simpan Barang" : "Update Barang"}
+                  ×
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
-      )}
+
+              <form className="material-form" onSubmit={handleSubmit}>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Nama Barang</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Contoh: Cat Dulux"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Kategori</label>
+                    <input
+                      type="text"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                      placeholder="Contoh: Finishing"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>SKU</label>
+                    <input
+                      type="text"
+                      name="sku"
+                      value={formData.sku}
+                      onChange={handleChange}
+                      placeholder="Contoh: MAT-007"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Stok Awal</label>
+                    <input
+                      type="text"
+                      name="stock"
+                      value={formData.stock}
+                      onChange={handleChange}
+                      placeholder="Contoh: 20"
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Satuan</label>
+                    <select
+                      name="unit"
+                      value={formData.unit}
+                      onChange={handleChange}
+                    >
+                      <option value="pcs">pcs</option>
+                      <option value="m2">m2</option>
+                      <option value="lembar">lembar</option>
+                      <option value="box">box</option>
+                      <option value="sak">sak</option>
+                      <option value="roll">roll</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="material-modal__actions">
+                  <button
+                    type="button"
+                    className="secondary-btn"
+                    onClick={handleCloseModal}
+                  >
+                    Batal
+                  </button>
+                  <button type="submit" className="primary-btn">
+                    {modalMode === "add" ? "Simpan Barang" : "Update Barang"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

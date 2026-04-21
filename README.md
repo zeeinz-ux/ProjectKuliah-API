@@ -1,198 +1,360 @@
-# PT. Medtic Indonesia Project-API
+# PT. Medtic Indonesia Project API
 
-Aplikasi web untuk Rancang Bangun Sistem Informasi Monitoring Proyek Interior Berbasis Web pada PT Medtic Indonesia dengan arsitektur fullstack menggunakan AdonisJS (Backend) dan React (Frontend).
+Aplikasi web untuk **Rancang Bangun Sistem Informasi Monitoring Proyek Interior Berbasis Web** pada **PT Medtic Indonesia** dengan arsitektur fullstack menggunakan **AdonisJS v6** sebagai backend, **React 19** sebagai frontend, dan **PostgreSQL** sebagai database utama.
+
+Project ini dibuat untuk mendukung kebutuhan monitoring proyek interior, pengelolaan user, profil akun, serta pengelolaan data material dan proyek secara terstruktur.
+
+---
 
 ## Daftar Isi
 
+- [Overview](#overview)
 - [Teknologi](#teknologi)
+- [Fitur Utama](#fitur-utama)
 - [Setup Backend](#setup-backend)
 - [Setup Frontend](#setup-frontend)
-- [Seeder Usage](#seeder-usage)
+- [Environment Variables](#environment-variables)
+- [Migration](#migration)
+- [Autentikasi](#autentikasi)
+- [Struktur Role](#struktur-role)
+- [Catatan Development](#catatan-development)
+- [Authors](#authors)
+
+---
+
+## Overview
+
+Sistem ini dirancang untuk membantu perusahaan interior dalam:
+
+- memonitor progres proyek interior
+- mengelola user berdasarkan role
+- mengelola data profil user
+- mengelola stok material
+- mengelola daftar proyek interior
+- mendukung login manual dan login Google
+- menyiapkan pondasi integrasi fitur upload avatar dan dokumentasi proyek
+
+---
 
 ## Teknologi
 
 ### Backend
 
 - **Framework**: AdonisJS v6
-- **Database**: MongoDB (Mongoose)
-- **Authentication**: JWT + Google OAuth
 - **Language**: TypeScript
-- **API**: REST API + GraphQL
-- **OAuth**: Google Auth Library
+- **Database**: PostgreSQL
+- **ORM**: Lucid ORM
+- **Authentication**: JWT
+- **Google Login**: Google Auth Library
+- **API Style**: REST API
 
 ### Frontend
 
 - **Framework**: React 19
-- **Styling**: CSS
-- **Routing**: React Router DOM v7
-- **HTTP Client**: Axios
 - **Build Tool**: Vite
+- **Routing**: React Router DOM
+- **Styling**: CSS
+- **HTTP Client**: Fetch API
+
+### Tools Pendukung
+
+- **Database Client**: DBeaver / pgAdmin
+- **Image Upload**: Cloudinary
+- **Version Control**: Git & GitHub
+
+---
+
+## Fitur Utama
+
+### Authentication
+- Login dengan email, password, dan role
+- Register user baru
+- Login dengan akun Google
+- JWT-based authentication
+- Proteksi route berdasarkan role
+
+### User Management
+- Menampilkan daftar user dari database
+- Tambah user
+- Edit user
+- Hapus user
+- Hak CRUD khusus **Super Admin**
+
+### Profile Settings
+- Menampilkan data user yang sedang login
+- Ubah avatar
+- Ubah nama
+- Ubah email
+- Ubah bio
+- Ubah password
+
+### Project Management
+- Menampilkan daftar proyek interior
+- Tambah proyek
+- Edit proyek
+- Detail proyek
+- Monitoring progress dan task proyek
+
+### Material Stock
+- Menampilkan data stok material
+- Tambah barang
+- Edit barang
+- Hapus barang
+- Monitoring stok masuk/keluar
+
+---
 
 ## Setup Backend
 
 ### Prerequisites
 
-- Node.js (v18+)
-- MongoDB Atlas Account
-- Google Cloud Console Account (untuk OAuth)
-- OpenWeatherMap Account (untuk Weather API)
+Pastikan sudah menginstall:
+
+- Node.js v18+
+- PostgreSQL
+- DBeaver atau pgAdmin
+- Google Cloud Console account
 - Git
 
 ### Installation
 
-1. **Clone Repository**
+## Clone Repo
 
-   ```bash
-   git clone <repository-url>
-   cd Project-API/backend
-   ```
+git clone <repository-url>
 
-2. **Install Dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Environment Setup**
-
-   ```bash
-   # Copy environment template
-   cp .env.example .env
-
-   # Generate APP_KEY
-   node ace generate:key
-   ```
-
-4. **Configure .env**
-
-   ```env
-   TZ=UTC
-   PORT=3333
-   HOST=localhost
-   LOG_LEVEL=info
-   APP_KEY=your_generated_app_key_here
-   NODE_ENV=development
-   JWT_SECRET=your_jwt_secret_here
-
-   MONGODB_URI=your_mongodb_connection_string
-   MONGO_DB_NAME=ProjectKuliah_db
-
-   GOOGLE_CLIENT_ID=891586780403-47mfmrjek0ec8kru3jt7jagblo5473st.apps.googleusercontent.com
-
-   WEATHER_API_KEY=your_openweather_api_key_here
-   WEATHER_API_BASE_URL=https://api.openweathermap.org/data/2.5/weather
-   ```
-
-5. **Setup Google OAuth**
-   - Buka [Google Cloud Console](https://console.cloud.google.com/)
-   - Buat project baru atau pilih existing project
-   - Enable Google+ API
-   - Buat OAuth 2.0 credentials
-   - Copy Client ID ke .env
-
-6. **Setup Weather API**
-   - Daftar di [OpenWeatherMap](https://openweathermap.org/api)
-   - Buat API key gratis
-   - Copy API key ke .env
-
-7. **Run Development Server**
-
-   ```bash
-   npm run dev
-   ```
-
-   Server akan berjalan di: `http://localhost:3333`
-
-### Available Scripts
-
-```bash
-npm run dev        # Development server with HMR
-npm run build      # Build for production
-npm run start      # Start production server
-npm run test       # Run tests
-npm run lint       # Run ESLint
-npm run typecheck  # TypeScript type checking
-```
-
-## Setup Frontend
-
-### Installation
-
-1. **Navigate to Frontend**
-
-   ```bash
-   cd Project-API/frontend
-   ```
-
-2. **Install Dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment**
-   - Update API base URL jika perlu
-   - Setup Google OAuth client ID untuk frontend
-
-4. **Run Development Server**
-
-   ```bash
-   npm run dev
-   ```
-
-   Frontend akan berjalan di: `http://localhost:5173`
-
-### Available Scripts
-
-```bash
-npm run dev      # Development server
-npm run build    # Build for production
-npm run preview  # Preview production build
-npm run lint     # Run ESLint
-```
-
-## Seeder Usage
-
-### Menjalankan Seeder
-
-Seeder digunakan untuk mengisi database dengan admin user.
+Masuk ke folder backend:
 
 ```bash
 cd backend
-node ace seed:admin
 ```
 
-### Data yang Akan Dibuat:
+Install dependency:
 
-#### **Admin Account**
+```bash
+npm install
+```
 
-- **Email**: `admin@example.com`
-- **Password**: `adminpassword`
-- **Role**: `admin`
-- **Name**: `Admin`
+Generate app key jika diperlukan:
 
-**Note:** Jika admin sudah ada, seeder akan skip dan tidak membuat duplikat.
+```bash
+# Copy environment template
+cp .env.example .env
 
-### Kapan Menggunakan Seeder:
+# Generate APP_KEY
+node ace generate:key
+```
 
-- Setup development environment baru
-- Reset database dengan data fresh
-- Demo/testing dengan data konsisten
-- Onboarding developer baru
+Jalankan server development:
 
-## Notes
+```bash
+node ace serve --watch
+```
 
-- README ini bersifat **sementara** dan akan diperbarui seiring development
-- API Documentation lengkap akan ditambahkan kemudian
-- Deployment guide akan disediakan saat ready untuk production
-- Troubleshooting section akan diperluas berdasarkan feedback
+Backend akan berjalan di:
+
+```bash
+http://localhost:3333
+```
+
+### Available Commands
+
+```bash
+node ace serve --watch     # Menjalankan backend mode development
+node ace migration:run     # Menjalankan migration database
+node ace migration:status  # Mengecek status migration
+node ace migration:rollback # Rollback migration terakhir
+```
+
+---
+
+## Setup Frontend
+
+Masuk ke folder frontend:
+
+```bash
+cd frontend
+```
+
+Install dependency:
+
+```bash
+npm install
+```
+
+Jalankan frontend:
+
+```bash
+npm run dev
+```
+
+Frontend akan berjalan di:
+
+```bash
+http://localhost:5173
+```
+
+### Available Commands
+
+```bash
+npm run dev
+npm run build
+npm run preview
+npm run lint
+```
+
+---
+
+## Environment Variables
+
+### Backend `.env`
+
+Contoh konfigurasi backend:
+
+```env
+TZ=UTC
+PORT=3333
+HOST=localhost
+LOG_LEVEL=info
+APP_KEY=your_generated_app_key
+NODE_ENV=development
+JWT_SECRET=your_jwt_secret
+
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_USER=your_postgres_user
+DB_PASSWORD=your_postgres_password
+DB_DATABASE=your_database_name
+
+GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+### Frontend `.env`
+
+Contoh konfigurasi frontend:
+
+```env
+VITE_API_URL=http://localhost:3333
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
+```
+
+---
+
+## Migration
+
+Project ini menggunakan **Lucid ORM** dengan PostgreSQL.
+
+### Jalankan migration
+
+```bash
+node ace migration:run
+```
+
+### Struktur tabel `users`
+
+Tabel `users` saat ini mencakup kolom:
+
+- `id`
+- `full_name`
+- `email`
+- `password`
+- `role`
+- `departemen`
+- `google_id`
+- `is_active`
+- `bio`
+- `avatar`
+- `created_at`
+- `updated_at`
+
+---
+
+## Autentikasi
+
+Autentikasi backend menggunakan:
+
+- **JWT** untuk login session
+- **Google Login** untuk login dengan akun Google
+- validasi login berdasarkan:
+  - email
+  - password
+  - role
+
+### Endpoint auth utama
+
+- `POST /register`
+- `POST /login`
+- `POST /google-login`
+
+### Endpoint profile
+
+- `GET /me`
+- `PUT /me`
+- `PUT /me/password`
+
+### Endpoint user management
+
+- `GET /users`
+- `GET /users/:id`
+- `POST /users`
+- `PUT /users/:id`
+- `DELETE /users/:id`
+
+---
+
+## Struktur Role
+
+Role yang digunakan saat ini:
+
+- `super_admin`
+- `project_manager`
+- `finance`
+
+Departemen yang digunakan saat ini:
+
+- `IT/Sistem`
+- `Pengawas`
+- `Keuangan`
+
+### Hak akses umum
+
+- **Super Admin**
+  - bisa melihat user
+  - bisa tambah, edit, hapus user
+- **Project Manager**
+  - bisa melihat halaman tertentu sesuai proteksi frontend/backend
+- **Finance**
+  - bisa melihat halaman tertentu sesuai proteksi frontend/backend
+
+---
+
+## Catatan Development
+
+- Project ini sudah berpindah dari pendekatan MongoDB ke **PostgreSQL**
+- ORM yang digunakan sekarang adalah **Lucid ORM**
+- Sistem autentikasi sudah menggunakan backend AdonisJS yang terhubung ke PostgreSQL
+- Halaman `Profile Settings` sudah disiapkan untuk terhubung dengan akun user yang sedang login
+- Upload avatar menggunakan **Cloudinary**
+- README ini masih dapat diperbarui mengikuti perkembangan fitur berikutnya
+
+### Catatan penting
+
+Jika sebelumnya project masih memakai struktur MongoDB/Mongoose, pastikan:
+- file model lama yang tidak dipakai sudah dibersihkan
+- route dan controller lama yang tidak relevan sudah dihapus
+- env MongoDB lama tidak lagi digunakan
+
+---
 
 ## Authors
 
 - **Wisnu Prastyo** - Backend Developer
 - **Alif Fahri Aditya** - Frontend Developer
-- **Surya Putra Pratama** - UI/UX Figma Designer
+- **Surya Putra Pratama** - UI/UX Designer
 
-## Support
+---
 
-Jika ada pertanyaan atau issue, silakan hubungi tim development.
+## License
+
+Project ini dibuat untuk kebutuhan pengembangan sistem internal / akademik PT Medtic Indonesia.

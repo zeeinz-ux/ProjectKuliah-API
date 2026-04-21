@@ -74,16 +74,17 @@
 }
 
 .secondary-btn {
-  background: #f1f5f9;
+  background: #ffffff;
   color: #334155;
   padding: 12px 18px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
+  border: 1px solid #dbe3ec;
 }
 
 .secondary-btn:hover {
-  background: #e2e8f0;
+  background: #f8fafc;
 }
 
 /* ===== Summary Grid ===== */
@@ -356,28 +357,29 @@
 }
 
 /* ===== Modal ===== */
-.modal-overlay {
+.material-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  z-index: 999;
+  z-index: 999999;
 }
 
-.modal-card {
-  width: 100%;
-  max-width: 620px;
+.material-modal {
+  width: min(620px, calc(100% - 32px));
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 24px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
   overflow: hidden;
-  animation: modalFade 0.2s ease;
+  animation: materialModalFade 0.2s ease;
 }
 
-@keyframes modalFade {
+@keyframes materialModalFade {
   from {
     opacity: 0;
     transform: translateY(8px) scale(0.98);
@@ -388,7 +390,7 @@
   }
 }
 
-.modal-header {
+.material-modal__header {
   padding: 22px 24px 16px;
   display: flex;
   align-items: flex-start;
@@ -397,31 +399,32 @@
   border-bottom: 1px solid #eef2f7;
 }
 
-.modal-header h3 {
+.material-modal__header h3 {
   margin: 0 0 6px;
   font-size: 22px;
   color: #0f172a;
 }
 
-.modal-header p {
+.material-modal__header p {
   margin: 0;
   color: #64748b;
   font-size: 14px;
+  line-height: 1.6;
 }
 
-.modal-close {
+.material-modal__close {
   background: #f8fafc;
   border: none;
   width: 38px;
   height: 38px;
   border-radius: 10px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 20px;
   color: #475569;
   transition: all 0.2s ease;
 }
 
-.modal-close:hover {
+.material-modal__close:hover {
   background: #e2e8f0;
 }
 
@@ -451,7 +454,7 @@
   grid-column: 1 / -1;
 }
 
-.modal-actions {
+.material-modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
@@ -502,20 +505,21 @@
     padding: 16px;
   }
 
-  .modal-card {
-    max-width: 100%;
+  .material-modal {
+    width: min(100%, calc(100% - 24px));
+    border-radius: 20px;
   }
 
   .form-grid {
     grid-template-columns: 1fr;
   }
 
-  .modal-actions {
+  .material-modal__actions {
     flex-direction: column-reverse;
   }
 
-  .modal-actions .primary-btn,
-  .modal-actions .secondary-btn {
+  .material-modal__actions .primary-btn,
+  .material-modal__actions .secondary-btn {
     width: 100%;
   }
 }

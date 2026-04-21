@@ -1,239 +1,67 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import "../css/UserManagement.css";
 
-const USERS_DATA = [
-  {
-    id: 1,
-    name: "Aigars Silkalns",
-    email: "aigars@company.com",
-    role: "Admin",
-    department: "Engineering",
-    status: "active",
-    lastActive: "2 hours ago",
-  },
-  {
-    id: 2,
-    name: "Emma Wilson",
-    email: "emma@company.com",
-    role: "Editor",
-    department: "Marketing",
-    status: "active",
-    lastActive: "5 min ago",
-  },
-  {
-    id: 3,
-    name: "James Chen",
-    email: "james@company.com",
-    role: "Admin",
-    department: "Engineering",
-    status: "active",
-    lastActive: "1 hour ago",
-  },
-  {
-    id: 4,
-    name: "Sofia Garcia",
-    email: "sofia@company.com",
-    role: "Moderator",
-    department: "Support",
-    status: "active",
-    lastActive: "30 min ago",
-  },
-  {
-    id: 5,
-    name: "Alex Thompson",
-    email: "alex@company.com",
-    role: "Viewer",
-    department: "Sales",
-    status: "active",
-    lastActive: "3 hours ago",
-  },
-  {
-    id: 6,
-    name: "Maria Santos",
-    email: "maria@company.com",
-    role: "Editor",
-    department: "Design",
-    status: "active",
-    lastActive: "1 day ago",
-  },
-  {
-    id: 7,
-    name: "David Kim",
-    email: "david@company.com",
-    role: "Viewer",
-    department: "Finance",
-    status: "inactive",
-    lastActive: "2 weeks ago",
-  },
-  {
-    id: 8,
-    name: "Lisa Park",
-    email: "lisa@company.com",
-    role: "Editor",
-    department: "Marketing",
-    status: "active",
-    lastActive: "10 min ago",
-  },
-  {
-    id: 9,
-    name: "Ryan Mitchell",
-    email: "ryan@company.com",
-    role: "Moderator",
-    department: "Support",
-    status: "active",
-    lastActive: "45 min ago",
-  },
-  {
-    id: 10,
-    name: "Nina Patel",
-    email: "nina@company.com",
-    role: "Admin",
-    department: "Engineering",
-    status: "active",
-    lastActive: "15 min ago",
-  },
-  {
-    id: 11,
-    name: "Daniel Cruz",
-    email: "daniel@company.com",
-    role: "Viewer",
-    department: "Warehouse",
-    status: "inactive",
-    lastActive: "3 days ago",
-  },
-  {
-    id: 12,
-    name: "Olivia Brown",
-    email: "olivia@company.com",
-    role: "Editor",
-    department: "Procurement",
-    status: "active",
-    lastActive: "20 min ago",
-  },
-  {
-    id: 13,
-    name: "Kevin Hartono",
-    email: "kevin@company.com",
-    role: "Moderator",
-    department: "Operations",
-    status: "suspended",
-    lastActive: "1 month ago",
-  },
-  {
-    id: 14,
-    name: "Farah Amelia",
-    email: "farah@company.com",
-    role: "Editor",
-    department: "Project Management",
-    status: "active",
-    lastActive: "8 min ago",
-  },
-  {
-    id: 15,
-    name: "Michael Scott",
-    email: "michael@company.com",
-    role: "Viewer",
-    department: "Sales",
-    status: "inactive",
-    lastActive: "4 days ago",
-  },
-  {
-    id: 16,
-    name: "Rachel Green",
-    email: "rachel@company.com",
-    role: "Editor",
-    department: "Design",
-    status: "active",
-    lastActive: "50 min ago",
-  },
-  {
-    id: 17,
-    name: "Jonathan Lee",
-    email: "jonathan@company.com",
-    role: "Admin",
-    department: "IT Support",
-    status: "active",
-    lastActive: "12 min ago",
-  },
-  {
-    id: 18,
-    name: "Putri Maharani",
-    email: "putri@company.com",
-    role: "Moderator",
-    department: "Customer Service",
-    status: "suspended",
-    lastActive: "6 days ago",
-  },
-  {
-    id: 19,
-    name: "Bima Saputra",
-    email: "bima@company.com",
-    role: "Viewer",
-    department: "Logistics",
-    status: "active",
-    lastActive: "35 min ago",
-  },
-  {
-    id: 20,
-    name: "Anisa Ramadhani",
-    email: "anisa@company.com",
-    role: "Editor",
-    department: "Finance",
-    status: "active",
-    lastActive: "18 min ago",
-  },
-  {
-    id: 21,
-    name: "Christopher Nolan",
-    email: "chris@company.com",
-    role: "Admin",
-    department: "Management",
-    status: "active",
-    lastActive: "1 hour ago",
-  },
-  {
-    id: 22,
-    name: "Nadia Putri",
-    email: "nadia@company.com",
-    role: "Viewer",
-    department: "HR",
-    status: "inactive",
-    lastActive: "5 days ago",
-  },
-  {
-    id: 23,
-    name: "Rizky Maulana",
-    email: "rizky@company.com",
-    role: "Editor",
-    department: "Operations",
-    status: "active",
-    lastActive: "25 min ago",
-  },
-  {
-    id: 24,
-    name: "Stephanie Lim",
-    email: "stephanie@company.com",
-    role: "Moderator",
-    department: "Legal",
-    status: "suspended",
-    lastActive: "2 weeks ago",
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const TABS = [
   { label: "All", value: "all" },
   { label: "Active", value: "active" },
   { label: "Inactive", value: "inactive" },
-  { label: "Suspended", value: "suspended" },
 ];
 
+const ROLE_OPTIONS = [
+  { value: "super_admin", label: "Super Admin" },
+  { value: "project_manager", label: "Project Manager" },
+  { value: "finance", label: "Finance" },
+];
+
+const DEPARTEMEN_OPTIONS = [
+  { value: "IT/Sistem", label: "IT/Sistem" },
+  { value: "Pengawas", label: "Pengawas" },
+  { value: "Keuangan", label: "Keuangan" },
+];
+
+const formatDateTime = (value) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleString("id-ID", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+};
+
+const formatRoleLabel = (role) => {
+  if (!role) return "-";
+
+  return role
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
+
 const UserManagement = () => {
-  const [users] = useState(USERS_DATA);
+  let parsedUser = null;
+  try {
+    parsedUser = JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    parsedUser = null;
+  }
+
+  const currentUser = parsedUser;
+  const isSuperAdmin = currentUser?.role === "super_admin";
+
+  const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [showColumnsMenu, setShowColumnsMenu] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
 
   const [visibleColumns, setVisibleColumns] = useState({
     role: true,
@@ -242,7 +70,78 @@ const UserManagement = () => {
     lastActive: true,
   });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [form, setForm] = useState({
+    id: null,
+    full_name: "",
+    email: "",
+    password: "",
+    role: "",
+    departemen: "",
+    is_active: true,
+  });
+
   const columnsMenuRef = useRef(null);
+
+  const getTokenHeader = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      setFetchError("");
+
+      const response = await fetch(`${API_URL}/users`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...getTokenHeader(),
+        },
+      });
+
+      const data = await response.json().catch(() => []);
+
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mengambil data user");
+      }
+
+      const normalizedUsers = Array.isArray(data)
+        ? data.map((user) => ({
+            id: user.id,
+            full_name: user.full_name || "-",
+            email: user.email || "-",
+            role: user.role || "-",
+            departemen: user.departemen || "-",
+            avatar: user.avatar || "",
+            is_active: Boolean(user.is_active),
+            status: user.is_active ? "active" : "inactive",
+            lastActive: formatDateTime(
+              user.updated_at ||
+                user.updatedAt ||
+                user.created_at ||
+                user.createdAt,
+            ),
+          }))
+        : [];
+
+      setUsers(normalizedUsers);
+    } catch (err) {
+      setFetchError(
+        err.message || "Terjadi kesalahan saat mengambil data user",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -264,6 +163,18 @@ const UserManagement = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isModalOpen]);
+
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       const matchStatus =
@@ -271,7 +182,7 @@ const UserManagement = () => {
 
       const keyword = searchTerm.toLowerCase().trim();
       const matchSearch =
-        user.name.toLowerCase().includes(keyword) ||
+        user.full_name.toLowerCase().includes(keyword) ||
         user.email.toLowerCase().includes(keyword);
 
       return matchStatus && matchSearch;
@@ -295,6 +206,8 @@ const UserManagement = () => {
   }, [totalPages]);
 
   const getInitials = (name) => {
+    if (!name) return "U";
+
     return name
       .split(" ")
       .map((word) => word[0])
@@ -303,8 +216,136 @@ const UserManagement = () => {
       .toUpperCase();
   };
 
-  const handleAddUser = () => {
-    alert("Modal Add User bisa kamu hubungkan nanti ke form tambah user.");
+  const openCreateModal = () => {
+    if (!isSuperAdmin) return;
+
+    setModalMode("create");
+    setFormError("");
+    setForm({
+      id: null,
+      full_name: "",
+      email: "",
+      password: "",
+      role: "",
+      departemen: "",
+      is_active: true,
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (user) => {
+    if (!isSuperAdmin) return;
+
+    setModalMode("edit");
+    setFormError("");
+    setForm({
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      password: "",
+      role: user.role,
+      departemen: user.departemen,
+      is_active: user.is_active,
+    });
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setFormError("");
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmitUser = async (e) => {
+    e.preventDefault();
+
+    if (!isSuperAdmin) return;
+
+    try {
+      setSubmitLoading(true);
+      setFormError("");
+
+      const payload = {
+        full_name: form.full_name,
+        email: form.email,
+        role: form.role,
+        departemen: form.departemen,
+        is_active: form.is_active,
+      };
+
+      if (modalMode === "create") {
+        payload.password = form.password;
+      } else if (form.password.trim()) {
+        payload.password = form.password;
+      }
+
+      const url =
+        modalMode === "create"
+          ? `${API_URL}/users`
+          : `${API_URL}/users/${form.id}`;
+
+      const method = modalMode === "create" ? "POST" : "PUT";
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          ...getTokenHeader(),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal menyimpan data user");
+      }
+
+      closeModal();
+      await fetchUsers();
+    } catch (err) {
+      setFormError(err.message || "Terjadi kesalahan saat menyimpan user");
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (user) => {
+    if (!isSuperAdmin) return;
+
+    const confirmed = window.confirm(
+      `Yakin ingin menghapus user "${user.full_name}"?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`${API_URL}/users/${user.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...getTokenHeader(),
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal menghapus user");
+      }
+
+      await fetchUsers();
+    } catch (err) {
+      alert(err.message || "Terjadi kesalahan saat menghapus user");
+    }
   };
 
   const handleExport = () => {
@@ -316,11 +357,12 @@ const UserManagement = () => {
       "Status",
       "Last Active",
     ];
+
     const rows = filteredUsers.map((user) => [
-      user.name,
+      user.full_name,
       user.email,
-      user.role,
-      user.department,
+      formatRoleLabel(user.role),
+      user.departemen,
       user.status,
       user.lastActive,
     ]);
@@ -338,8 +380,6 @@ const UserManagement = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    alert("Data user berhasil diexport ke CSV.");
   };
 
   const handleToggleColumn = (columnKey) => {
@@ -350,17 +390,15 @@ const UserManagement = () => {
   };
 
   const getRoleClass = (role) => {
-    switch (role.toLowerCase()) {
-      case "admin":
+    switch (role) {
+      case "super_admin":
         return "role-badge admin";
-      case "editor":
+      case "project_manager":
         return "role-badge editor";
-      case "moderator":
+      case "finance":
         return "role-badge moderator";
-      case "viewer":
-        return "role-badge viewer";
       default:
-        return "role-badge";
+        return "role-badge viewer";
     }
   };
 
@@ -370,8 +408,6 @@ const UserManagement = () => {
         return "status-badge active";
       case "inactive":
         return "status-badge inactive";
-      case "suspended":
-        return "status-badge suspended";
       default:
         return "status-badge";
     }
@@ -385,6 +421,14 @@ const UserManagement = () => {
     filteredUsers.length === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
   const endEntry = Math.min(currentPage * rowsPerPage, filteredUsers.length);
 
+  const totalVisibleColumns =
+    1 +
+    Number(visibleColumns.role) +
+    Number(visibleColumns.department) +
+    Number(visibleColumns.status) +
+    Number(visibleColumns.lastActive) +
+    Number(isSuperAdmin);
+
   return (
     <div className="user-management-page">
       <div className="user-management-top">
@@ -395,9 +439,11 @@ const UserManagement = () => {
           </p>
         </div>
 
-        <button className="primary-btn" onClick={handleAddUser}>
-          + Add User
-        </button>
+        {isSuperAdmin && (
+          <button className="primary-btn" onClick={openCreateModal}>
+            + Add User
+          </button>
+        )}
       </div>
 
       <div className="toolbar-card">
@@ -488,19 +534,41 @@ const UserManagement = () => {
                 {visibleColumns.department && <th>Department</th>}
                 {visibleColumns.status && <th>Status</th>}
                 {visibleColumns.lastActive && <th>Last Active</th>}
-                <th className="action-column">Action</th>
+                {isSuperAdmin && <th className="action-column">Action</th>}
               </tr>
             </thead>
 
             <tbody>
-              {paginatedUsers.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={totalVisibleColumns}>
+                    <div className="empty-state">Loading users...</div>
+                  </td>
+                </tr>
+              ) : fetchError ? (
+                <tr>
+                  <td colSpan={totalVisibleColumns}>
+                    <div className="empty-state">{fetchError}</div>
+                  </td>
+                </tr>
+              ) : paginatedUsers.length > 0 ? (
                 paginatedUsers.map((user) => (
                   <tr key={user.id}>
                     <td>
                       <div className="user-cell">
-                        <div className="avatar">{getInitials(user.name)}</div>
+                        <div className="avatar">
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={user.full_name}
+                              className="avatar-image"
+                            />
+                          ) : (
+                            getInitials(user.full_name)
+                          )}
+                        </div>
                         <div className="user-meta">
-                          <h4>{user.name}</h4>
+                          <h4>{user.full_name}</h4>
                           <p>{user.email}</p>
                         </div>
                       </div>
@@ -509,12 +577,12 @@ const UserManagement = () => {
                     {visibleColumns.role && (
                       <td>
                         <span className={getRoleClass(user.role)}>
-                          {user.role}
+                          {formatRoleLabel(user.role)}
                         </span>
                       </td>
                     )}
 
-                    {visibleColumns.department && <td>{user.department}</td>}
+                    {visibleColumns.department && <td>{user.departemen}</td>}
 
                     {visibleColumns.status && (
                       <td>
@@ -526,35 +594,29 @@ const UserManagement = () => {
 
                     {visibleColumns.lastActive && <td>{user.lastActive}</td>}
 
-                    <td className="action-column">
-                      <div className="row-actions">
-                        <button
-                          className="icon-btn edit"
-                          onClick={() => alert(`Edit user: ${user.name}`)}
-                        >
-                          ✎
-                        </button>
-                        <button
-                          className="icon-btn delete"
-                          onClick={() => alert(`Delete user: ${user.name}`)}
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    </td>
+                    {isSuperAdmin && (
+                      <td className="action-column">
+                        <div className="row-actions">
+                          <button
+                            className="icon-btn edit"
+                            onClick={() => openEditModal(user)}
+                          >
+                            ✎
+                          </button>
+                          <button
+                            className="icon-btn delete"
+                            onClick={() => handleDeleteUser(user)}
+                          >
+                            🗑
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan={
-                      2 +
-                      Number(visibleColumns.role) +
-                      Number(visibleColumns.department) +
-                      Number(visibleColumns.status) +
-                      Number(visibleColumns.lastActive)
-                    }
-                  >
+                  <td colSpan={totalVisibleColumns}>
                     <div className="empty-state">
                       No users found for this filter or search.
                     </div>
@@ -615,6 +677,172 @@ const UserManagement = () => {
           </div>
         </div>
       </div>
+
+      {isSuperAdmin &&
+        isModalOpen &&
+        createPortal(
+          <div className="user-modal-overlay" onClick={closeModal}>
+            <div className="user-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="user-modal__header">
+                <div>
+                  <h3>
+                    {modalMode === "create" ? "Add New User" : "Edit User"}
+                  </h3>
+                  <p>
+                    {modalMode === "create"
+                      ? "Tambahkan user baru ke dalam sistem monitoring interior."
+                      : "Perbarui informasi user yang sudah terdaftar."}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className="user-modal__close"
+                  onClick={closeModal}
+                  aria-label="Tutup modal"
+                >
+                  ×
+                </button>
+              </div>
+
+              {formError && (
+                <div className="user-modal__error">{formError}</div>
+              )}
+
+              <form onSubmit={handleSubmitUser} className="user-form">
+                <div className="user-form__grid">
+                  <div className="user-form__group">
+                    <label htmlFor="full_name">Nama Lengkap</label>
+                    <input
+                      id="full_name"
+                      type="text"
+                      name="full_name"
+                      value={form.full_name}
+                      onChange={handleFormChange}
+                      placeholder="Contoh: Admin Utama"
+                      required
+                    />
+                  </div>
+
+                  <div className="user-form__group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                      id="email"
+                      type="email"
+                      name="email"
+                      value={form.email}
+                      onChange={handleFormChange}
+                      placeholder="contoh@email.com"
+                      required
+                    />
+                  </div>
+
+                  <div className="user-form__group">
+                    <label htmlFor="role">Role</label>
+                    <select
+                      id="role"
+                      name="role"
+                      value={form.role}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Pilih role</option>
+                      {ROLE_OPTIONS.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="user-form__group">
+                    <label htmlFor="departemen">Departemen</label>
+                    <select
+                      id="departemen"
+                      name="departemen"
+                      value={form.departemen}
+                      onChange={handleFormChange}
+                      required
+                    >
+                      <option value="">Pilih departemen</option>
+                      {DEPARTEMEN_OPTIONS.map((item) => (
+                        <option key={item.value} value={item.value}>
+                          {item.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="user-form__group">
+                    <label htmlFor="password">
+                      Password{" "}
+                      {modalMode === "edit"
+                        ? "(kosongkan jika tidak diubah)"
+                        : ""}
+                    </label>
+                    <input
+                      id="password"
+                      type="password"
+                      name="password"
+                      value={form.password}
+                      onChange={handleFormChange}
+                      placeholder={
+                        modalMode === "create"
+                          ? "Masukkan password minimal 6 karakter"
+                          : "Kosongkan jika tidak ingin mengganti password"
+                      }
+                      required={modalMode === "create"}
+                      minLength={6}
+                    />
+                  </div>
+
+                  <div className="user-form__group">
+                    <label htmlFor="is_active">Status Akun</label>
+                    <select
+                      id="is_active"
+                      name="is_active"
+                      value={String(form.is_active)}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          is_active: e.target.value === "true",
+                        }))
+                      }
+                      required
+                    >
+                      <option value="true">Active</option>
+                      <option value="false">Inactive</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="user-form__actions">
+                  <button
+                    type="button"
+                    className="user-btn user-btn--ghost"
+                    onClick={closeModal}
+                    disabled={submitLoading}
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    className="user-btn user-btn--primary"
+                    disabled={submitLoading}
+                  >
+                    {submitLoading
+                      ? "Menyimpan..."
+                      : modalMode === "create"
+                        ? "Save User"
+                        : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

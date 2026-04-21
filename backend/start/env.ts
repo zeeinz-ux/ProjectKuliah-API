@@ -17,9 +17,23 @@ export default await Env.create(new URL('../', import.meta.url), {
   APP_KEY: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
   LOG_LEVEL: Env.schema.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']),
-  MONGODB_URI: Env.schema.string(),
-  MONGO_DB_NAME: Env.schema.string(),
+
+  /*
+  |--------------------------------------------------------------------------
+  | Auth / External Services
+  |--------------------------------------------------------------------------
+  */
+  JWT_SECRET: Env.schema.string(),
   GOOGLE_CLIENT_ID: Env.schema.string(),
-  WEATHER_API_KEY: Env.schema.string(),
-  WEATHER_API_BASE_URL: Env.schema.string({ format: 'url' }),
+
+  /*
+  |--------------------------------------------------------------------------
+  | Variables for configuring database connection
+  |--------------------------------------------------------------------------
+  */
+  DB_HOST: Env.schema.string({ format: 'host' }),
+  DB_PORT: Env.schema.number(),
+  DB_USER: Env.schema.string(),
+  DB_PASSWORD: Env.schema.string.optional(),
+  DB_DATABASE: Env.schema.string(),
 })

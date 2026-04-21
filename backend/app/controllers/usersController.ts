@@ -1,179 +1,307 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import User from '#models/users'
-import Bencana from '#models/bencana'
-import RegisRelawan from '#models/regis_relawan'
+import User from '#models/user'
+import hash from '@adonisjs/core/services/hash'
 
+const ROLES = ['super_admin', 'project_manager', 'finance'] as const
+const DEPARTEMEN_LIST = ['IT/Sistem', 'Pengawas', 'Keuangan'] as const
 
-export default class usersController {
-  // GET /users
-  public async index({ response }: HttpContext) {
-    const users = await User.find()
-    return response.ok(users)
+type UserRole = (typeof ROLES)[number]
+type UserDepartemen = (typeof DEPARTEMEN_LIST)[number]
+
+export default class UsersController {
+  private serializeUser(user: User) {
+    return {
+      id: user.id,
+      full_name: user.fullName,
+      email: user.email,
+      role: user.role,
+      departemen: user.departemen,
+      google_id: user.googleId,
+      is_active: user.isActive,
+      bio: user.bio,
+      avatar: user.avatar,
+      created_at: user.createdAt,
+      updated_at: user.updatedAt,
+    }
   }
 
-  // GET /users/:id
-  public async show({ params, response }: HttpContext) {
-    const user = await User.findById(params.id)
+  // =========================
+  // PROFILE USER YANG SEDANG LOGIN
+  // =========================
+  public async me({ request, response }: HttpContext) {
+    const authUser = (request as any).user
+
+    if (!authUser) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const user = await User.find(authUser.id)
+
     if (!user) {
-      return response.notFound({ message: 'User not found' })
+      return response.notFound({ message: 'User tidak ditemukan' })
     }
-    return response.ok(user)
+
+    return response.ok(this.serializeUser(user))
   }
 
-  // POST /users
-  public async store({ request, response }: HttpContext) {
-    const data = request.only(['name', 'email', 'password'])
-    const user = await User.create(data)
-    return response.created(user)
-  }
+  public async updateMe({ request, response }: HttpContext) {
+    const authUser = (request as any).user
 
-  // PUT /users/:id
-  public async update({ params, request, response }: HttpContext) {
-    const user = await User.findByIdAndUpdate(
-      params.id,
-      request.only(['name', 'email', 'password']),
-      { new: true }
-    )
+    if (!authUser) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const user = await User.find(authUser.id)
+
     if (!user) {
-      return response.notFound({ message: 'User not found' })
-    }
-    return response.ok(user)
-  }
-
-  // DELETE /users/:id
-  public async destroy({ params, response }: HttpContext) {
-    const user = await User.findByIdAndDelete(params.id)
-    if (!user) {
-      return response.notFound({ message: 'User not found' })
-    }
-    return response.ok({ message: 'User deleted successfully' })
-  }
-  // POST /users/:id/certificates
-  public async addCertificate({ request, params, response }: HttpContext) {
-    try {
-      const loggedInUser = (request as any).user
-      const targetUserId = params.id
-
-      if (!loggedInUser) {
-        return response.unauthorized({ message: 'Tidak terautentikasi' })
-      }
-
-      // Hanya user sendiri atau admin yg boleh nambah sertifikat
-      if (loggedInUser.id !== targetUserId && loggedInUser.role !== 'admin') {
-        return response.forbidden({ message: 'Tidak diizinkan menambah sertifikat user lain' })
-      }
-
-    const payload = request.only([
-      'name',
-      'provider',
-      'dateIssued',
-      'dateExpired',
-      'certificateNumber',
-      'category',
-      'photo',
-    ])
-
-    if (!payload.name) {
-      return response.badRequest({ message: 'Nama sertifikat (name) wajib diisi' })
+      return response.notFound({ message: 'User tidak ditemukan' })
     }
 
-    const user = await User.findById(targetUserId)
-    if (!user) {
-      return response.notFound({ message: 'User not found' })
+    const payload = request.only(['full_name', 'email', 'bio', 'avatar'])
+
+    const fullName = payload.full_name?.trim()
+    const email = payload.email?.trim().toLowerCase()
+
+    if (!fullName || !email) {
+      return response.badRequest({
+        message: 'Nama lengkap dan email wajib diisi',
+      })
     }
 
-    // Convert date strings to Date objects
-    if (payload.dateIssued) {
-      payload.dateIssued = new Date(payload.dateIssued)
-    }
-    if (payload.dateExpired) {
-      payload.dateExpired = new Date(payload.dateExpired)
-    }
-
-    user.certificates.push(payload)
-    await user.save()
-
-    return response.ok(user)
-    } catch (error) {
-      console.error('Add certificate error:', error)
-      return response.internalServerError({ message: 'Terjadi kesalahan server' })
-    }
-  }
-  public async updateCertificate({ request, params, response }: HttpContext) {
-    const loggedInUser = (request as any).user
-    const targetUserId = params.id
-    const certId = params.certId
-
-    if (!loggedInUser) {
-      return response.unauthorized({ message: 'Tidak terautentikasi' })
+    const existingUser = await User.findBy('email', email)
+    if (existingUser && existingUser.id !== user.id) {
+      return response.conflict({
+        message: 'Email sudah digunakan user lain',
+      })
     }
 
-    if (loggedInUser.id !== targetUserId && loggedInUser.role !== 'admin') {
-      return response.forbidden({ message: 'Tidak diizinkan mengubah sertifikat user lain' })
-    }
-
-    const user = await User.findById(targetUserId)
-    if (!user) {
-      return response.notFound({ message: 'User not found' })
-    }
-
-    const cert = user.certificates.id(certId)
-    if (!cert) {
-      return response.notFound({ message: 'Sertifikat tidak ditemukan' })
-    }
-
-    const payload = request.only([
-      'name',
-      'provider',
-      'dateIssued',
-      'dateExpired',
-      'certificateNumber',
-      'category',
-      'photo',
-    ])
-
-    Object.assign(cert, payload)
+    user.fullName = fullName
+    user.email = email
+    user.bio = payload.bio?.trim() || null
+    user.avatar = payload.avatar?.trim() || null
 
     await user.save()
-    return response.ok(user)
-  }
-  public async deleteCertificate({ request, params, response }: HttpContext) {
-    const loggedInUser = (request as any).user
-    const targetUserId = params.id
-    const certId = params.certId
-
-    if (!loggedInUser) {
-      return response.unauthorized({ message: 'Tidak terautentikasi' })
-    }
-
-    if (loggedInUser.id !== targetUserId && loggedInUser.role !== 'admin') {
-      return response.forbidden({ message: 'Tidak diizinkan menghapus sertifikat user lain' })
-    }
-
-    const user = await User.findById(targetUserId)
-    if (!user) {
-      return response.notFound({ message: 'User not found' })
-    }
-
-    const cert = user.certificates.id(certId)
-    if (!cert) {
-      return response.notFound({ message: 'Sertifikat tidak ditemukan' })
-    }
-    user.certificates.pull({ _id: certId })
-
-    await user.save()
-
-    return response.ok(user)
-  }
-  public async getAdminStats({ response }: HttpContext) {
-    const totalUsers = await User.countDocuments()
-    const totalEvents = await Bencana.countDocuments()
-    const totalVolunteers = await RegisRelawan.countDocuments({ status: 'approved' })
 
     return response.ok({
-      totalUsers,
-      totalEvents,
-      totalVolunteers,
+      message: 'Profil berhasil diperbarui',
+      user: this.serializeUser(user),
+    })
+  }
+
+  public async changePassword({ request, response }: HttpContext) {
+    const authUser = (request as any).user
+
+    if (!authUser) {
+      return response.unauthorized({ message: 'Unauthorized' })
+    }
+
+    const user = await User.find(authUser.id)
+
+    if (!user) {
+      return response.notFound({ message: 'User tidak ditemukan' })
+    }
+
+    const { currentPassword, newPassword } = request.only(['currentPassword', 'newPassword'])
+
+    if (!currentPassword || !newPassword) {
+      return response.badRequest({
+        message: 'Current password dan new password wajib diisi',
+      })
+    }
+
+    if (newPassword.length < 6) {
+      return response.badRequest({
+        message: 'New password minimal 6 karakter',
+      })
+    }
+
+    const isValidPassword = await hash.verify(user.password, currentPassword)
+
+    if (!isValidPassword) {
+      return response.badRequest({
+        message: 'Current password salah',
+      })
+    }
+
+    user.password = newPassword
+    await user.save()
+
+    return response.ok({
+      message: 'Password berhasil diperbarui',
+    })
+  }
+
+  // =========================
+  // USER MANAGEMENT
+  // =========================
+  public async index({ response }: HttpContext) {
+    const users = await User.query().orderBy('id', 'desc')
+
+    return response.ok(users.map((user) => this.serializeUser(user)))
+  }
+
+  public async show({ params, response }: HttpContext) {
+    const user = await User.find(params.id)
+
+    if (!user) {
+      return response.notFound({ message: 'User tidak ditemukan' })
+    }
+
+    return response.ok(this.serializeUser(user))
+  }
+
+  public async store({ request, response }: HttpContext) {
+    const payload = request.only([
+      'full_name',
+      'email',
+      'password',
+      'role',
+      'departemen',
+      'is_active',
+      'bio',
+      'avatar',
+    ])
+
+    const fullName = payload.full_name?.trim()
+    const email = payload.email?.trim().toLowerCase()
+    const password = payload.password
+    const role = payload.role as UserRole
+    const departemen = payload.departemen as UserDepartemen
+    const isActive = payload.is_active === undefined ? true : Boolean(payload.is_active)
+
+    if (!fullName || !email || !password || !role || !departemen) {
+      return response.badRequest({
+        message: 'Nama lengkap, email, password, role, dan departemen wajib diisi',
+      })
+    }
+
+    if (password.length < 6) {
+      return response.badRequest({
+        message: 'Password minimal 6 karakter',
+      })
+    }
+
+    if (!ROLES.includes(role)) {
+      return response.badRequest({ message: 'Role tidak valid' })
+    }
+
+    if (!DEPARTEMEN_LIST.includes(departemen)) {
+      return response.badRequest({ message: 'Departemen tidak valid' })
+    }
+
+    const existingUser = await User.findBy('email', email)
+    if (existingUser) {
+      return response.conflict({ message: 'Email sudah terdaftar' })
+    }
+
+    const user = await User.create({
+      fullName,
+      email,
+      password,
+      role,
+      departemen,
+      googleId: null,
+      isActive,
+      bio: payload.bio?.trim() || null,
+      avatar: payload.avatar?.trim() || null,
+    })
+
+    return response.created({
+      message: 'User berhasil ditambahkan',
+      user: this.serializeUser(user),
+    })
+  }
+
+  public async update({ params, request, response }: HttpContext) {
+    const user = await User.find(params.id)
+
+    if (!user) {
+      return response.notFound({ message: 'User tidak ditemukan' })
+    }
+
+    const payload = request.only([
+      'full_name',
+      'email',
+      'password',
+      'role',
+      'departemen',
+      'is_active',
+      'bio',
+      'avatar',
+    ])
+
+    if (payload.email) {
+      const normalizedEmail = payload.email.trim().toLowerCase()
+      const existingUser = await User.findBy('email', normalizedEmail)
+
+      if (existingUser && existingUser.id !== user.id) {
+        return response.conflict({ message: 'Email sudah digunakan user lain' })
+      }
+
+      user.email = normalizedEmail
+    }
+
+    if (payload.full_name !== undefined) {
+      user.fullName = payload.full_name.trim()
+    }
+
+    if (payload.password) {
+      if (payload.password.length < 6) {
+        return response.badRequest({
+          message: 'Password minimal 6 karakter',
+        })
+      }
+
+      user.password = payload.password
+    }
+
+    if (payload.role !== undefined) {
+      if (!ROLES.includes(payload.role as UserRole)) {
+        return response.badRequest({ message: 'Role tidak valid' })
+      }
+
+      user.role = payload.role as UserRole
+    }
+
+    if (payload.departemen !== undefined) {
+      if (!DEPARTEMEN_LIST.includes(payload.departemen as UserDepartemen)) {
+        return response.badRequest({ message: 'Departemen tidak valid' })
+      }
+
+      user.departemen = payload.departemen as UserDepartemen
+    }
+
+    if (payload.is_active !== undefined) {
+      user.isActive = Boolean(payload.is_active)
+    }
+
+    if (payload.bio !== undefined) {
+      user.bio = payload.bio?.trim() || null
+    }
+
+    if (payload.avatar !== undefined) {
+      user.avatar = payload.avatar?.trim() || null
+    }
+
+    await user.save()
+
+    return response.ok({
+      message: 'User berhasil diperbarui',
+      user: this.serializeUser(user),
+    })
+  }
+
+  public async destroy({ params, response }: HttpContext) {
+    const user = await User.find(params.id)
+
+    if (!user) {
+      return response.notFound({ message: 'User tidak ditemukan' })
+    }
+
+    await user.delete()
+
+    return response.ok({
+      message: 'User berhasil dihapus',
     })
   }
 }

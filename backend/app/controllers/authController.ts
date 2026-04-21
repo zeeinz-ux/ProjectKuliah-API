@@ -1,87 +1,151 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import User from '#models/users'
-import bcrypt from 'bcryptjs'
+import User from '#models/user'
+import hash from '@adonisjs/core/services/hash'
 import jwt from 'jsonwebtoken'
 import env from '#start/env'
 import { OAuth2Client } from 'google-auth-library'
 
 const googleClient = new OAuth2Client(env.get('GOOGLE_CLIENT_ID'))
 
+const ROLES = ['super_admin', 'project_manager', 'finance'] as const
+
+const DEPARTEMEN_LIST = ['IT/Sistem', 'Pengawas', 'Keuangan'] as const
+
+type UserRole = (typeof ROLES)[number]
+type UserDepartemen = (typeof DEPARTEMEN_LIST)[number]
+
 export default class AuthController {
   // POST /register
   public async register({ request, response }: HttpContext) {
     try {
-      const { name, email, password } = request.only(['name', 'email', 'password'])
+      const payload = request.only(['full_name', 'email', 'password', 'role', 'departemen'])
 
-      if (!name || !email || !password) {
+      const fullName = payload.full_name?.trim()
+      const email = payload.email?.trim().toLowerCase()
+      const password = payload.password
+      const role = payload.role as UserRole
+      const departemen = payload.departemen as UserDepartemen
+
+      if (!fullName || !email || !password || !role || !departemen) {
         return response.badRequest({
-          message: 'Nama, email, dan password wajib diisi',
+          message: 'Nama lengkap, email, password, role, dan departemen wajib diisi',
         })
       }
 
-      const existingUser = await User.findOne({ email })
-      if (existingUser) {
-        return response.badRequest({ message: 'Email sudah terdaftar' })
+      if (password.length < 6) {
+        return response.badRequest({
+          message: 'Password minimal 6 karakter',
+        })
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10)
+      if (!ROLES.includes(role)) {
+        return response.badRequest({
+          message: 'Role tidak valid',
+        })
+      }
+
+      if (!DEPARTEMEN_LIST.includes(departemen)) {
+        return response.badRequest({
+          message: 'Departemen tidak valid',
+        })
+      }
+
+      const existingUser = await User.findBy('email', email)
+
+      if (existingUser) {
+        return response.conflict({
+          message: 'Email sudah terdaftar',
+        })
+      }
 
       const user = await User.create({
-        name,
+        fullName,
         email,
-        password: hashedPassword,
-        role: 'user',
+        password,
+        role,
+        departemen,
+        googleId: null,
+        isActive: true,
       })
 
       return response.created({
-        message: 'User berhasil dibuat',
+        message: 'Registrasi berhasil',
         user: {
-          id: user._id,
-          name: user.name,
+          id: user.id,
+          full_name: user.fullName,
           email: user.email,
           role: user.role,
+          departemen: user.departemen,
+          google_id: user.googleId,
+          is_active: user.isActive,
         },
       })
     } catch (error) {
       console.error('Register error:', error)
-      return response.internalServerError({ message: 'Terjadi kesalahan server' })
+
+      return response.internalServerError({
+        message: 'Terjadi kesalahan server saat registrasi',
+      })
     }
   }
 
   // POST /login
   public async login({ request, response }: HttpContext) {
     try {
-      const { email, password } = request.only(['email', 'password'])
+      const payload = request.only(['email', 'password', 'role'])
 
-      // Find user by email
-      const user = await User.findOne({ email })
-      if (!user) {
-        return response.unauthorized({ message: 'Email atau password salah' })
-      }
+      const email = payload.email?.trim().toLowerCase()
+      const password = payload.password
+      const role = payload.role as UserRole
 
-      // Kalau user tidak punya password (akun Google), tolak login password
-      if (!user.password) {
-        return response.unauthorized({
-          message: 'Akun ini tidak bisa login dengan password, silakan login dengan Google',
+      if (!email || !password || !role) {
+        return response.badRequest({
+          message: 'Email, password, dan role wajib diisi',
         })
       }
 
-      // Check password (di sini TS sudah yakin user.password adalah string)
-      const isValidPassword = await bcrypt.compare(password, user.password)
-
-      if (!isValidPassword) {
-        return response.unauthorized({ message: 'Email atau password salah' })
+      if (!ROLES.includes(role)) {
+        return response.badRequest({
+          message: 'Role tidak valid',
+        })
       }
 
-      // Generate JWT token
+      const user = await User.findBy('email', email)
+
+      if (!user) {
+        return response.unauthorized({
+          message: 'Email, password, atau role salah',
+        })
+      }
+
+      if (!user.isActive) {
+        return response.forbidden({
+          message: 'Akun tidak aktif, silakan hubungi admin',
+        })
+      }
+
+      if (user.role !== role) {
+        return response.unauthorized({
+          message: 'Email, password, atau role salah',
+        })
+      }
+
+      const isValidPassword = await hash.verify(user.password, password)
+
+      if (!isValidPassword) {
+        return response.unauthorized({
+          message: 'Email, password, atau role salah',
+        })
+      }
+
       const token = jwt.sign(
         {
-          id: user._id,
+          id: user.id,
           email: user.email,
-          name: user.name,
+          full_name: user.fullName,
           role: user.role,
         },
-        env.get('JWT_SECRET') || '',
+        env.get('JWT_SECRET'),
         { expiresIn: '24h' }
       )
 
@@ -89,97 +153,116 @@ export default class AuthController {
         message: 'Login berhasil',
         token,
         user: {
-          id: user._id,
-          name: user.name,
+          id: user.id,
+          full_name: user.fullName,
           email: user.email,
           role: user.role,
+          departemen: user.departemen,
+          google_id: user.googleId,
+          is_active: user.isActive,
         },
+        redirectTo: '/admin',
       })
     } catch (error) {
-      return response.internalServerError({ message: 'Terjadi kesalahan server' })
+      console.error('Login error:', error)
+
+      return response.internalServerError({
+        message: 'Terjadi kesalahan server saat login',
+      })
     }
   }
 
-  // google login
+  // POST /google-login
   public async googleLogin({ request, response }: HttpContext) {
     try {
       const { idToken } = request.only(['idToken'])
 
       if (!idToken) {
-        return response.badRequest({ message: 'ID Token is required' })
+        return response.badRequest({
+          message: 'ID Token wajib dikirim',
+        })
       }
 
-      // 1. Verifikasi token ke Google
       const ticket = await googleClient.verifyIdToken({
         idToken,
         audience: env.get('GOOGLE_CLIENT_ID'),
       })
+
       const payload = ticket.getPayload()
 
       if (!payload) {
-        return response.unauthorized({ message: 'Invalid Google Token' })
+        return response.unauthorized({
+          message: 'Google token tidak valid',
+        })
       }
 
       const googleId = payload.sub
-      const email = payload.email
-      const name = payload.name
+      const email = payload.email?.trim().toLowerCase()
+      const fullName = payload.name?.trim()
 
       if (!email) {
-        return response.unauthorized({ message: 'Google account has no email' })
+        return response.unauthorized({
+          message: 'Akun Google tidak memiliki email',
+        })
       }
 
-      // 2. Cari atau buat user
-      let user = await User.findOne({ googleId })
+      let user = await User.findBy('googleId', googleId)
 
       if (!user) {
-        // belum ada user dengan googleId → cek berdasarkan email
-        user = await User.findOne({ email })
+        user = await User.findBy('email', email)
 
-        if (user) {
-          // link akun Google ke akun yang sudah ada
-          user.googleId = googleId
-          if (!user.name && name) user.name = name
-          await user.save()
-        } else {
-          // user benar-benar baru → buat akun baru
-          user = await User.create({
-            name,
-            email,
-            googleId,
-            password: '', // atau biarkan null kalau schema mengizinkan
-            // role: 'user', // isi ini kalau tidak ada default di schema
+        if (!user) {
+          return response.forbidden({
+            message: 'Akun Google ini belum terdaftar. Silakan daftar dulu atau hubungi admin.',
           })
         }
+
+        user.googleId = googleId
+
+        if (!user.fullName && fullName) {
+          user.fullName = fullName
+        }
+
+        await user.save()
       }
 
-      // 3. Buat JWT (SELALU setelah user pasti ada)
+      if (!user.isActive) {
+        return response.forbidden({
+          message: 'Akun tidak aktif, silakan hubungi admin',
+        })
+      }
+
       const token = jwt.sign(
         {
-          id: user._id,
+          id: user.id,
           email: user.email,
-          name: user.name,
+          full_name: user.fullName,
           role: user.role,
         },
-        env.get('JWT_SECRET') || '',
+        env.get('JWT_SECRET'),
         { expiresIn: '24h' }
       )
 
-      const redirectTo = user.role === 'admin' ? '/admin' : '/monitoring'
-
       return response.ok({
-        message: 'Login berhasil',
+        message: 'Login Google berhasil',
         token,
         user: {
-          id: user._id,
-          name: user.name,
+          id: user.id,
+          full_name: user.fullName,
           email: user.email,
-          role: user.role || 'user',
+          role: user.role,
+          departemen: user.departemen,
+          google_id: user.googleId,
+          is_active: user.isActive,
         },
-        redirectTo,
+        redirectTo: '/admin',
       })
     } catch (error) {
       console.error('Google login error:', error)
-      return response.internalServerError({ message: 'Terjadi kesalahan server' })
+
+      return response.internalServerError({
+        message: 'Terjadi kesalahan server saat login Google',
+      })
     }
   }
 }
