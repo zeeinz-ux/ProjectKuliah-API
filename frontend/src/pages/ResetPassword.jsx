@@ -1,0 +1,159 @@
+import React, { useMemo, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import "../css/ResetPassword.css";
+
+function ResetPassword() {
+  const location = useLocation();
+
+  const token = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("token") || "";
+  }, [location.search]);
+
+  const [password, setPassword] = useState("");
+  const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    setErrorMsg("");
+    setSuccessMsg("");
+
+    if (!token) {
+      setErrorMsg("Token reset password tidak ditemukan di URL.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMsg("Password baru minimal harus 6 karakter.");
+      return;
+    }
+
+    if (password !== passwordConfirmation) {
+      setErrorMsg("Konfirmasi password tidak sama.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3333"}/reset-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            token,
+            password,
+            password_confirmation: passwordConfirmation,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Gagal mereset password.");
+      }
+
+      setSuccessMsg(
+        data.message ||
+          "Password berhasil direset. Silakan login dengan password baru.",
+      );
+
+      setPassword("");
+      setPasswordConfirmation("");
+    } catch (error) {
+      setErrorMsg(error.message || "Terjadi kesalahan. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="reset-page">
+      <div className="reset-card">
+        <div className="reset-badge">Medtic Interior</div>
+
+        <h1 className="reset-title">Reset Password</h1>
+        <p className="reset-subtitle">
+          Masukkan password baru untuk akun kamu. Token reset akan dibaca
+          otomatis dari URL.
+        </p>
+
+        {!token && (
+          <div className="reset-alert reset-alert-error">
+            Token reset password tidak ditemukan. Pastikan kamu membuka link
+            reset yang benar.
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="reset-alert reset-alert-error">{errorMsg}</div>
+        )}
+
+        {successMsg && (
+          <div className="reset-alert reset-alert-success">
+            <p>{successMsg}</p>
+            <Link to="/login" className="reset-login-link">
+              Kembali ke Login
+            </Link>
+          </div>
+        )}
+
+        <form className="reset-form" onSubmit={handleSubmit}>
+          <div className="reset-form-group">
+            <label htmlFor="password" className="reset-label">
+              Password Baru
+            </label>
+            <input
+              id="password"
+              type="password"
+              className="reset-input"
+              placeholder="Masukkan password baru"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="reset-form-group">
+            <label htmlFor="passwordConfirmation" className="reset-label">
+              Konfirmasi Password Baru
+            </label>
+            <input
+              id="passwordConfirmation"
+              type="password"
+              className="reset-input"
+              placeholder="Ulangi password baru"
+              value={passwordConfirmation}
+              onChange={(e) => setPasswordConfirmation(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="reset-button"
+            disabled={loading || !token}
+          >
+            {loading ? "Menyimpan..." : "Simpan Password Baru"}
+          </button>
+        </form>
+
+        <div className="reset-footer">
+          <Link to="/login" className="reset-back-link">
+            ← Kembali ke Login
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default ResetPassword;

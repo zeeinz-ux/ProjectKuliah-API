@@ -6,6 +6,7 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from '#start/kernel'
+const PasswordResetsController = () => import('#controllers/password_resets_controller')
 
 // AUTH
 router.post('/register', '#controllers/authController.register')
@@ -33,3 +34,7 @@ router
   .delete('/users/:id', '#controllers/usersController.destroy')
   .use(middleware.auth())
   .use(middleware.admin())
+
+  // PASSWORD RESET
+  router.post('/forgot-password', [PasswordResetsController, 'forgotPassword'])
+  router.post('/reset-password', [PasswordResetsController, 'resetPassword'])

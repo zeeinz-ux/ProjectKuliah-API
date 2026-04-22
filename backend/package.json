@@ -57,6 +57,7 @@
     "@adonisjs/core": "^6.18.0",
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.8.2",
+    "@adonisjs/mail": "^9.2.2",
     "@types/bcryptjs": "^2.4.6",
     "@vinejs/vine": "^3.0.1",
     "axios": "^1.13.2",

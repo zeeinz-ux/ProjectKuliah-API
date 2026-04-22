@@ -3,17 +3,10 @@ import hash from '@adonisjs/core/services/hash'
 import { BaseModel, beforeSave, column } from '@adonisjs/lucid/orm'
 
 export type UserRole = 'super_admin' | 'project_manager' | 'finance'
-
 export type UserDepartemen = 'IT/Sistem' | 'Pengawas' | 'Keuangan'
 
 export default class User extends BaseModel {
   public static table = 'users'
-
-  @column()
-  declare bio: string | null
-
-  @column()
-  declare avatar: string | null
 
   @column({ isPrimary: true })
   declare id: number
@@ -38,6 +31,12 @@ export default class User extends BaseModel {
 
   @column({ columnName: 'is_active' })
   declare isActive: boolean
+
+  @column()
+  declare bio: string | null
+
+  @column()
+  declare avatar: string | null
 
   @column.dateTime({ autoCreate: true, columnName: 'created_at' })
   declare createdAt: DateTime

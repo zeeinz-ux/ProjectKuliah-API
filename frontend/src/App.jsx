@@ -3,6 +3,8 @@ import Footer from "./components/Footer";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -22,7 +24,9 @@ function App() {
   const isAuthRoute =
     location.pathname === "/" ||
     location.pathname === "/login" ||
-    location.pathname === "/register";
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password";
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
@@ -31,6 +35,8 @@ function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route
             path="/admin"
