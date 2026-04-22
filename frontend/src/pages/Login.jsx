@@ -1,5 +1,3 @@
-// Login.jsx
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../api/authApi";
@@ -22,18 +20,23 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const saveAuthToLocalStorage = (token, user) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+  };
+
   const handleGoogleSuccess = (data) => {
-    const token = data.token;
-    const user = data.user;
+    const token = data?.token;
+    const user = data?.user;
+
+    setError("");
 
     if (!token || !user) {
       setError("Response Google login tidak valid");
       return;
     }
 
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
-
+    saveAuthToLocalStorage(token, user);
     navigate(data.redirectTo || "/admin");
   };
 
@@ -45,9 +48,7 @@ export default function Login() {
     try {
       const data = await login(email, password, role);
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
+      saveAuthToLocalStorage(data.token, data.user);
       navigate(data.redirectTo || "/admin");
     } catch (err) {
       setError(
@@ -92,7 +93,7 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Masukkan email"
-                autoComplete="email"
+                autoComplete="username"
               />
             </div>
 

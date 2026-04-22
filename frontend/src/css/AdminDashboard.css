@@ -1,30 +1,45 @@
-* {
+/* =========================
+   Variabel warna dan token desain
+   ========================= */
+:root {
+  --dash-bg: #f5f7f9;
+  --dash-card: #ffffff;
+  --dash-text: #0b1621;
+  --dash-muted: #718096;
+  --dash-border: #d6e0e0;
+  --dash-shadow:
+    0 1px 1px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.04);
+
+  --dash-green: #0f9c4a;
+  --dash-green-soft: #e7f5ee;
+  --dash-cyan: #0ea5a8;
+  --dash-cyan-soft: #e7f7f7;
+  --dash-blue: #2f80ed;
+  --dash-blue-soft: #edf5ff;
+  --dash-yellow: #d89b12;
+  --dash-yellow-soft: #fcf4df;
+  --dash-purple: #a55ac5;
+  --dash-purple-soft: #f5ebfb;
+  --dash-red: #ff0000;
+}
+
+/* =========================
+   Scope dashboard
+   ========================= */
+.dashboard-page * {
   box-sizing: border-box;
 }
 
-:root {
-  --bg: #f5f7f9;
-  --card: #ffffff;
-  --text: #0b1621;
-  --muted: #718096;
-  --border: #d6e0e0;
-  --shadow: 0 1px 1px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.04);
-
-  --green: #0f9c4a;
-  --green-soft: #e7f5ee;
-  --cyan: #0ea5a8;
-  --cyan-soft: #e7f7f7;
-  --blue: #2f80ed;
-  --blue-soft: #edf5ff;
-  --yellow: #d89b12;
-  --yellow-soft: #fcf4df;
-  --purple: #a55ac5;
-  --purple-soft: #f5ebfb;
-  --red: #ff0000;
-}
-
-body {
-  margin: 0;
+/* =========================
+   Wrapper utama halaman dashboard
+   ========================= */
+.dashboard-page {
+  width: 100%;
+  max-width: 1440px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 16px;
+  background: var(--dash-bg);
   font-family:
     Inter,
     ui-sans-serif,
@@ -33,23 +48,19 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-  background: var(--bg);
-  color: var(--text);
+  color: var(--dash-text);
 }
 
-.dashboard-page {
-  min-height: 100vh;
-  padding: 16px;
-  background: var(--bg);
-}
-
+/* =========================
+   Header dashboard
+   ========================= */
 .dashboard-header {
   margin-bottom: 18px;
 }
 
 .dashboard-header h1 {
   margin: 0;
-  font-size: 24px;
+  font-size: clamp(1.5rem, 2vw, 2rem);
   line-height: 1.2;
   font-weight: 800;
   color: #08131f;
@@ -61,19 +72,23 @@ body {
   color: #617187;
 }
 
+/* =========================
+   Grid 4 metric cards atas
+   ========================= */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   margin-bottom: 16px;
 }
 
 .metric-card,
 .panel {
-  background: var(--card);
-  border: 1px solid var(--border);
+  min-width: 0;
+  background: var(--dash-card);
+  border: 1px solid var(--dash-border);
   border-radius: 16px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--dash-shadow);
 }
 
 .metric-card {
@@ -113,7 +128,7 @@ body {
 }
 
 .metric-change.up {
-  color: var(--green);
+  color: var(--dash-green);
 }
 
 .metric-change.down {
@@ -154,23 +169,23 @@ body {
 }
 
 .metric-icon.green {
-  background: var(--green-soft);
-  color: var(--green);
+  background: var(--dash-green-soft);
+  color: var(--dash-green);
 }
 
 .metric-icon.cyan {
-  background: var(--cyan-soft);
-  color: var(--cyan);
+  background: var(--dash-cyan-soft);
+  color: var(--dash-cyan);
 }
 
 .metric-icon.blue {
-  background: var(--blue-soft);
-  color: var(--blue);
+  background: var(--dash-blue-soft);
+  color: var(--dash-blue);
 }
 
 .metric-icon.yellow {
-  background: var(--yellow-soft);
-  color: var(--yellow);
+  background: var(--dash-yellow-soft);
+  color: var(--dash-yellow);
 }
 
 .metric-chart {
@@ -192,7 +207,7 @@ body {
 
 .green-line .sparkline-line {
   fill: none;
-  stroke: var(--green);
+  stroke: var(--dash-green);
   stroke-width: 1.8;
 }
 
@@ -202,7 +217,7 @@ body {
 
 .cyan-line .sparkline-line {
   fill: none;
-  stroke: var(--cyan);
+  stroke: var(--dash-cyan);
   stroke-width: 1.8;
 }
 
@@ -212,7 +227,7 @@ body {
 
 .blue-line .sparkline-line {
   fill: none;
-  stroke: var(--blue);
+  stroke: var(--dash-blue);
   stroke-width: 1.8;
 }
 
@@ -222,7 +237,7 @@ body {
 
 .yellow-line .sparkline-line {
   fill: none;
-  stroke: var(--yellow);
+  stroke: var(--dash-yellow);
   stroke-width: 1.8;
 }
 
@@ -230,23 +245,26 @@ body {
   fill: rgba(216, 155, 18, 0.08);
 }
 
-.dashboard-main-grid,
-.dashboard-bottom-grid {
+/* =========================
+   Grid utama dashboard
+   ========================= */
+.dashboard-main-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
   gap: 16px;
   align-items: start;
 }
 
-.dashboard-bottom-grid {
-  margin-top: 16px;
-}
-
+.left-column,
 .right-column {
   display: grid;
   gap: 16px;
+  align-content: start;
 }
 
+/* =========================
+   Panel umum
+   ========================= */
 .panel {
   padding: 18px 20px;
 }
@@ -281,6 +299,9 @@ body {
   color: #617187;
 }
 
+/* =========================
+   Segment tabs overview
+   ========================= */
 .segment-tabs {
   display: inline-flex;
   align-items: center;
@@ -300,6 +321,7 @@ body {
   padding: 7px 14px;
   border-radius: 9px;
   cursor: pointer;
+  font-family: inherit;
 }
 
 .segment-tabs button.active {
@@ -308,7 +330,11 @@ body {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
 
+/* =========================
+   Overview chart
+   ========================= */
 .overview-chart-wrap {
+  width: 100%;
   position: relative;
   height: 390px;
   padding-left: 52px;
@@ -331,7 +357,7 @@ body {
 
 .overview-line {
   fill: none;
-  stroke: var(--green);
+  stroke: var(--dash-green);
   stroke-width: 2.4;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -378,6 +404,9 @@ body {
   text-align: right;
 }
 
+/* =========================
+   Donut chart status project
+   ========================= */
 .status-chart-box {
   display: grid;
   grid-template-columns: 132px 1fr;
@@ -454,6 +483,9 @@ body {
   color: #0b1621;
 }
 
+/* =========================
+   Monthly goals
+   ========================= */
 .goals-list {
   display: flex;
   flex-direction: column;
@@ -504,6 +536,9 @@ body {
   color: #64748b;
 }
 
+/* =========================
+   Recent clients panel
+   ========================= */
 .clients-panel {
   padding: 22px 20px 18px;
 }
@@ -527,6 +562,9 @@ body {
   align-items: center;
   gap: 6px;
   padding: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-family: inherit;
 }
 
 .clients-table-wrap {
@@ -669,6 +707,9 @@ body {
   color: #ffffff;
 }
 
+/* =========================
+   Recent activity panel
+   ========================= */
 .activity-panel {
   padding: 22px 20px 18px;
 }
@@ -706,28 +747,28 @@ body {
 }
 
 .activity-icon.green {
-  background: var(--green-soft);
-  color: var(--green);
+  background: var(--dash-green-soft);
+  color: var(--dash-green);
 }
 
 .activity-icon.cyan {
-  background: var(--cyan-soft);
-  color: var(--cyan);
+  background: var(--dash-cyan-soft);
+  color: var(--dash-cyan);
 }
 
 .activity-icon.blue {
-  background: var(--blue-soft);
-  color: var(--blue);
+  background: var(--dash-blue-soft);
+  color: var(--dash-blue);
 }
 
 .activity-icon.yellow {
-  background: var(--yellow-soft);
-  color: var(--yellow);
+  background: var(--dash-yellow-soft);
+  color: var(--dash-yellow);
 }
 
 .activity-icon.purple {
-  background: var(--purple-soft);
-  color: var(--purple);
+  background: var(--dash-purple-soft);
+  color: var(--dash-purple);
 }
 
 .activity-content {
@@ -753,6 +794,9 @@ body {
   color: #94a3b8;
 }
 
+/* =========================
+   Mode tampil desktop/mobile
+   ========================= */
 .mobile-only {
   display: none;
 }
@@ -761,11 +805,14 @@ body {
   display: block;
 }
 
+/* =========================
+   Card client versi mobile
+   ========================= */
 .client-mobile-card {
   border: 1px solid #e8eef1;
   border-radius: 14px;
   padding: 14px;
-  background: #fff;
+  background: #ffffff;
 }
 
 .client-mobile-card + .client-mobile-card {
@@ -802,13 +849,11 @@ body {
   font-weight: 700;
 }
 
-@media (max-width: 1200px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .dashboard-main-grid,
-  .dashboard-bottom-grid {
+/* =========================
+   Responsive <= 992px
+   ========================= */
+@media (max-width: 992px) {
+  .dashboard-main-grid {
     grid-template-columns: 1fr;
   }
 
@@ -817,22 +862,29 @@ body {
   }
 }
 
+/* =========================
+   Responsive <= 768px
+   ========================= */
 @media (max-width: 768px) {
   .dashboard-page {
     padding: 12px;
   }
 
-  .dashboard-header h1 {
-    font-size: 22px;
+  .dashboard-header {
+    margin-bottom: 14px;
+  }
+
+  .dashboard-header p {
+    font-size: 12px;
+    line-height: 1.5;
   }
 
   .metrics-grid {
-    grid-template-columns: 1fr;
     gap: 12px;
   }
 
   .dashboard-main-grid,
-  .dashboard-bottom-grid,
+  .left-column,
   .right-column {
     gap: 12px;
   }
@@ -851,6 +903,11 @@ body {
     align-items: stretch;
   }
 
+  .panel-head h2,
+  .clients-head h2 {
+    font-size: 16px;
+  }
+
   .segment-tabs {
     width: 100%;
   }
@@ -864,6 +921,7 @@ body {
   .status-chart-box {
     grid-template-columns: 1fr;
     justify-items: center;
+    gap: 14px;
     text-align: left;
   }
 
@@ -926,8 +984,45 @@ body {
   .activity-content span {
     font-size: 11px;
   }
+
+  .view-all-btn {
+    align-self: flex-start;
+  }
 }
 
+/* =========================
+   Responsive <= 576px
+   ========================= */
+@media (max-width: 576px) {
+  .segment-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .segment-tabs button {
+    width: 100%;
+    text-align: center;
+  }
+
+  .goal-title-row,
+  .goal-footer {
+    gap: 8px;
+  }
+
+  .client-mobile-card {
+    padding: 12px;
+  }
+
+  .project-amount,
+  .project-name {
+    word-break: break-word;
+  }
+}
+
+/* =========================
+   Responsive <= 420px
+   ========================= */
 @media (max-width: 420px) {
   .dashboard-page {
     padding: 10px;

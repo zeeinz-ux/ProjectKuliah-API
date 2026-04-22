@@ -14,7 +14,6 @@ import {
   FiUsers,
   FiFolder,
   FiFileText,
-  FiUserCheck,
   FiSettings,
   FiLogOut,
   FiUser,
@@ -364,8 +363,8 @@ export default function AdminLayout() {
           </div>
 
           <div className="admin-topbar__right">
-            <span className="status-badge">
-              <span className="status-dot" />
+            <span className="layout-status-badge">
+              <span className="layout-status-dot" />
               Online
             </span>
           </div>

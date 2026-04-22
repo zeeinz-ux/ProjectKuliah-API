@@ -1,43 +1,89 @@
-* {
+:root {
+  --field-upload-bg: #ffffff;
+  --field-upload-line: #d9e0e5;
+  --field-upload-line-soft: #e9eef2;
+  --field-upload-text: #101828;
+  --field-upload-heading: #0f1728;
+  --field-upload-muted: #667085;
+  --field-upload-green: #0f9d58;
+  --field-upload-green-dark: #0b8449;
+  --field-upload-green-soft: #e8f5ec;
+  --field-upload-green-soft-2: #f2fbf5;
+  --field-upload-surface: #fbfcfc;
+  --field-upload-surface-2: #f8fbf9;
+  --field-upload-gray-soft: #fafafa;
+  --field-upload-gray-soft-2: #fcfcfd;
+  --field-upload-border-soft: #e4e7ec;
+  --field-upload-error-bg: #fef3f2;
+  --field-upload-error-text: #b42318;
+  --field-upload-error-border: #fecdca;
+  --field-upload-success-bg: #ecfdf3;
+  --field-upload-success-text: #067647;
+  --field-upload-success-border: #abefc6;
+  --field-upload-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+}
+
+/* =========================================================
+   Scope FieldFileUpload
+   ========================================================= */
+.field-upload-card * {
   box-sizing: border-box;
 }
 
-.upload-card {
+/* =========================================================
+   Card utama
+   ========================================================= */
+.field-upload-card {
   width: 100%;
   max-width: 760px;
-  background: #ffffff;
-  border: 1px solid #d9e0e5;
+  background: var(--field-upload-bg);
+  border: 1px solid var(--field-upload-line);
   border-radius: 24px;
-  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+  box-shadow: var(--field-upload-shadow);
   overflow: hidden;
   font-family: Inter, "Segoe UI", Arial, sans-serif;
-  color: #101828;
+  color: var(--field-upload-text);
 }
 
-.upload-header {
+.field-upload-header {
   padding: 24px 24px 16px;
-  border-bottom: 1px solid #e9eef2;
-  background: #fbfcfc;
+  border-bottom: 1px solid var(--field-upload-line-soft);
+  background: var(--field-upload-surface);
 }
 
-.upload-header h2 {
+.field-upload-eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--field-upload-green);
+}
+
+.field-upload-header h2 {
   margin: 0;
   font-size: 28px;
-  font-weight: 700;
-  color: #0f1728;
+  font-weight: 800;
+  color: var(--field-upload-heading);
+  line-height: 1.2;
 }
 
-.upload-header p {
+.field-upload-header p {
   margin: 8px 0 0;
-  color: #667085;
+  color: var(--field-upload-muted);
   font-size: 14px;
+  line-height: 1.7;
 }
 
-.upload-body {
+.field-upload-body {
   padding: 24px;
 }
 
-.upload-dropzone {
+/* =========================================================
+   Dropzone
+   ========================================================= */
+.field-upload-dropzone {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,7 +92,7 @@
   min-height: 190px;
   border: 2px dashed #cfd8dc;
   border-radius: 20px;
-  background: #f8fbf9;
+  background: var(--field-upload-surface-2);
   color: #344054;
   text-align: center;
   cursor: pointer;
@@ -54,152 +100,207 @@
   padding: 24px;
 }
 
-.upload-dropzone:hover {
-  border-color: #12a150;
-  background: #f2fbf5;
+.field-upload-dropzone:hover,
+.field-upload-dropzone.is-drag-active {
+  border-color: var(--field-upload-green);
+  background: var(--field-upload-green-soft-2);
 }
 
-.upload-dropzone input {
+.field-upload-dropzone input {
   display: none;
 }
 
-.upload-icon {
+.field-upload-icon {
   width: 56px;
   height: 56px;
   border-radius: 16px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #e8f5ec;
-  color: #0f9d58;
+  background: var(--field-upload-green-soft);
+  color: var(--field-upload-green);
   font-size: 28px;
   font-weight: 700;
 }
 
-.upload-dropzone strong {
+.field-upload-dropzone strong {
   font-size: 18px;
   font-weight: 700;
 }
 
-.upload-dropzone small {
-  color: #667085;
+.field-upload-dropzone small {
+  color: var(--field-upload-muted);
   font-size: 13px;
+  line-height: 1.6;
 }
 
-.file-info {
+/* =========================================================
+   Informasi file
+   ========================================================= */
+.field-upload-file-info {
   margin-top: 18px;
   padding: 16px 18px;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--field-upload-border-soft);
   border-radius: 16px;
-  background: #fafafa;
+  background: var(--field-upload-gray-soft);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.file-info p {
+.field-upload-file-meta p {
   margin: 8px 0;
   font-size: 14px;
   color: #344054;
+  line-height: 1.6;
 }
 
-.file-info span {
+.field-upload-file-meta span {
   font-weight: 700;
-  color: #101828;
+  color: var(--field-upload-text);
 }
 
-.upload-actions {
-  margin-top: 18px;
-}
-
-.upload-btn {
-  height: 46px;
-  padding: 0 18px;
-  border: none;
-  border-radius: 14px;
-  background: #0f9d58;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.upload-btn:hover:not(:disabled) {
-  background: #0b8449;
-}
-
-.upload-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.message {
-  margin-top: 16px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.message.error {
-  background: #fef3f2;
-  color: #b42318;
-  border: 1px solid #fecdca;
-}
-
-.message.success {
-  background: #ecfdf3;
-  color: #067647;
-  border: 1px solid #abefc6;
-}
-
-.result-box {
+/* =========================================================
+   Preview lokal
+   ========================================================= */
+.field-upload-local-preview {
   margin-top: 22px;
-  padding: 18px;
-  border: 1px solid #e4e7ec;
-  border-radius: 18px;
-  background: #fcfcfd;
 }
 
-.result-box h3 {
+.field-upload-local-preview h3 {
   margin: 0 0 14px;
   font-size: 18px;
-  color: #101828;
+  color: var(--field-upload-text);
 }
 
-.preview-wrapper {
+.field-upload-preview-wrapper {
   width: 180px;
   height: 180px;
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--field-upload-border-soft);
   background: #f2f4f7;
-  margin-bottom: 16px;
 }
 
-.preview-image {
+.field-upload-preview-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-/* Kalau file yang diupload adalah PDF */
-.pdf-preview {
+/* =========================================================
+   Actions
+   ========================================================= */
+.field-upload-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.field-upload-btn {
+  min-height: 46px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.field-upload-btn--primary {
+  background: var(--field-upload-green);
+  color: #ffffff;
+}
+
+.field-upload-btn--primary:hover:not(:disabled) {
+  background: var(--field-upload-green-dark);
+}
+
+.field-upload-btn--ghost {
+  background: #ffffff;
+  color: var(--field-upload-text);
+  border: 1px solid var(--field-upload-line);
+}
+
+.field-upload-btn--ghost:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.field-upload-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   Message
+   ========================================================= */
+.field-upload-message {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.field-upload-message--error {
+  background: var(--field-upload-error-bg);
+  color: var(--field-upload-error-text);
+  border: 1px solid var(--field-upload-error-border);
+}
+
+.field-upload-message--success {
+  background: var(--field-upload-success-bg);
+  color: var(--field-upload-success-text);
+  border: 1px solid var(--field-upload-success-border);
+}
+
+/* =========================================================
+   Hasil upload
+   ========================================================= */
+.field-upload-result-box {
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid var(--field-upload-border-soft);
+  border-radius: 18px;
+  background: var(--field-upload-gray-soft-2);
+}
+
+.field-upload-result-box h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: var(--field-upload-text);
+}
+
+.field-upload-pdf-preview {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 16px;
   border-radius: 14px;
   background: #f9fafb;
-  border: 1px solid #e4e7ec;
+  border: 1px solid var(--field-upload-border-soft);
   margin-bottom: 16px;
 }
 
-.pdf-badge {
+.field-upload-pdf-preview p {
+  margin: 0;
+  color: #344054;
+  font-size: 14px;
+}
+
+.field-upload-pdf-badge {
   min-width: 54px;
   height: 34px;
   border-radius: 999px;
-  background: #ecfdf3;
-  color: #067647;
+  background: var(--field-upload-success-bg);
+  color: var(--field-upload-success-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -207,19 +308,19 @@
   font-size: 13px;
 }
 
-.url-box {
+.field-upload-url-box {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.url-box label {
+.field-upload-url-box label {
   font-size: 14px;
   font-weight: 700;
   color: #344054;
 }
 
-.url-box textarea {
+.field-upload-url-box textarea {
   width: 100%;
   min-height: 90px;
   resize: vertical;
@@ -228,26 +329,60 @@
   padding: 14px;
   font-size: 13px;
   font-family: inherit;
-  color: #101828;
+  color: var(--field-upload-text);
   background: #ffffff;
   outline: none;
+  line-height: 1.6;
 }
 
-.url-box textarea:focus {
-  border-color: #12a150;
+.field-upload-url-box textarea:focus {
+  border-color: var(--field-upload-green);
 }
 
+.field-upload-link {
+  width: fit-content;
+  color: var(--field-upload-green);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.field-upload-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   Responsive
+   ========================================================= */
 @media (max-width: 768px) {
-  .upload-card {
+  .field-upload-card {
     border-radius: 18px;
   }
 
-  .upload-header h2 {
+  .field-upload-header,
+  .field-upload-body {
+    padding: 18px;
+  }
+
+  .field-upload-header h2 {
     font-size: 22px;
   }
 
-  .preview-wrapper {
+  .field-upload-file-info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .field-upload-preview-wrapper {
     width: 140px;
     height: 140px;
+  }
+
+  .field-upload-actions {
+    flex-direction: column;
+  }
+
+  .field-upload-btn {
+    width: 100%;
   }
 }

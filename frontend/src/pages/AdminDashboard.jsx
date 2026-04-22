@@ -294,6 +294,7 @@ function OverviewChart({ data }) {
     "Nov",
     "Dec",
   ];
+
   const yLabels = [
     "Rp.1.031.814,27",
     "Rp.773.860,71",
@@ -301,6 +302,7 @@ function OverviewChart({ data }) {
     "Rp.257.953,57",
     "Rp.0",
   ];
+
   const yValues = [60, 45, 30, 15, 0];
 
   return (
@@ -349,6 +351,7 @@ function OverviewChart({ data }) {
 
 function DonutChart({ data }) {
   let start = 0;
+
   const gradientParts = data.map((item) => {
     const end = start + item.value;
     const part = `${item.color} ${start}% ${end}%`;
@@ -496,7 +499,7 @@ function MetricCard({ item }) {
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("progress");
-  const currentData = overviewData[activeTab];
+  const currentData = overviewData[activeTab] || overviewData.progress;
 
   return (
     <div className="dashboard-page">
@@ -515,38 +518,143 @@ export default function AdminDashboard() {
       </div>
 
       <div className="dashboard-main-grid">
-        <div className="panel overview-panel">
-          <div className="panel-head panel-head-space">
-            <div>
-              <h2>Overview</h2>
-              <p>Monthly performance for the current year</p>
+        <div className="left-column">
+          <div className="panel overview-panel">
+            <div className="panel-head panel-head-space">
+              <div>
+                <h2>Overview</h2>
+                <p>Monthly performance for the current year</p>
+              </div>
+
+              <div className="segment-tabs">
+                <button
+                  type="button"
+                  className={activeTab === "progress" ? "active" : ""}
+                  onClick={() => setActiveTab("progress")}
+                >
+                  Progress
+                </button>
+
+                <button
+                  type="button"
+                  className={activeTab === "material" ? "active" : ""}
+                  onClick={() => setActiveTab("material")}
+                >
+                  Material
+                </button>
+
+                <button
+                  type="button"
+                  className={activeTab === "budget" ? "active" : ""}
+                  onClick={() => setActiveTab("budget")}
+                >
+                  Budget
+                </button>
+              </div>
             </div>
 
-            <div className="segment-tabs">
-              <button
-                className={activeTab === "progress" ? "active" : ""}
-                onClick={() => setActiveTab("progress")}
-              >
-                Progress
-              </button>
-
-              <button
-                className={activeTab === "material" ? "active" : ""}
-                onClick={() => setActiveTab("material")}
-              >
-                Material
-              </button>
-
-              <button
-                className={activeTab === "budget" ? "active" : ""}
-                onClick={() => setActiveTab("budget")}
-              >
-                Budget
-              </button>
-            </div>
+            <OverviewChart data={currentData} />
           </div>
 
-          <OverviewChart data={currentData} />
+          <div className="panel clients-panel">
+            <div className="clients-head">
+              <div>
+                <h2>Recent Clients</h2>
+                <p>Latest client projects from your interior business</p>
+              </div>
+
+              <button type="button" className="view-all-btn">
+                View all <span>↗</span>
+              </button>
+            </div>
+
+            <div className="clients-table-wrap desktop-only">
+              <table className="clients-table">
+                <thead>
+                  <tr>
+                    <th>Client</th>
+                    <th>Project ID</th>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Budget</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {recentClients.map((client) => (
+                    <tr key={client.projectId}>
+                      <td>
+                        <div className="client-cell">
+                          <div
+                            className={`client-avatar ${client.avatarClass}`}
+                          >
+                            {client.initials}
+                          </div>
+
+                          <div className="client-info">
+                            <h4>{client.name}</h4>
+                            <p>{client.email}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="project-id">{client.projectId}</td>
+                      <td className="project-name">{client.projectName}</td>
+
+                      <td>
+                        <span className={`status-badge ${client.statusClass}`}>
+                          {client.status}
+                        </span>
+                      </td>
+
+                      <td className="project-amount">{client.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="clients-mobile-list mobile-only">
+              {recentClients.map((client) => (
+                <div
+                  className="client-mobile-card"
+                  key={`mobile-${client.projectId}`}
+                >
+                  <div className="client-mobile-top">
+                    <div className="client-cell">
+                      <div className={`client-avatar ${client.avatarClass}`}>
+                        {client.initials}
+                      </div>
+
+                      <div className="client-info">
+                        <h4>{client.name}</h4>
+                        <p>{client.email}</p>
+                      </div>
+                    </div>
+
+                    <span className={`status-badge ${client.statusClass}`}>
+                      {client.status}
+                    </span>
+                  </div>
+
+                  <div className="client-mobile-meta">
+                    <div>
+                      <span>Project ID</span>
+                      <strong>{client.projectId}</strong>
+                    </div>
+                    <div>
+                      <span>Project</span>
+                      <strong>{client.projectName}</strong>
+                    </div>
+                    <div>
+                      <span>Budget</span>
+                      <strong>{client.amount}</strong>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="right-column">
@@ -595,134 +703,34 @@ export default function AdminDashboard() {
               ))}
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className="dashboard-bottom-grid">
-        <div className="panel clients-panel">
-          <div className="clients-head">
-            <div>
-              <h2>Recent Clients</h2>
-              <p>Latest client projects from your interior business</p>
+          <div className="panel activity-panel">
+            <div className="clients-head">
+              <div>
+                <h2>Recent Activity</h2>
+                <p>Latest updates from your interior projects</p>
+              </div>
+
+              <button type="button" className="view-all-btn">
+                View all <span>↗</span>
+              </button>
             </div>
 
-            <button className="view-all-btn">
-              View all <span>↗</span>
-            </button>
-          </div>
-
-          <div className="clients-table-wrap desktop-only">
-            <table className="clients-table">
-              <thead>
-                <tr>
-                  <th>Client</th>
-                  <th>Project ID</th>
-                  <th>Project</th>
-                  <th>Status</th>
-                  <th>Budget</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {recentClients.map((client) => (
-                  <tr key={client.projectId}>
-                    <td>
-                      <div className="client-cell">
-                        <div className={`client-avatar ${client.avatarClass}`}>
-                          {client.initials}
-                        </div>
-
-                        <div className="client-info">
-                          <h4>{client.name}</h4>
-                          <p>{client.email}</p>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="project-id">{client.projectId}</td>
-                    <td className="project-name">{client.projectName}</td>
-
-                    <td>
-                      <span className={`status-badge ${client.statusClass}`}>
-                        {client.status}
-                      </span>
-                    </td>
-
-                    <td className="project-amount">{client.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="clients-mobile-list mobile-only">
-            {recentClients.map((client) => (
-              <div
-                className="client-mobile-card"
-                key={`mobile-${client.projectId}`}
-              >
-                <div className="client-mobile-top">
-                  <div className="client-cell">
-                    <div className={`client-avatar ${client.avatarClass}`}>
-                      {client.initials}
-                    </div>
-
-                    <div className="client-info">
-                      <h4>{client.name}</h4>
-                      <p>{client.email}</p>
-                    </div>
+            <div className="activity-list">
+              {recentActivities.map((item, index) => (
+                <div className="activity-item" key={`${item.title}-${index}`}>
+                  <div className={`activity-icon ${item.color}`}>
+                    <ActivityIcon type={item.icon} />
                   </div>
 
-                  <span className={`status-badge ${client.statusClass}`}>
-                    {client.status}
-                  </span>
-                </div>
-
-                <div className="client-mobile-meta">
-                  <div>
-                    <span>Project ID</span>
-                    <strong>{client.projectId}</strong>
-                  </div>
-                  <div>
-                    <span>Project</span>
-                    <strong>{client.projectName}</strong>
-                  </div>
-                  <div>
-                    <span>Budget</span>
-                    <strong>{client.amount}</strong>
+                  <div className="activity-content">
+                    <h4>{item.title}</h4>
+                    <p>{item.desc}</p>
+                    <span>{item.time}</span>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="panel activity-panel">
-          <div className="clients-head">
-            <div>
-              <h2>Recent Activity</h2>
-              <p>Latest updates from your interior projects</p>
+              ))}
             </div>
-
-            <button className="view-all-btn">
-              View all <span>↗</span>
-            </button>
-          </div>
-
-          <div className="activity-list">
-            {recentActivities.map((item, index) => (
-              <div className="activity-item" key={`${item.title}-${index}`}>
-                <div className={`activity-icon ${item.color}`}>
-                  <ActivityIcon type={item.icon} />
-                </div>
-
-                <div className="activity-content">
-                  <h4>{item.title}</h4>
-                  <p>{item.desc}</p>
-                  <span>{item.time}</span>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>

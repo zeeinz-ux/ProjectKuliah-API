@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "../css/ForgotPassword.css";
+import logoMedtic from "../assets/logo.svg";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
 
 function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -8,26 +12,27 @@ function ForgotPassword() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const clearMessages = () => {
+    setErrorMsg("");
+    setSuccessMsg("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setLoading(true);
-    setErrorMsg("");
-    setSuccessMsg("");
+    clearMessages();
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3333"}/forgot-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ email }),
+      const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({ email: email.trim() }),
+      });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(
@@ -51,7 +56,13 @@ function ForgotPassword() {
   return (
     <div className="forgot-page">
       <div className="forgot-card">
-        <div className="forgot-badge">Medtic Interior</div>
+        <div className="forgot-brand-block">
+          <img
+            src={logoMedtic}
+            alt="Logo Medtic Indonesia"
+            className="forgot-company-logo"
+          />
+        </div>
 
         <h1 className="forgot-title">Forgot Password</h1>
         <p className="forgot-subtitle">
@@ -79,7 +90,11 @@ function ForgotPassword() {
               className="forgot-input"
               placeholder="Masukkan email kamu"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errorMsg || successMsg) clearMessages();
+              }}
+              autoComplete="email"
               required
             />
           </div>

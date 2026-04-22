@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "../css/ResetPassword.css";
+import logoMedtic from "../assets/logo.svg";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
 
 function ResetPassword() {
   const location = useLocation();
@@ -16,11 +20,15 @@ function ResetPassword() {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
+  const clearMessages = () => {
+    setErrorMsg("");
+    setSuccessMsg("");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setErrorMsg("");
-    setSuccessMsg("");
+    clearMessages();
 
     if (!token) {
       setErrorMsg("Token reset password tidak ditemukan di URL.");
@@ -40,22 +48,19 @@ function ResetPassword() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL || "http://localhost:3333"}/reset-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            token,
-            password,
-            password_confirmation: passwordConfirmation,
-          }),
+      const response = await fetch(`${API_BASE_URL}/reset-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          token,
+          password,
+          password_confirmation: passwordConfirmation,
+        }),
+      });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
         throw new Error(data.message || "Gagal mereset password.");
@@ -78,7 +83,13 @@ function ResetPassword() {
   return (
     <div className="reset-page">
       <div className="reset-card">
-        <div className="reset-badge">Medtic Interior</div>
+        <div className="reset-brand-block">
+          <img
+            src={logoMedtic}
+            alt="Logo Medtic Indonesia"
+            className="reset-company-logo"
+          />
+        </div>
 
         <h1 className="reset-title">Reset Password</h1>
         <p className="reset-subtitle">
@@ -117,7 +128,11 @@ function ResetPassword() {
               className="reset-input"
               placeholder="Masukkan password baru"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (errorMsg || successMsg) clearMessages();
+              }}
+              autoComplete="new-password"
               required
             />
           </div>
@@ -132,7 +147,11 @@ function ResetPassword() {
               className="reset-input"
               placeholder="Ulangi password baru"
               value={passwordConfirmation}
-              onChange={(e) => setPasswordConfirmation(e.target.value)}
+              onChange={(e) => {
+                setPasswordConfirmation(e.target.value);
+                if (errorMsg || successMsg) clearMessages();
+              }}
+              autoComplete="new-password"
               required
             />
           </div>

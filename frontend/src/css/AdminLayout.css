@@ -1,9 +1,15 @@
 /* src/components/AdminLayout.css */
 
+/* =========================
+   Reset dasar
+   ========================= */
 * {
   box-sizing: border-box;
 }
 
+/* =========================
+   Wrapper utama layout admin
+   ========================= */
 .admin-layout {
   height: 100dvh;
   max-height: 100dvh;
@@ -20,6 +26,9 @@
   position: relative;
 }
 
+/* =========================
+   Sidebar utama
+   ========================= */
 .admin-sidebar {
   width: 268px;
   height: 100dvh;
@@ -39,10 +48,14 @@
   position: relative;
 }
 
+/* Sidebar saat mode collapse desktop */
 .admin-layout.sidebar-collapsed .admin-sidebar {
   width: 78px;
 }
 
+/* =========================
+   Header sidebar
+   ========================= */
 .admin-sidebar__header {
   position: relative;
   z-index: 3;
@@ -54,6 +67,7 @@
   background: linear-gradient(180deg, #0b1f4d 0%, #0f2c66 100%);
 }
 
+/* Wrapper brand/logo perusahaan */
 .brand-block {
   display: flex;
   align-items: center;
@@ -62,6 +76,7 @@
   width: 100%;
 }
 
+/* Kotak logo perusahaan */
 .brand-logo {
   width: 40px;
   height: 40px;
@@ -74,6 +89,7 @@
   overflow: hidden;
 }
 
+/* Gambar logo perusahaan */
 .brand-logo-image {
   width: 24px;
   height: 24px;
@@ -81,6 +97,7 @@
   display: block;
 }
 
+/* Metadata brand, misalnya nama perusahaan */
 .brand-meta {
   min-width: 0;
   transition:
@@ -88,6 +105,7 @@
     width 0.2s ease;
 }
 
+/* Judul brand */
 .brand-meta h1 {
   margin: 0;
   font-size: 0.96rem;
@@ -98,10 +116,14 @@
   text-overflow: ellipsis;
 }
 
+/* Subtitle brand tidak dipakai */
 .brand-meta p {
   display: none;
 }
 
+/* =========================
+   Tombol toggle sidebar
+   ========================= */
 .sidebar-toggle {
   width: 32px;
   height: 32px;
@@ -117,11 +139,13 @@
   font-size: 0.95rem;
 }
 
+/* Hover tombol toggle */
 .sidebar-toggle:hover {
   background: #0b2235;
   transform: translateY(-1px);
 }
 
+/* Toggle desktop mengambang */
 .sidebar-toggle--floating {
   position: absolute;
   top: 78px;
@@ -130,15 +154,19 @@
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
+/* Tombol close khusus mobile default disembunyikan */
 .sidebar-toggle--mobile {
   display: none;
 }
 
-/* card login atas dihilangkan */
+/* Card login/sidebar user lama disembunyikan */
 .admin-sidebar__user {
   display: none !important;
 }
 
+/* =========================
+   Navigation sidebar
+   ========================= */
 .admin-sidebar__nav {
   flex: 1;
   min-height: 0;
@@ -149,6 +177,7 @@
   scrollbar-gutter: stable;
 }
 
+/* Scrollbar sidebar */
 .admin-sidebar__nav::-webkit-scrollbar {
   width: 5px;
 }
@@ -158,10 +187,12 @@
   border-radius: 999px;
 }
 
+/* Jarak antar section menu */
 .menu-section + .menu-section {
   margin-top: 18px;
 }
 
+/* Judul section menu */
 .menu-section__title {
   margin: 0 10px 12px;
   font-size: 0.68rem;
@@ -173,12 +204,14 @@
     width 0.25s ease;
 }
 
+/* Container item menu */
 .menu-section__items {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+/* Link menu utama */
 .menu-link {
   width: 100%;
   border: 0;
@@ -192,18 +225,20 @@
   color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
   transition:
-    background0.2s ease,
+    background 0.2s ease,
     box-shadow 0.2s ease,
     transform 0.2s ease;
   font: inherit;
 }
 
+/* Hover link menu */
 .menu-link:hover {
   background: rgba(255, 255, 255, 0.04);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
   transform: translateX(2px);
 }
 
+/* Menu aktif */
 .menu-link.active,
 .menu-link.active-parent {
   background: rgba(255, 255, 255, 0.06);
@@ -212,10 +247,12 @@
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
+/* Menu button untuk group */
 .menu-link--button {
   justify-content: flex-start;
 }
 
+/* Icon menu */
 .menu-icon {
   width: 20px;
   min-width: 20px;
@@ -230,11 +267,13 @@
   box-shadow: none;
 }
 
+/* Icon menu saat aktif */
 .menu-link.active .menu-icon,
 .menu-link.active-parent .menu-icon {
   color: rgba(255, 255, 255, 0.88);
 }
 
+/* Teks menu */
 .menu-text {
   flex: 1;
   text-align: left;
@@ -247,6 +286,7 @@
   overflow: hidden;
 }
 
+/* Chevron dropdown menu */
 .menu-chevron {
   font-size: 0.95rem;
   display: inline-flex;
@@ -259,10 +299,14 @@
     width 0.25s ease;
 }
 
+/* Chevron saat open */
 .menu-chevron--open {
   transform: rotate(180deg);
 }
 
+/* =========================
+   Submenu
+   ========================= */
 .submenu {
   margin: 6px 0 4px 18px;
   padding: 4px 0 4px 18px;
@@ -272,6 +316,7 @@
   gap: 4px;
 }
 
+/* Link submenu */
 .submenu-link {
   text-decoration: none;
   color: rgba(219, 234, 254, 0.88);
@@ -284,16 +329,19 @@
   transition: 0.2s ease;
 }
 
+/* Hover submenu */
 .submenu-link:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
 }
 
+/* Submenu aktif */
 .submenu-link.active {
   background: rgba(255, 255, 255, 0.16);
   color: #ffffff;
 }
 
+/* Bullet submenu */
 .submenu-bullet {
   width: 8px;
   height: 8px;
@@ -302,6 +350,9 @@
   flex-shrink: 0;
 }
 
+/* =========================
+   Footer sidebar / profile user
+   ========================= */
 .admin-sidebar__footer {
   position: relative;
   z-index: 3;
@@ -314,6 +365,7 @@
   );
 }
 
+/* Card profile bawah sidebar */
 .profile-card {
   min-height: 52px;
   display: flex;
@@ -322,6 +374,7 @@
   gap: 10px;
 }
 
+/* Kiri profile card */
 .profile-card__left {
   display: flex;
   align-items: center;
@@ -329,6 +382,7 @@
   min-width: 0;
 }
 
+/* Avatar user */
 .profile-avatar {
   width: 34px;
   height: 34px;
@@ -342,6 +396,7 @@
   flex-shrink: 0;
 }
 
+/* Info user */
 .profile-info {
   min-width: 0;
   transition:
@@ -349,6 +404,7 @@
     width 0.25s ease;
 }
 
+/* Nama user */
 .profile-info strong {
   display: block;
   font-size: 0.88rem;
@@ -359,6 +415,7 @@
   text-overflow: ellipsis;
 }
 
+/* Role user */
 .profile-info span {
   display: block;
   margin-top: 3px;
@@ -366,6 +423,7 @@
   color: rgba(219, 234, 254, 0.8);
 }
 
+/* Tombol logout */
 .profile-logout-btn {
   width: 34px;
   height: 34px;
@@ -382,11 +440,15 @@
   font-size: 1rem;
 }
 
+/* Hover tombol logout */
 .profile-logout-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #ffffff;
 }
 
+/* =========================
+   Main content area
+   ========================= */
 .admin-main {
   flex: 1;
   min-width: 0;
@@ -398,6 +460,9 @@
   padding: 24px;
 }
 
+/* =========================
+   Topbar atas
+   ========================= */
 .admin-topbar {
   position: sticky;
   top: 0;
@@ -414,12 +479,14 @@
   gap: 18px;
 }
 
+/* Sisi kiri topbar */
 .admin-topbar__left {
   display: flex;
   align-items: flex-start;
   gap: 14px;
 }
 
+/* Tombol hamburger mobile */
 .mobile-menu-btn {
   display: none;
   width: 42px;
@@ -433,6 +500,7 @@
   flex-shrink: 0;
 }
 
+/* Kicker kecil di atas title */
 .admin-kicker {
   margin: 0 0 4px;
   font-size: 0.73rem;
@@ -442,6 +510,7 @@
   font-weight: 700;
 }
 
+/* Judul topbar */
 .admin-title {
   margin: 0;
   font-size: 1.4rem;
@@ -449,13 +518,17 @@
   color: #0f172a;
 }
 
+/* Subtitle topbar, kalau nanti dipakai */
 .admin-subtitle {
   margin: 6px 0 0;
   font-size: 0.94rem;
   color: #64748b;
 }
 
-.status-badge {
+/* Badge status online topbar
+   Dibedakan namanya agar tidak bentrok
+   dengan .status-badge milik AdminDashboard */
+.layout-status-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -469,7 +542,8 @@
   white-space: nowrap;
 }
 
-.status-dot {
+/* Titik hijau status online */
+.layout-status-dot {
   width: 9px;
   height: 9px;
   border-radius: 999px;
@@ -477,11 +551,15 @@
   box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.14);
 }
 
+/* =========================
+   Content wrapper
+   ========================= */
 .admin-content {
   padding-top: 22px;
   min-height: 0;
 }
 
+/* Card pembungkus Outlet */
 .admin-content__card {
   min-height: calc(100vh - 150px);
   background: rgba(255, 255, 255, 0.88);
@@ -491,7 +569,9 @@
   padding: 24px;
 }
 
-/* collapsed */
+/* =========================
+   Mode collapsed desktop
+   ========================= */
 .admin-layout.sidebar-collapsed .brand-meta,
 .admin-layout.sidebar-collapsed .menu-text,
 .admin-layout.sidebar-collapsed .menu-chevron,
@@ -548,7 +628,9 @@
   height: 30px;
 }
 
-/* overlay */
+/* =========================
+   Overlay sidebar mobile
+   ========================= */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
@@ -558,7 +640,10 @@
   display: none;
 }
 
-/* mobile */
+/* =========================
+   Responsive tablet / mobile
+   <= 992px
+   ========================= */
 @media (max-width: 992px) {
   .admin-layout {
     display: block;
@@ -661,6 +746,10 @@
   }
 }
 
+/* =========================
+   Responsive mobile kecil
+   <= 640px
+   ========================= */
 @media (max-width: 640px) {
   .admin-main {
     padding: 12px;

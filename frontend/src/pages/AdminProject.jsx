@@ -385,6 +385,10 @@ function TabProgress({
   const [img, setImg] = useState("");
   const [progressValue, setProgressValue] = useState(project.progress);
 
+  useEffect(() => {
+    setProgressValue(project.progress);
+  }, [project.progress]);
+
   const handleSubmit = () => {
     if (!note.trim()) return;
 
@@ -435,7 +439,11 @@ function TabProgress({
             className="mini-input"
             placeholder="0-100"
           />
-          <button className="secondary-btn" onClick={handleSaveProgress}>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={handleSaveProgress}
+          >
             Simpan Progress
           </button>
         </div>
@@ -475,7 +483,7 @@ function TabProgress({
         />
 
         <div className="form-row right">
-          <button className="primary-btn" onClick={handleSubmit}>
+          <button type="button" className="primary-btn" onClick={handleSubmit}>
             <FiPlus size={14} /> Kirim Update
           </button>
         </div>
@@ -563,7 +571,11 @@ function TabTask({ project, onToggleTask, onAddTask, onDeleteTask }) {
             value={taskInput}
             onChange={(e) => setTaskInput(e.target.value)}
           />
-          <button className="secondary-btn" onClick={handleAddTask}>
+          <button
+            type="button"
+            className="secondary-btn"
+            onClick={handleAddTask}
+          >
             <FiPlus size={14} /> Tambah Task
           </button>
         </div>
@@ -624,7 +636,7 @@ function ProjectDetail({
 
   return (
     <div className="detail-wrapper">
-      <button className="back-btn" onClick={onBack}>
+      <button type="button" className="back-btn" onClick={onBack}>
         <FiArrowLeft size={16} /> Semua Proyek
       </button>
 
@@ -645,6 +657,7 @@ function ProjectDetail({
         {TABS.map((tab) => (
           <button
             key={tab.key}
+            type="button"
             className={`tab-btn ${activeTab === tab.key ? "active" : ""}`}
             onClick={() => setActiveTab(tab.key)}
           >
@@ -677,7 +690,7 @@ function ProjectDetail({
 function ProjectModal({ form, setForm, onClose, onSubmit, isEdit }) {
   return createPortal(
     <>
-      <div className="modal-overlay" onClick={onClose} />
+      <div className="project-modal-overlay" onClick={onClose} />
       <div className="project-modal">
         <div className="modal-header">
           <div>
@@ -850,6 +863,7 @@ export default function AdminProject() {
         p.name.toLowerCase().includes(keyword) ||
         p.client.toLowerCase().includes(keyword) ||
         p.location.toLowerCase().includes(keyword);
+
       return matchFilter && matchSearch;
     });
   }, [projects, filter, search]);
@@ -1087,7 +1101,11 @@ export default function AdminProject() {
             </p>
           </div>
 
-          <button className="new-project-btn" onClick={openCreateModal}>
+          <button
+            type="button"
+            className="new-project-btn"
+            onClick={openCreateModal}
+          >
             <FiPlus size={16} /> Proyek Baru
           </button>
         </div>
@@ -1126,6 +1144,7 @@ export default function AdminProject() {
             {["all", "progress", "done"].map((f) => (
               <button
                 key={f}
+                type="button"
                 className={`filter-btn ${filter === f ? "active" : ""}`}
                 onClick={() => setFilter(f)}
               >

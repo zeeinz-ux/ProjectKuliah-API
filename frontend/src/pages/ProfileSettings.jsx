@@ -4,6 +4,18 @@ import "../css/ProfileSettings.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
+const emptyPasswordState = {
+  currentPassword: "",
+  newPassword: "",
+  confirmNewPassword: "",
+};
+
+const emptyShowPasswordState = {
+  currentPassword: false,
+  newPassword: false,
+  confirmNewPassword: false,
+};
+
 const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   const fileInputRef = useRef(null);
 
@@ -16,17 +28,8 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     role: "",
   });
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmNewPassword: "",
-  });
-
-  const [showPassword, setShowPassword] = useState({
-    currentPassword: false,
-    newPassword: false,
-    confirmNewPassword: false,
-  });
+  const [passwordData, setPasswordData] = useState(emptyPasswordState);
+  const [showPassword, setShowPassword] = useState(emptyShowPasswordState);
 
   const [loadingUser, setLoadingUser] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -39,8 +42,17 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
 
   const getToken = () => localStorage.getItem("token");
 
+  const getSafeLocalUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "null");
+    } catch {
+      return null;
+    }
+  };
+
   const splitFullName = (fullName = "") => {
     const trimmed = fullName.trim();
+
     if (!trimmed) {
       return { firstName: "", lastName: "" };
     }
@@ -57,12 +69,56 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   };
 
   const getInitials = (firstName, lastName) => {
-    return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+    const initials =
+      `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+    return initials || "US";
+  };
+
+  const formatRoleLabel = (role = "") => {
+    if (!role) return "User";
+
+    return role
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
   };
 
   const clearMessages = () => {
-    if (successMessage) setSuccessMessage("");
-    if (errorMessage) setErrorMessage("");
+    setSuccessMessage("");
+    setErrorMessage("");
+  };
+
+  const resetPasswordFields = () => {
+    setPasswordData(emptyPasswordState);
+    setShowPassword(emptyShowPasswordState);
+  };
+
+  const applyUserToForm = (user) => {
+    const { firstName, lastName } = splitFullName(
+      user.full_name || user.name || "",
+    );
+
+    setFormData({
+      firstName,
+      lastName,
+      email: user.email || "",
+      bio: user.bio || "",
+      avatar: user.avatar || "",
+      role: user.role || "",
+    });
+  };
+
+  const syncUserToStorageAndState = (user) => {
+    const updatedLocalUser = {
+      ...(currentUser || {}),
+      ...user,
+    };
+
+    localStorage.setItem("user", JSON.stringify(updatedLocalUser));
+
+    if (setCurrentUser) {
+      setCurrentUser(updatedLocalUser);
+    }
   };
 
   const loadProfile = async () => {
@@ -71,6 +127,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
       setErrorMessage("");
 
       const token = getToken();
+
       const response = await fetch(`${API_URL}/me`, {
         method: "GET",
         headers: {
@@ -86,43 +143,14 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
       }
 
       const user = data?.user || data;
-      const { firstName, lastName } = splitFullName(user.full_name || "");
 
-      setFormData({
-        firstName,
-        lastName,
-        email: user.email || "",
-        bio: user.bio || "",
-        avatar: user.avatar || "",
-        role: user.role || "",
-      });
-
-      const updatedLocalUser = {
-        ...(currentUser || {}),
-        ...user,
-      };
-
-      localStorage.setItem("user", JSON.stringify(updatedLocalUser));
-
-      if (setCurrentUser) {
-        setCurrentUser(updatedLocalUser);
-      }
+      applyUserToForm(user);
+      syncUserToStorageAndState(user);
     } catch (error) {
-      const localUser = JSON.parse(localStorage.getItem("user") || "null");
+      const localUser = getSafeLocalUser();
 
       if (localUser) {
-        const { firstName, lastName } = splitFullName(
-          localUser.full_name || localUser.name || "",
-        );
-
-        setFormData({
-          firstName,
-          lastName,
-          email: localUser.email || "",
-          bio: localUser.bio || "",
-          avatar: localUser.avatar || "",
-          role: localUser.role || "",
-        });
+        applyUserToForm(localUser);
       } else {
         setErrorMessage(error.message || "Gagal mengambil data user.");
       }
@@ -172,16 +200,17 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setSuccessMessage("");
-    setErrorMessage("");
+    clearMessages();
 
     if (!file.type.startsWith("image/")) {
       setErrorMessage("File avatar harus berupa gambar.");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
       setErrorMessage("Ukuran avatar maksimal 2 MB.");
+      e.target.value = "";
       return;
     }
 
@@ -189,6 +218,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
       setErrorMessage(
         "Cloudinary belum dikonfigurasi. Isi VITE_CLOUDINARY_CLOUD_NAME dan VITE_CLOUDINARY_UPLOAD_PRESET.",
       );
+      e.target.value = "";
       return;
     }
 
@@ -229,21 +259,8 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   };
 
   const handleReset = async () => {
-    setSuccessMessage("");
-    setErrorMessage("");
-
-    setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmNewPassword: "",
-    });
-
-    setShowPassword({
-      currentPassword: false,
-      newPassword: false,
-      confirmNewPassword: false,
-    });
-
+    clearMessages();
+    resetPasswordFields();
     await loadProfile();
   };
 
@@ -278,8 +295,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
   const handleSaveChanges = async (e) => {
     e.preventDefault();
 
-    setSuccessMessage("");
-    setErrorMessage("");
+    clearMessages();
 
     if (!validatePassword()) return;
 
@@ -345,23 +361,8 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
 
       const updatedUser = profileData.user || profileData;
 
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      if (setCurrentUser) {
-        setCurrentUser(updatedUser);
-      }
-
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmNewPassword: "",
-      });
-
-      setShowPassword({
-        currentPassword: false,
-        newPassword: false,
-        confirmNewPassword: false,
-      });
+      syncUserToStorageAndState(updatedUser);
+      resetPasswordFields();
 
       setSuccessMessage(
         isUpdatingPassword
@@ -381,6 +382,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     <div className="profile-settings-page">
       <div className="profile-settings-header">
         <div>
+          <span className="profile-settings-eyebrow">Account Settings</span>
           <h1>Profile Settings</h1>
           <p className="profile-subtitle">
             Kelola data akun, avatar, dan informasi profil user yang sedang
@@ -400,7 +402,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               />
             ) : (
               <div className="avatar-preview-fallback">
-                {getInitials(formData.firstName, formData.lastName) || "US"}
+                {getInitials(formData.firstName, formData.lastName)}
               </div>
             )}
           </div>
@@ -410,12 +412,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
           </h3>
           <p>{formData.email || "email@example.com"}</p>
           <small className="avatar-role-text">
-            {formData.role
-              ? formData.role
-                  .split("_")
-                  .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                  .join(" ")
-              : "User"}
+            {formatRoleLabel(formData.role)}
           </small>
 
           <input
@@ -452,7 +449,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
           )}
 
           <div className="profile-form-grid">
-            <div className="form-group">
+            <div className="profile-form-group">
               <label htmlFor="firstName">First Name</label>
               <input
                 id="firstName"
@@ -465,7 +462,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               />
             </div>
 
-            <div className="form-group">
+            <div className="profile-form-group">
               <label htmlFor="lastName">Last Name</label>
               <input
                 id="lastName"
@@ -478,7 +475,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               />
             </div>
 
-            <div className="form-group full-width">
+            <div className="profile-form-group profile-form-group--full">
               <label htmlFor="email">Email</label>
               <input
                 id="email"
@@ -491,7 +488,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               />
             </div>
 
-            <div className="form-group full-width">
+            <div className="profile-form-group profile-form-group--full">
               <label htmlFor="bio">Bio</label>
               <textarea
                 id="bio"
@@ -515,7 +512,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
           </div>
 
           <div className="profile-form-grid password-form-grid">
-            <div className="form-group password-field">
+            <div className="profile-form-group password-field">
               <label htmlFor="currentPassword">Current Password</label>
               <div className="password-input-wrapper">
                 <input
@@ -540,7 +537,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               </div>
             </div>
 
-            <div className="form-group password-field">
+            <div className="profile-form-group password-field">
               <label htmlFor="newPassword">New Password</label>
               <div className="password-input-wrapper">
                 <input
@@ -565,7 +562,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               </div>
             </div>
 
-            <div className="form-group password-field">
+            <div className="profile-form-group password-field">
               <label htmlFor="confirmNewPassword">Confirm New Password</label>
               <div className="password-input-wrapper">
                 <input

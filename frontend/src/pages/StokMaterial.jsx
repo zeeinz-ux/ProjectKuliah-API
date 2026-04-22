@@ -230,7 +230,11 @@ function StokMaterial() {
           </p>
         </div>
 
-        <button className="primary-btn" onClick={handleOpenAddModal}>
+        <button
+          type="button"
+          className="primary-btn"
+          onClick={handleOpenAddModal}
+        >
           + Tambah Barang
         </button>
       </div>
@@ -350,6 +354,7 @@ function StokMaterial() {
                     <td>
                       <div className="action-group">
                         <button
+                          type="button"
                           className="table-btn edit-btn"
                           onClick={() => handleOpenEditModal(item)}
                         >
@@ -357,6 +362,7 @@ function StokMaterial() {
                         </button>
 
                         <button
+                          type="button"
                           className="table-btn delete-btn"
                           onClick={() => handleDelete(item.id)}
                         >
@@ -364,6 +370,7 @@ function StokMaterial() {
                         </button>
 
                         <button
+                          type="button"
                           className="table-btn stock-in-btn"
                           onClick={() => handleStockChange(item.id, 1)}
                         >
@@ -371,6 +378,7 @@ function StokMaterial() {
                         </button>
 
                         <button
+                          type="button"
                           className="table-btn stock-out-btn"
                           onClick={() => handleStockChange(item.id, -1)}
                         >

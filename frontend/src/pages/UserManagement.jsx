@@ -43,8 +43,19 @@ const formatRoleLabel = (role) => {
     .join(" ");
 };
 
-const UserManagement = () => {
+const capitalize = (text) => {
+  if (!text) return "-";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+const escapeCsvValue = (value) => {
+  const stringValue = String(value ?? "");
+  return `"${stringValue.replace(/"/g, '""')}"`;
+};
+
+export default function UserManagement() {
   let parsedUser = null;
+
   try {
     parsedUser = JSON.parse(localStorage.getItem("user") || "null");
   } catch {
@@ -157,9 +168,19 @@ const UserManagement = () => {
       }
     };
 
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setShowColumnsMenu(false);
+        setIsModalOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleEscape);
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleEscape);
     };
   }, []);
 
@@ -189,7 +210,13 @@ const UserManagement = () => {
     });
   }, [users, activeTab, searchTerm]);
 
-  const totalPages = Math.ceil(filteredUsers.length / rowsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / rowsPerPage));
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   const paginatedUsers = useMemo(() => {
     const startIndex = (currentPage - 1) * rowsPerPage;
@@ -198,11 +225,7 @@ const UserManagement = () => {
   }, [filteredUsers, currentPage, rowsPerPage]);
 
   const pageNumbers = useMemo(() => {
-    const pages = [];
-    for (let i = 1; i <= totalPages; i += 1) {
-      pages.push(i);
-    }
-    return pages;
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
   }, [totalPages]);
 
   const getInitials = (name) => {
@@ -274,8 +297,8 @@ const UserManagement = () => {
       setFormError("");
 
       const payload = {
-        full_name: form.full_name,
-        email: form.email,
+        full_name: form.full_name.trim(),
+        email: form.email.trim(),
         role: form.role,
         departemen: form.departemen,
         is_active: form.is_active,
@@ -363,23 +386,30 @@ const UserManagement = () => {
       user.email,
       formatRoleLabel(user.role),
       user.departemen,
-      user.status,
+      capitalize(user.status),
       user.lastActive,
     ]);
 
     const csvContent = [headers, ...rows]
-      .map((row) => row.join(","))
+      .map((row) => row.map(escapeCsvValue).join(","))
       .join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
 
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+
     link.href = url;
     link.setAttribute("download", "users-export.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 0);
   };
 
   const handleToggleColumn = (columnKey) => {
@@ -392,29 +422,25 @@ const UserManagement = () => {
   const getRoleClass = (role) => {
     switch (role) {
       case "super_admin":
-        return "role-badge admin";
+        return "user-role-badge user-role-badge--admin";
       case "project_manager":
-        return "role-badge editor";
+        return "user-role-badge user-role-badge--editor";
       case "finance":
-        return "role-badge moderator";
+        return "user-role-badge user-role-badge--moderator";
       default:
-        return "role-badge viewer";
+        return "user-role-badge user-role-badge--viewer";
     }
   };
 
   const getStatusClass = (status) => {
-    switch (status.toLowerCase()) {
+    switch ((status || "").toLowerCase()) {
       case "active":
-        return "status-badge active";
+        return "user-status-badge user-status-badge--active";
       case "inactive":
-        return "status-badge inactive";
+        return "user-status-badge user-status-badge--inactive";
       default:
-        return "status-badge";
+        return "user-status-badge";
     }
-  };
-
-  const capitalize = (text) => {
-    return text.charAt(0).toUpperCase() + text.slice(1);
   };
 
   const startEntry =
@@ -432,26 +458,32 @@ const UserManagement = () => {
   return (
     <div className="user-management-page">
       <div className="user-management-top">
-        <div>
-          <h1 className="page-title">Users</h1>
-          <p className="page-subtitle">
+        <div className="user-management-heading">
+          <span className="user-management-eyebrow">Team Management</span>
+          <h1 className="user-management-title">Users</h1>
+          <p className="user-management-subtitle">
             Manage team members, roles, and permissions.
           </p>
         </div>
 
         {isSuperAdmin && (
-          <button className="primary-btn" onClick={openCreateModal}>
+          <button
+            type="button"
+            className="user-btn user-btn--primary"
+            onClick={openCreateModal}
+          >
             + Add User
           </button>
         )}
       </div>
 
-      <div className="toolbar-card">
-        <div className="tabs-row">
+      <div className="user-toolbar-card">
+        <div className="user-tabs-row">
           {TABS.map((tab) => (
             <button
               key={tab.value}
-              className={`tab-btn ${activeTab === tab.value ? "active" : ""}`}
+              type="button"
+              className={`user-tab-btn ${activeTab === tab.value ? "active" : ""}`}
               onClick={() => setActiveTab(tab.value)}
             >
               {tab.label}
@@ -459,9 +491,9 @@ const UserManagement = () => {
           ))}
         </div>
 
-        <div className="actions-row">
-          <div className="search-box">
-            <span className="search-icon">⌕</span>
+        <div className="user-actions-row">
+          <div className="user-search-box">
+            <span className="user-search-icon">⌕</span>
             <input
               type="text"
               placeholder="Search users..."
@@ -470,17 +502,18 @@ const UserManagement = () => {
             />
           </div>
 
-          <div className="table-actions">
-            <div className="columns-wrapper" ref={columnsMenuRef}>
+          <div className="user-table-actions">
+            <div className="user-columns-wrapper" ref={columnsMenuRef}>
               <button
-                className="secondary-btn"
+                type="button"
+                className="user-btn user-btn--secondary"
                 onClick={() => setShowColumnsMenu((prev) => !prev)}
               >
                 ☷ Columns
               </button>
 
               {showColumnsMenu && (
-                <div className="columns-dropdown">
+                <div className="user-columns-dropdown">
                   <label>
                     <input
                       type="checkbox"
@@ -517,16 +550,20 @@ const UserManagement = () => {
               )}
             </div>
 
-            <button className="secondary-btn" onClick={handleExport}>
+            <button
+              type="button"
+              className="user-btn user-btn--secondary"
+              onClick={handleExport}
+            >
               ⭳ Export
             </button>
           </div>
         </div>
       </div>
 
-      <div className="table-card">
-        <div className="table-responsive">
-          <table className="users-table">
+      <div className="user-table-card">
+        <div className="user-table-responsive">
+          <table className="user-table">
             <thead>
               <tr>
                 <th>Name</th>
@@ -534,7 +571,7 @@ const UserManagement = () => {
                 {visibleColumns.department && <th>Department</th>}
                 {visibleColumns.status && <th>Status</th>}
                 {visibleColumns.lastActive && <th>Last Active</th>}
-                {isSuperAdmin && <th className="action-column">Action</th>}
+                {isSuperAdmin && <th className="user-action-column">Action</th>}
               </tr>
             </thead>
 
@@ -542,31 +579,32 @@ const UserManagement = () => {
               {loading ? (
                 <tr>
                   <td colSpan={totalVisibleColumns}>
-                    <div className="empty-state">Loading users...</div>
+                    <div className="user-empty-state">Loading users...</div>
                   </td>
                 </tr>
               ) : fetchError ? (
                 <tr>
                   <td colSpan={totalVisibleColumns}>
-                    <div className="empty-state">{fetchError}</div>
+                    <div className="user-empty-state">{fetchError}</div>
                   </td>
                 </tr>
               ) : paginatedUsers.length > 0 ? (
                 paginatedUsers.map((user) => (
                   <tr key={user.id}>
                     <td>
-                      <div className="user-cell">
-                        <div className="avatar">
+                      <div className="user-table-user-cell">
+                        <div className="user-avatar">
                           {user.avatar ? (
                             <img
                               src={user.avatar}
                               alt={user.full_name}
-                              className="avatar-image"
+                              className="user-avatar-image"
                             />
                           ) : (
                             getInitials(user.full_name)
                           )}
                         </div>
+
                         <div className="user-meta">
                           <h4>{user.full_name}</h4>
                           <p>{user.email}</p>
@@ -595,17 +633,21 @@ const UserManagement = () => {
                     {visibleColumns.lastActive && <td>{user.lastActive}</td>}
 
                     {isSuperAdmin && (
-                      <td className="action-column">
-                        <div className="row-actions">
+                      <td className="user-action-column">
+                        <div className="user-row-actions">
                           <button
-                            className="icon-btn edit"
+                            type="button"
+                            className="user-icon-btn user-icon-btn--edit"
                             onClick={() => openEditModal(user)}
+                            aria-label={`Edit ${user.full_name}`}
                           >
                             ✎
                           </button>
                           <button
-                            className="icon-btn delete"
+                            type="button"
+                            className="user-icon-btn user-icon-btn--delete"
                             onClick={() => handleDeleteUser(user)}
+                            aria-label={`Hapus ${user.full_name}`}
                           >
                             🗑
                           </button>
@@ -617,7 +659,7 @@ const UserManagement = () => {
               ) : (
                 <tr>
                   <td colSpan={totalVisibleColumns}>
-                    <div className="empty-state">
+                    <div className="user-empty-state">
                       No users found for this filter or search.
                     </div>
                   </td>
@@ -627,13 +669,13 @@ const UserManagement = () => {
           </table>
         </div>
 
-        <div className="table-footer">
-          <p className="results-text">
+        <div className="user-table-footer">
+          <p className="user-results-text">
             Showing {startEntry}-{endEntry} of {filteredUsers.length} results
           </p>
 
-          <div className="pagination-wrap">
-            <div className="rows-select">
+          <div className="user-pagination-wrap">
+            <div className="user-rows-select">
               <span>Rows</span>
               <select
                 value={rowsPerPage}
@@ -645,9 +687,10 @@ const UserManagement = () => {
               </select>
             </div>
 
-            <div className="pagination">
+            <div className="user-pagination">
               <button
-                className="page-btn"
+                type="button"
+                className="user-page-btn"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
@@ -657,7 +700,8 @@ const UserManagement = () => {
               {pageNumbers.map((page) => (
                 <button
                   key={page}
-                  className={`page-number ${currentPage === page ? "active" : ""}`}
+                  type="button"
+                  className={`user-page-number ${currentPage === page ? "active" : ""}`}
                   onClick={() => setCurrentPage(page)}
                 >
                   {page}
@@ -665,11 +709,12 @@ const UserManagement = () => {
               ))}
 
               <button
-                className="page-btn"
+                type="button"
+                className="user-page-btn"
                 onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages || 1))
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
-                disabled={currentPage === totalPages || totalPages === 0}
+                disabled={currentPage === totalPages}
               >
                 Next
               </button>
@@ -845,6 +890,4 @@ const UserManagement = () => {
         )}
     </div>
   );
-};
-
-export default UserManagement;
+}

@@ -1,25 +1,30 @@
 :root {
-  --emerald: #059669;
-  --emerald-dark: #047857;
-  --emerald-soft: #ecfdf5;
-  --text-dark: #0f172a;
-  --text-muted: #64748b;
-  --border: #dbe4ea;
-  --white: #ffffff;
-  --danger-bg: #fef2f2;
-  --danger-text: #b91c1c;
-  --danger-border: #fecaca;
-  --success-bg: #ecfdf5;
-  --success-text: #047857;
-  --success-border: #a7f3d0;
-  --shadow-main: 0 24px 60px rgba(15, 23, 42, 0.12);
-  --shadow-soft: 0 12px 30px rgba(5, 150, 105, 0.12);
+  --register-emerald: #059669;
+  --register-emerald-dark: #047857;
+  --register-emerald-soft: #ecfdf5;
+  --register-text-dark: #0f172a;
+  --register-text-muted: #64748b;
+  --register-border: #dbe4ea;
+  --register-white: #ffffff;
+  --register-danger-bg: #fef2f2;
+  --register-danger-text: #b91c1c;
+  --register-danger-border: #fecaca;
+  --register-success-bg: #ecfdf5;
+  --register-success-text: #047857;
+  --register-success-border: #a7f3d0;
+  --register-shadow-main: 0 24px 60px rgba(15, 23, 42, 0.12);
 }
 
-* {
+/* =========================================================
+   Scope Register
+   ========================================================= */
+.register-page * {
   box-sizing: border-box;
 }
 
+/* =========================================================
+   Root page
+   ========================================================= */
 .register-page {
   min-height: 100vh;
   display: flex;
@@ -27,9 +32,18 @@
   justify-content: center;
   padding: 32px 16px;
   background:
-    radial-gradient(circle at top left, rgba(5, 150, 105, 0.07), transparent 28%),
-    radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.05), transparent 24%),
+    radial-gradient(
+      circle at top left,
+      rgba(5, 150, 105, 0.07),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(5, 150, 105, 0.05),
+      transparent 24%
+    ),
     linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
 
 .register-wrapper {
@@ -45,11 +59,14 @@
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid rgba(219, 228, 234, 0.9);
   border-radius: 28px;
-  box-shadow: var(--shadow-main);
+  box-shadow: var(--register-shadow-main);
   backdrop-filter: blur(8px);
   padding: 34px 30px 28px;
 }
 
+/* =========================================================
+   Brand block
+   ========================================================= */
 .register-brand-block {
   display: flex;
   flex-direction: column;
@@ -58,31 +75,23 @@
   margin-bottom: 24px;
 }
 
-.register-logo-placeholder {
-  width: 84px;
-  height: 84px;
-  border-radius: 24px;
-  background: linear-gradient(145deg, #ffffff, #e8f8f1);
-  border: 1px solid rgba(5, 150, 105, 0.15);
-  box-shadow: var(--shadow-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--emerald);
-  font-size: 1.5rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  margin-bottom: 14px;
+.register-company-logo {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
 }
 
 .register-company-name {
   margin: 0;
   font-size: 1.35rem;
   font-weight: 800;
-  color: var(--text-dark);
+  color: var(--register-text-dark);
   letter-spacing: 0.3px;
 }
 
+/* =========================================================
+   Header
+   ========================================================= */
 .register-header {
   margin-bottom: 22px;
   text-align: left;
@@ -94,24 +103,27 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.18em;
-  color: var(--emerald);
+  color: var(--register-emerald);
 }
 
 .register-title {
   margin: 0 0 8px;
-  font-size: clamp(1.25rem, 1vw, 2rem);
+  font-size: clamp(1.7rem, 1vw, 2rem);
   line-height: 1.1;
   font-weight: 800;
-  color: var(--text-dark);
+  color: var(--register-text-dark);
 }
 
 .register-subtitle {
   margin: 0;
-  color: var(--text-muted);
+  color: var(--register-text-muted);
   font-size: 0.98rem;
   line-height: 1.6;
 }
 
+/* =========================================================
+   Alert
+   ========================================================= */
 .register-alert {
   margin-bottom: 18px;
   padding: 12px 14px;
@@ -121,17 +133,20 @@
 }
 
 .register-alert-error {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-  border: 1px solid var(--danger-border);
+  background: var(--register-danger-bg);
+  color: var(--register-danger-text);
+  border: 1px solid var(--register-danger-border);
 }
 
 .register-alert-success {
-  background: var(--success-bg);
-  color: var(--success-text);
-  border: 1px solid var(--success-border);
+  background: var(--register-success-bg);
+  color: var(--register-success-text);
+  border: 1px solid var(--register-success-border);
 }
 
+/* =========================================================
+   Form
+   ========================================================= */
 .register-form {
   display: flex;
   flex-direction: column;
@@ -155,13 +170,14 @@
   width: 100%;
   height: 54px;
   padding: 0 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--register-border);
   border-radius: 16px;
   background: #f8fafc;
-  color: var(--text-dark);
+  color: var(--register-text-dark);
   font-size: 0.98rem;
   outline: none;
   transition: all 0.25s ease;
+  font-family: inherit;
 }
 
 .register-field input::placeholder {
@@ -171,7 +187,7 @@
 .register-field input:focus,
 .register-field select:focus {
   border-color: rgba(5, 150, 105, 0.55);
-  background: var(--white);
+  background: var(--register-white);
   box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.12);
 }
 
@@ -187,19 +203,25 @@
   background-size: 18px;
 }
 
+/* =========================================================
+   Submit button
+   ========================================================= */
 .register-submit-btn {
   width: 100%;
   height: 56px;
   margin-top: 6px;
   border: none;
   border-radius: 18px;
-  background: linear-gradient(135deg, var(--emerald) 0%, #10b981 100%);
-  color: var(--white);
+  background: linear-gradient(135deg, var(--register-emerald) 0%, #10b981 100%);
+  color: var(--register-white);
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: 0.02em;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.25s ease,
+    opacity 0.2s ease;
   box-shadow: 0 16px 30px rgba(5, 150, 105, 0.22);
 }
 
@@ -220,23 +242,29 @@
   box-shadow: 0 12px 20px rgba(5, 150, 105, 0.16);
 }
 
+/* =========================================================
+   Footer
+   ========================================================= */
 .register-footer-text {
   margin: 20px 0 0;
   text-align: center;
   font-size: 0.96rem;
-  color: var(--text-muted);
+  color: var(--register-text-muted);
 }
 
 .register-footer-link {
-  color: var(--emerald);
+  color: var(--register-emerald);
   font-weight: 800;
   text-decoration: none;
 }
 
 .register-footer-link:hover {
-  color: var(--emerald-dark);
+  color: var(--register-emerald-dark);
 }
 
+/* =========================================================
+   Responsive
+   ========================================================= */
 @media (max-width: 576px) {
   .register-page {
     padding: 18px 12px;
@@ -247,22 +275,15 @@
     border-radius: 22px;
   }
 
-  .register-logo-placeholder {
-    width: 74px;
-    height: 74px;
-    border-radius: 20px;
-    font-size: 1.25rem;
+  .register-company-logo {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
   }
 
   .register-company-name {
     font-size: 1.18rem;
   }
-
-  .register-company-logo {
-  width: 58px;
-  height: 58px;
-  object-fit: contain;
-}
 
   .register-title {
     font-size: 1.8rem;

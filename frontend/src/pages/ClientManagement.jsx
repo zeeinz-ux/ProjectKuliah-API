@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import "../css/ClientManagement.css";
 
@@ -135,6 +136,16 @@ const initialClients = [
 
 const statusTabs = ["All", "Active", "Inactive"];
 
+const emptyFormData = {
+  name: "",
+  email: "",
+  status: "Active",
+  joined: "",
+  totalSpent: "",
+  firstProjectName: "",
+  firstProjectStatus: "Pending",
+};
+
 function ClientManagement() {
   const navigate = useNavigate();
 
@@ -147,15 +158,7 @@ function ClientManagement() {
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    status: "Active",
-    joined: "",
-    totalSpent: "",
-    firstProjectName: "",
-    firstProjectStatus: "Pending",
-  });
+  const [formData, setFormData] = useState(emptyFormData);
 
   const getInitials = (name) => {
     return name
@@ -176,18 +179,19 @@ function ClientManagement() {
 
   const formatDate = (dateString) => {
     if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
+
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return "-";
+
+    return date.toLocaleDateString("id-ID", {
       day: "numeric",
+      month: "short",
       year: "numeric",
     });
   };
 
   const statusClass = (status) => status.toLowerCase().replace(/\s+/g, "-");
 
-  // Logika filtering:
-  // 1. Filter berdasarkan tab status (All / Active / Inactive)
-  // 2. Lalu filter lagi berdasarkan input search untuk nama atau email client
   const filteredClients = useMemo(() => {
     return clients.filter((client) => {
       const matchesStatus =
@@ -218,6 +222,34 @@ function ClientManagement() {
     return filteredClients.slice(startIndex, startIndex + rowsPerPage);
   }, [filteredClients, currentPage, rowsPerPage]);
 
+  useEffect(() => {
+    if (selectedClient || isAddModalOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedClient, isAddModalOpen]);
+
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        if (selectedClient) {
+          setSelectedClient(null);
+        }
+        if (isAddModalOpen) {
+          setIsAddModalOpen(false);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [selectedClient, isAddModalOpen]);
+
   const handleChangeTab = (tab) => {
     setActiveTab(tab);
     setCurrentPage(1);
@@ -241,6 +273,16 @@ function ClientManagement() {
     setSelectedClient(null);
   };
 
+  const handleOpenAddModal = () => {
+    setFormData(emptyFormData);
+    setIsAddModalOpen(true);
+  };
+
+  const handleCloseAddModal = () => {
+    setIsAddModalOpen(false);
+    setFormData(emptyFormData);
+  };
+
   const handleDeleteClient = (clientId) => {
     const confirmDelete = window.confirm("Yakin ingin menghapus client ini?");
     if (!confirmDelete) return;
@@ -256,7 +298,7 @@ function ClientManagement() {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: name === "totalSpent" ? value.replace(/\D/g, "") : value,
     }));
   };
 
@@ -270,16 +312,16 @@ function ClientManagement() {
 
     const newClient = {
       id: Date.now(),
-      name: formData.name,
-      email: formData.email,
+      name: formData.name.trim(),
+      email: formData.email.trim(),
       status: formData.status,
       joined: formData.joined,
       totalSpent: Number(formData.totalSpent || 0),
-      projects: formData.firstProjectName
+      projects: formData.firstProjectName.trim()
         ? [
             {
               id: Math.floor(Math.random() * 100000),
-              name: formData.firstProjectName,
+              name: formData.firstProjectName.trim(),
               status: formData.firstProjectStatus,
             },
           ]
@@ -287,23 +329,10 @@ function ClientManagement() {
     };
 
     setClients((prev) => [newClient, ...prev]);
-    setIsAddModalOpen(false);
     setCurrentPage(1);
-
-    setFormData({
-      name: "",
-      email: "",
-      status: "Active",
-      joined: "",
-      totalSpent: "",
-      firstProjectName: "",
-      firstProjectStatus: "Pending",
-    });
+    handleCloseAddModal();
   };
 
-  // Logika cross-linking:
-  // Saat nama project di drawer diklik, user diarahkan ke halaman detail project
-  // menggunakan route dinamis /project-detail/:id
   const handleNavigateProject = (projectId) => {
     navigate(`/project-detail/${projectId}`);
   };
@@ -315,14 +344,16 @@ function ClientManagement() {
   return (
     <div className="client-page">
       <div className="client-page__header">
-        <div>
-          <h1>Client Management</h1>
+        <div className="client-page__title-wrap">
+          <span className="client-page__eyebrow">Client Management</span>
+          <h1>Data Client Interior</h1>
           <p>Kelola data client dan lihat keterhubungannya dengan project.</p>
         </div>
 
         <button
+          type="button"
           className="client-btn client-btn--primary"
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleOpenAddModal}
         >
           + Add Client
         </button>
@@ -333,6 +364,7 @@ function ClientManagement() {
           {statusTabs.map((tab) => (
             <button
               key={tab}
+              type="button"
               className={`client-tab ${activeTab === tab ? "active" : ""}`}
               onClick={() => handleChangeTab(tab)}
             >
@@ -398,7 +430,7 @@ function ClientManagement() {
 
                     <td>
                       <span
-                        className={`status-badge ${statusClass(client.status)}`}
+                        className={`client-status-badge ${statusClass(client.status)}`}
                       >
                         {client.status}
                       </span>
@@ -412,6 +444,7 @@ function ClientManagement() {
 
                     <td>
                       <button
+                        type="button"
                         className="client-btn client-btn--danger client-btn--sm"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -451,6 +484,7 @@ function ClientManagement() {
             </div>
 
             <button
+              type="button"
               className="client-page-btn"
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
@@ -462,6 +496,7 @@ function ClientManagement() {
               (page) => (
                 <button
                   key={page}
+                  type="button"
                   className={`client-page-btn ${currentPage === page ? "active" : ""}`}
                   onClick={() => setCurrentPage(page)}
                 >
@@ -471,6 +506,7 @@ function ClientManagement() {
             )}
 
             <button
+              type="button"
               className="client-page-btn"
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((prev) => prev + 1)}
@@ -481,220 +517,236 @@ function ClientManagement() {
         </div>
       </div>
 
-      {selectedClient && (
-        <>
-          <div className="client-drawer-overlay" onClick={handleCloseDrawer} />
-          <aside className="client-drawer">
-            <div className="client-drawer__header">
-              <div>
-                <h2>Client Detail</h2>
-                <p>Informasi client dan riwayat project terkait.</p>
-              </div>
-              <button
-                className="client-drawer__close"
-                onClick={handleCloseDrawer}
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="client-drawer__body">
-              <div className="drawer-profile">
-                <div className="drawer-profile__avatar">
-                  {getInitials(selectedClient.name)}
-                </div>
-
+      {selectedClient &&
+        createPortal(
+          <>
+            <div
+              className="client-drawer-overlay"
+              onClick={handleCloseDrawer}
+            />
+            <aside className="client-drawer">
+              <div className="client-drawer__header">
                 <div>
-                  <h3>{selectedClient.name}</h3>
-                  <p>{selectedClient.email}</p>
-                  <span
-                    className={`status-badge ${statusClass(selectedClient.status)}`}
-                  >
-                    {selectedClient.status}
-                  </span>
+                  <h2>Client Detail</h2>
+                  <p>Informasi client dan riwayat project terkait.</p>
                 </div>
-              </div>
-
-              <div className="drawer-section">
-                <h4>Client Info</h4>
-                <div className="drawer-info-grid">
-                  <div className="drawer-info-card">
-                    <span>Joined</span>
-                    <strong>{formatDate(selectedClient.joined)}</strong>
-                  </div>
-                  <div className="drawer-info-card">
-                    <span>Total Orders</span>
-                    <strong>{selectedClient.projects.length}</strong>
-                  </div>
-                  <div className="drawer-info-card">
-                    <span>Total Spent</span>
-                    <strong>{formatCurrency(selectedClient.totalSpent)}</strong>
-                  </div>
-                </div>
-              </div>
-
-              <div className="drawer-section">
-                <h4>Riwayat Project</h4>
-
-                {selectedClient.projects.length > 0 ? (
-                  <div className="project-history">
-                    {selectedClient.projects.map((project) => (
-                      <div key={project.id} className="project-history__item">
-                        <div className="project-history__left">
-                          <button
-                            className="project-link"
-                            onClick={() => handleNavigateProject(project.id)}
-                          >
-                            {project.name}
-                          </button>
-                          <span
-                            className={`status-badge ${statusClass(project.status)}`}
-                          >
-                            {project.status}
-                          </span>
-                        </div>
-
-                        <button
-                          className="project-go-btn"
-                          onClick={() => handleNavigateProject(project.id)}
-                        >
-                          Open
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="drawer-empty">
-                    Client ini belum memiliki riwayat project.
-                  </div>
-                )}
-              </div>
-            </div>
-          </aside>
-        </>
-      )}
-
-      {isAddModalOpen && (
-        <>
-          <div
-            className="client-modal-overlay"
-            onClick={() => setIsAddModalOpen(false)}
-          />
-          <div className="client-modal">
-            <div className="client-modal__header">
-              <div>
-                <h3>Add New Client</h3>
-                <p>Tambahkan client baru beserta project awal jika ada.</p>
-              </div>
-              <button
-                className="client-drawer__close"
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                ×
-              </button>
-            </div>
-
-            <form className="client-form" onSubmit={handleAddClient}>
-              <div className="client-form__grid">
-                <div className="client-form__group">
-                  <label>Nama Client</label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Contoh: Budi Santoso"
-                  />
-                </div>
-
-                <div className="client-form__group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="contoh@email.com"
-                  />
-                </div>
-
-                <div className="client-form__group">
-                  <label>Status</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-
-                <div className="client-form__group">
-                  <label>Joined Date</label>
-                  <input
-                    type="date"
-                    name="joined"
-                    value={formData.joined}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="client-form__group">
-                  <label>Total Spent</label>
-                  <input
-                    type="number"
-                    name="totalSpent"
-                    value={formData.totalSpent}
-                    onChange={handleInputChange}
-                    placeholder="Contoh: 15000000"
-                  />
-                </div>
-
-                <div className="client-form__group">
-                  <label>Project Pertama (Opsional)</label>
-                  <input
-                    type="text"
-                    name="firstProjectName"
-                    value={formData.firstProjectName}
-                    onChange={handleInputChange}
-                    placeholder="Contoh: Interior Cafe Baru"
-                  />
-                </div>
-
-                <div className="client-form__group client-form__group--full">
-                  <label>Status Project Pertama</label>
-                  <select
-                    name="firstProjectStatus"
-                    value={formData.firstProjectStatus}
-                    onChange={handleInputChange}
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="On Progress">On Progress</option>
-                    <option value="Completed">Completed</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="client-form__actions">
                 <button
                   type="button"
-                  className="client-btn client-btn--ghost"
-                  onClick={() => setIsAddModalOpen(false)}
+                  className="client-close-btn"
+                  onClick={handleCloseDrawer}
+                  aria-label="Tutup detail client"
                 >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="client-btn client-btn--primary"
-                >
-                  Save Client
+                  ×
                 </button>
               </div>
-            </form>
-          </div>
-        </>
-      )}
+
+              <div className="client-drawer__body">
+                <div className="drawer-profile">
+                  <div className="drawer-profile__avatar">
+                    {getInitials(selectedClient.name)}
+                  </div>
+
+                  <div>
+                    <h3>{selectedClient.name}</h3>
+                    <p>{selectedClient.email}</p>
+                    <span
+                      className={`client-status-badge ${statusClass(selectedClient.status)}`}
+                    >
+                      {selectedClient.status}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="drawer-section">
+                  <h4>Client Info</h4>
+                  <div className="drawer-info-grid">
+                    <div className="drawer-info-card">
+                      <span>Joined</span>
+                      <strong>{formatDate(selectedClient.joined)}</strong>
+                    </div>
+                    <div className="drawer-info-card">
+                      <span>Total Orders</span>
+                      <strong>{selectedClient.projects.length}</strong>
+                    </div>
+                    <div className="drawer-info-card">
+                      <span>Total Spent</span>
+                      <strong>
+                        {formatCurrency(selectedClient.totalSpent)}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="drawer-section">
+                  <h4>Riwayat Project</h4>
+
+                  {selectedClient.projects.length > 0 ? (
+                    <div className="project-history">
+                      {selectedClient.projects.map((project) => (
+                        <div key={project.id} className="project-history__item">
+                          <div className="project-history__left">
+                            <button
+                              type="button"
+                              className="project-link"
+                              onClick={() => handleNavigateProject(project.id)}
+                            >
+                              {project.name}
+                            </button>
+                            <span
+                              className={`client-status-badge ${statusClass(project.status)}`}
+                            >
+                              {project.status}
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            className="project-go-btn"
+                            onClick={() => handleNavigateProject(project.id)}
+                          >
+                            Open
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="drawer-empty">
+                      Client ini belum memiliki riwayat project.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </>,
+          document.body,
+        )}
+
+      {isAddModalOpen &&
+        createPortal(
+          <>
+            <div
+              className="client-modal-overlay"
+              onClick={handleCloseAddModal}
+            />
+            <div className="client-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="client-modal__header">
+                <div>
+                  <h3>Add New Client</h3>
+                  <p>Tambahkan client baru beserta project awal jika ada.</p>
+                </div>
+                <button
+                  type="button"
+                  className="client-close-btn"
+                  onClick={handleCloseAddModal}
+                  aria-label="Tutup modal tambah client"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form className="client-form" onSubmit={handleAddClient}>
+                <div className="client-form__grid">
+                  <div className="client-form__group">
+                    <label>Nama Client</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Budi Santoso"
+                    />
+                  </div>
+
+                  <div className="client-form__group">
+                    <label>Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="contoh@email.com"
+                    />
+                  </div>
+
+                  <div className="client-form__group">
+                    <label>Status</label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div className="client-form__group">
+                    <label>Joined Date</label>
+                    <input
+                      type="date"
+                      name="joined"
+                      value={formData.joined}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="client-form__group">
+                    <label>Total Spent</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      name="totalSpent"
+                      value={formData.totalSpent}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: 15000000"
+                    />
+                  </div>
+
+                  <div className="client-form__group">
+                    <label>Project Pertama (Opsional)</label>
+                    <input
+                      type="text"
+                      name="firstProjectName"
+                      value={formData.firstProjectName}
+                      onChange={handleInputChange}
+                      placeholder="Contoh: Interior Cafe Baru"
+                    />
+                  </div>
+
+                  <div className="client-form__group client-form__group--full">
+                    <label>Status Project Pertama</label>
+                    <select
+                      name="firstProjectStatus"
+                      value={formData.firstProjectStatus}
+                      onChange={handleInputChange}
+                    >
+                      <option value="Pending">Pending</option>
+                      <option value="On Progress">On Progress</option>
+                      <option value="Completed">Completed</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="client-form__actions">
+                  <button
+                    type="button"
+                    className="client-btn client-btn--ghost"
+                    onClick={handleCloseAddModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="client-btn client-btn--primary"
+                  >
+                    Save Client
+                  </button>
+                </div>
+              </form>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 }

@@ -16,20 +16,26 @@ const DEPARTEMEN_OPTIONS = [
   { value: "Keuangan", label: "Keuangan" },
 ];
 
+const INITIAL_FORM = {
+  full_name: "",
+  email: "",
+  password: "",
+  role: "",
+  departemen: "",
+};
+
 export default function Register() {
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({
-    full_name: "",
-    email: "",
-    password: "",
-    role: "",
-    departemen: "",
-  });
-
+  const [form, setForm] = useState(INITIAL_FORM);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const resetMessages = () => {
+    setError("");
+    setSuccess("");
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -38,25 +44,28 @@ export default function Register() {
       ...prev,
       [name]: value,
     }));
+
+    if (error || success) {
+      resetMessages();
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    resetMessages();
     setLoading(true);
 
     try {
-      const data = await register(form);
+      const payload = {
+        ...form,
+        full_name: form.full_name.trim(),
+        email: form.email.trim(),
+      };
+
+      const data = await register(payload);
 
       setSuccess(data.message || "Registrasi berhasil. Silakan login.");
-      setForm({
-        full_name: "",
-        email: "",
-        password: "",
-        role: "",
-        departemen: "",
-      });
+      setForm(INITIAL_FORM);
 
       setTimeout(() => {
         navigate("/login");
@@ -109,6 +118,7 @@ export default function Register() {
                 value={form.full_name}
                 onChange={handleChange}
                 placeholder="Masukkan nama lengkap"
+                autoComplete="name"
                 required
               />
             </div>
@@ -122,6 +132,7 @@ export default function Register() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="Masukkan email"
+                autoComplete="email"
                 required
               />
             </div>
@@ -135,6 +146,7 @@ export default function Register() {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Masukkan password"
+                autoComplete="new-password"
                 minLength={6}
                 required
               />
