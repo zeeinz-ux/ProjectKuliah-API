@@ -43,11 +43,23 @@ const emptyMovementForm = {
 };
 
 const DEFAULT_CATEGORIES = [
-  "Finishing",
-  "Panel",
-  "Struktur",
+  "Furniture",
+  "Storage",
+  "Lighting",
+  "Wall Decor",
+  "Decorative Accessories",
+  "Textiles",
   "Flooring",
-  "Electrical",
+  "Ceiling Elements",
+  "Wall Finishing",
+  "Kitchen Furniture",
+  "Bathroom Furniture",
+  "Office Furniture",
+  "Door Accessories",
+  "Window Accessories",
+  "Comfort Items",
+  "Decorative Style Items",
+  "Fastener",
 ];
 
 const TAB_KEYS = [
@@ -233,6 +245,10 @@ export default function StokMaterial() {
   const [catDropOpen, setCatDropOpen] = useState(false);
   const [columnsOpen, setColumnsOpen] = useState(false);
 
+  // State untuk custom dropdown kategori & satuan di form modal
+  const [catFormDropOpen, setCatFormDropOpen] = useState(false);
+  const [unitFormDropOpen, setUnitFormDropOpen] = useState(false);
+
   const [visibleColumns, setVisibleColumns] = useState({
     category: true,
     status: true,
@@ -260,6 +276,8 @@ export default function StokMaterial() {
 
   const catRef = useRef(null);
   const columnsRef = useRef(null);
+  const catFormRef = useRef(null);
+  const unitFormRef = useRef(null);
   const menuButtonRefs = useRef({});
 
   const fetchMaterials = async () => {
@@ -304,6 +322,14 @@ export default function StokMaterial() {
 
       if (columnsRef.current && !columnsRef.current.contains(event.target)) {
         setColumnsOpen(false);
+      }
+
+      if (catFormRef.current && !catFormRef.current.contains(event.target)) {
+        setCatFormDropOpen(false);
+      }
+
+      if (unitFormRef.current && !unitFormRef.current.contains(event.target)) {
+        setUnitFormDropOpen(false);
       }
 
       setOpenMenuId(null);
@@ -376,7 +402,11 @@ export default function StokMaterial() {
 
   const summary = useMemo(
     () => ({
-      totalBarang: materials.length,
+      jenisMaterial: materials.length,
+      totalStok: materials.reduce(
+        (total, item) => total + Number(item.stock || 0),
+        0,
+      ),
       stokMenipis: materials.filter((material) => {
         const status = stockStatus(material.stock);
         return status === "menipis" || status === "habis";
@@ -520,6 +550,8 @@ export default function StokMaterial() {
       ...emptyForm,
       sku: getNextMaterialSku(materials),
     });
+    setCatFormDropOpen(false);
+    setUnitFormDropOpen(false);
     setErrorMsg("");
     setIsOpen(true);
   };
@@ -536,6 +568,8 @@ export default function StokMaterial() {
       unit: item.unit,
       price: String(item.price || ""),
     });
+    setCatFormDropOpen(false);
+    setUnitFormDropOpen(false);
     setErrorMsg("");
     setIsOpen(true);
     setOpenMenuId(null);
@@ -547,6 +581,8 @@ export default function StokMaterial() {
     setIsOpen(false);
     setFormData(emptyForm);
     setSelectedId(null);
+    setCatFormDropOpen(false);
+    setUnitFormDropOpen(false);
   };
 
   const openMovementModal = (mode, item) => {
@@ -971,9 +1007,9 @@ export default function StokMaterial() {
           <StatCard
             icon={<FiBox size={18} />}
             iconClass="is-blue"
-            label="Total Barang"
-            value={summary.totalBarang}
-            note="Material terdaftar"
+            label="Jenis Material"
+            value={summary.jenisMaterial}
+            note="Tipe item terdaftar"
           />
 
           <StatCard
@@ -988,17 +1024,17 @@ export default function StokMaterial() {
           <StatCard
             icon={<FiArrowDownCircle size={18} />}
             iconClass="is-emerald"
-            label="Barang Masuk"
+            label="Total Unit Masuk"
             value={summary.barangMasuk}
-            note="Total tercatat"
+            note="Kumulatif penerimaan"
           />
 
           <StatCard
             icon={<FiArrowUpCircle size={18} />}
             iconClass="is-red"
-            label="Barang Keluar"
+            label="Total Unit Keluar"
             value={summary.barangKeluar}
-            note="Total tercatat"
+            note="Kumulatif pengeluaran"
           />
         </div>
 
@@ -1440,19 +1476,64 @@ export default function StokMaterial() {
                     />
                   </FormGroup>
 
+                  {/* KATEGORI — Custom Dropdown */}
                   <FormGroup label="Kategori *">
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                    >
-                      <option value="">Pilih kategori</option>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="stok-form-dropdown" ref={catFormRef}>
+                      <button
+                        type="button"
+                        className={`stok-form-dropdown-trigger ${catFormDropOpen ? "active" : ""}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setCatFormDropOpen((prev) => !prev);
+                        }}
+                      >
+                        <span>{formData.category || "Pilih kategori"}</span>
+                        <FiChevronDown
+                          size={14}
+                          className={catFormDropOpen ? "rotate" : ""}
+                        />
+                      </button>
+
+                      {catFormDropOpen && (
+                        <div
+                          className="stok-form-dropdown-menu"
+                          onMouseDown={(event) => event.stopPropagation()}
+                        >
+                          <button
+                            type="button"
+                            className={!formData.category ? "active" : ""}
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                category: "",
+                              }));
+                              setCatFormDropOpen(false);
+                            }}
+                          >
+                            Pilih kategori
+                          </button>
+
+                          {categories.map((category) => (
+                            <button
+                              type="button"
+                              key={category}
+                              className={
+                                formData.category === category ? "active" : ""
+                              }
+                              onClick={() => {
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  category,
+                                }));
+                                setCatFormDropOpen(false);
+                              }}
+                            >
+                              {category}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </FormGroup>
 
                   <FormGroup label="SKU Otomatis">
@@ -1486,26 +1567,58 @@ export default function StokMaterial() {
                     />
                   </FormGroup>
 
+                  {/* SATUAN — Custom Dropdown (serasi dengan Kategori) */}
                   <FormGroup label="Satuan">
-                    <select
-                      name="unit"
-                      value={formData.unit}
-                      onChange={handleChange}
-                    >
-                      {[
-                        "pcs",
-                        "m2",
-                        "lembar",
-                        "box",
-                        "sak",
-                        "roll",
-                        "batang",
-                      ].map((unit) => (
-                        <option key={unit} value={unit}>
-                          {unit}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="stok-form-dropdown" ref={unitFormRef}>
+                      <button
+                        type="button"
+                        className={`stok-form-dropdown-trigger ${unitFormDropOpen ? "active" : ""}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setUnitFormDropOpen((prev) => !prev);
+                        }}
+                      >
+                        <span>{formData.unit || "Pilih satuan"}</span>
+                        <FiChevronDown
+                          size={14}
+                          className={unitFormDropOpen ? "rotate" : ""}
+                        />
+                      </button>
+
+                      {unitFormDropOpen && (
+                        <div
+                          className="stok-form-dropdown-menu"
+                          onMouseDown={(event) => event.stopPropagation()}
+                        >
+                          {[
+                            "pcs",
+                            "set",
+                            "unit",
+                            "roll",
+                            "sheet",
+                            "batang",
+                            "m1",
+                            "m2",
+                            "sak",
+                            "liter",
+                            "kg",
+                            "lbr",
+                          ].map((unit) => (
+                            <button
+                              type="button"
+                              key={unit}
+                              className={formData.unit === unit ? "active" : ""}
+                              onClick={() => {
+                                setFormData((prev) => ({ ...prev, unit }));
+                                setUnitFormDropOpen(false);
+                              }}
+                            >
+                              {unit}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </FormGroup>
 
                   <FormGroup label="Harga Satuan (IDR)" className="full">

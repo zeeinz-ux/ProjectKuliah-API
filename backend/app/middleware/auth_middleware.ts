@@ -33,6 +33,7 @@ export default class AuthMiddleware {
     try {
       const decoded = jwt.verify(token, env.get('JWT_SECRET')) as JwtPayload
 
+      console.log('JWT DECODED:', decoded)
       ;(request as any).user = decoded
 
       return await next()

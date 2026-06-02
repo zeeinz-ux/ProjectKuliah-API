@@ -345,6 +345,18 @@
   font-weight: 600;
 }
 
+.notification-actor {
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.notification-actor strong {
+  color: #0f172a;
+  font-weight: 800;
+}
+
 .notification-meta {
   display: flex;
   flex-wrap: wrap;

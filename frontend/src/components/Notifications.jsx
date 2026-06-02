@@ -81,6 +81,10 @@ function normalizeActivity(item) {
   return {
     id: item.id,
     userId: item.userId || item.user_id || null,
+
+    userName: item.userName || item.user_name || null,
+    userRole: item.userRole || item.user_role || null,
+
     module: item.module || "system",
     action: item.action || "",
     title: item.title || "Aktivitas baru",
@@ -93,7 +97,6 @@ function normalizeActivity(item) {
     updatedAt: item.updatedAt || item.updated_at,
   };
 }
-
 export default function Notifications() {
   const [activities, setActivities] = useState([]);
   const [activeStatus, setActiveStatus] = useState("all");
@@ -436,6 +439,13 @@ export default function Notifications() {
                   </div>
 
                   <div className="notification-content">
+                    {item.userName ? (
+                      <div className="notification-actor">
+                        <strong>{item.userName}</strong>
+                        {item.userRole ? ` • ${item.userRole}` : ""}
+                      </div>
+                    ) : null}
+
                     <div className="notification-main-row">
                       <h3>
                         {item.title}

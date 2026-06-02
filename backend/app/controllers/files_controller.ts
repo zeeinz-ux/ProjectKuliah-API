@@ -173,6 +173,12 @@ export default class FilesController {
       const originalName = uploadedFile.clientName
       const extname = uploadedFile.extname || 'bin'
       const storedName = `${string.uuid()}.${extname}`
+      const detectedMimeType =
+        extname === 'pdf'
+          ? 'application/pdf'
+          : extname === 'xlsx'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : uploadedFile.type || 'application/octet-stream'
       const storageDir = app.makePath('storage/uploads/files')
       const absolutePath = app.makePath(`storage/uploads/files/${storedName}`)
 
@@ -186,7 +192,7 @@ export default class FilesController {
         originalName,
         storedName,
         filePath: absolutePath,
-        mimeType: uploadedFile.type || 'application/octet-stream',
+        mimeType: detectedMimeType,
         fileSize: uploadedFile.size,
         category,
         uploadedAt: DateTime.now(),
@@ -238,8 +244,25 @@ export default class FilesController {
       })
     }
 
-    response.header('Content-Type', file.mimeType)
+    const ext = file.originalName.split('.').pop()?.toLowerCase()
+
+    let mimeType = file.mimeType
+
+    if (!mimeType || mimeType === 'application' || mimeType === 'application/octet-stream') {
+      if (ext === 'pdf') {
+        mimeType = 'application/pdf'
+      } else if (ext === 'xlsx') {
+        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      } else {
+        mimeType = 'application/octet-stream'
+      }
+    }
+
+    response.header('Content-Type', mimeType)
+
     response.header('Content-Disposition', `inline; filename="${safeFileName(file.originalName)}"`)
+
+    response.header('X-Content-Type-Options', 'nosniff')
 
     return response.stream(createReadStream(file.filePath))
   }

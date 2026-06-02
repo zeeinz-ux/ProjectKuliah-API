@@ -27,7 +27,14 @@ import { createActivityLog } from '#services/activity_log_service'
 // Dibuat aman supaya tidak merah di TypeScript seperti kasus auth sebelumnya.
 // ============================================================
 function getCurrentUserId(ctx: HttpContext) {
-  const user = (ctx as any).auth?.user
+  const authUser = (ctx as any).auth?.user
+  const requestUser = (ctx.request as any).user
+
+  console.log('AUTH USER:', authUser)
+  console.log('REQUEST USER:', requestUser)
+
+  const user = authUser || requestUser
+
   return user?.id ? Number(user.id) : null
 }
 

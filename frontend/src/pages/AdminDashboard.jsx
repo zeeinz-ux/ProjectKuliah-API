@@ -233,6 +233,14 @@ function getProjectBudget(project) {
 }
 
 function getProjectProgress(project) {
+  // Hitung dari tasks jika tersedia — sama persis dengan halaman AdminProject
+  // supaya nilai progress di dashboard selalu konsisten
+  if (Array.isArray(project.tasks) && project.tasks.length > 0) {
+    const doneTasks = project.tasks.filter((t) => t.done).length;
+    return Math.round((doneTasks / project.tasks.length) * 100);
+  }
+
+  // Fallback ke kolom progress tersimpan di DB
   return clamp(
     project.progress ||
       project.progressPercentage ||
@@ -1439,6 +1447,13 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     fetchDashboardData();
+
+    // Auto-refresh setiap 30 detik supaya data dashboard selalu up-to-date
+    const intervalId = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+
+    return () => clearInterval(intervalId); // cleanup saat komponen unmount
   }, []);
 
   return (

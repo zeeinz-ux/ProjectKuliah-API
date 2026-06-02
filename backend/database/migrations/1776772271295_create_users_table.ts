@@ -20,7 +20,7 @@ export default class extends BaseSchema {
         .notNullable()
 
       table
-        .enum('departemen', ['IT/Sistem', 'Pengawas', 'Keuangan'], {
+        .enum('departemen', ['Super User', 'Operator Data', 'Accounting'], {
           useNative: true,
           enumName: 'user_departemen_enum',
           existingType: false,

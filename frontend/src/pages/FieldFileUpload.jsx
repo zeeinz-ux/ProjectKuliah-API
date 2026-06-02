@@ -91,6 +91,11 @@ function getFileExtension(fileName = "") {
   return parts.length > 1 ? parts.pop().toLowerCase() : "";
 }
 
+function isPdfFile(file) {
+  const ext = getFileExtension(file?.name || "");
+  return file?.mimeType === "application/pdf" || ext === "pdf";
+}
+
 function resolveCategoryKey(rawCategory = "", fileName = "", mimeType = "") {
   const source =
     `${rawCategory || ""} ${fileName || ""} ${mimeType || ""}`.toLowerCase();
@@ -177,13 +182,6 @@ function normalizeProjects(payload) {
   return DEFAULT_PROJECTS.concat(mapped);
 }
 
-function getAbsoluteFileUrl(path) {
-  if (!path) return "#";
-  if (/^https?:\/\//i.test(path)) return path;
-
-  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
-}
-
 function isAllowedFile(file) {
   const mimeType = file.type?.toLowerCase() || "";
   const ext = getFileExtension(file.name);
@@ -258,6 +256,7 @@ function ActionIconButton({
 
 export default function FieldFileUpload() {
   const inputRef = useRef(null);
+  const createdPdfUrlsRef = useRef(new Set());
 
   const [files, setFiles] = useState([]);
   const [projects, setProjects] = useState(DEFAULT_PROJECTS);
@@ -361,6 +360,22 @@ export default function FieldFileUpload() {
       window.removeEventListener("keydown", handleEscape);
     };
   }, [deleteTarget, deleteLoading]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+
+      createdPdfUrlsRef.current.forEach((url) => {
+        try {
+          URL.revokeObjectURL(url);
+        } catch {
+          // ignore
+        }
+      });
+
+      createdPdfUrlsRef.current.clear();
+    };
+  }, []);
 
   const totalStorageUsed = useMemo(() => {
     return files.reduce((total, file) => total + (Number(file.size) || 0), 0);
@@ -542,21 +557,69 @@ export default function FieldFileUpload() {
   };
 
   const handleView = (file) => {
-    const url = getAbsoluteFileUrl(file.path);
-    if (!url || url === "#") return;
+    if (!isPdfFile(file)) {
+      setError(
+        "Preview hanya tersedia untuk file PDF. Gunakan tombol Download untuk file Excel.",
+      );
+      return;
+    }
 
-    window.open(url, "_blank", "noopener,noreferrer");
+    if (!file.id) {
+      setError("ID file tidak ditemukan.");
+      return;
+    }
+
+    const viewer = window.open("", "_blank");
+
+    if (!viewer) {
+      setError("Browser memblokir tab baru.");
+      return;
+    }
+
+    viewer.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${file.name}</title>
+
+        <style>
+          html,
+          body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #111827;
+          }
+
+          iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+          }
+        </style>
+      </head>
+
+      <body>
+        <iframe
+          src="${API_BASE_URL}/api/files/${file.id}/open">
+        </iframe>
+      </body>
+    </html>
+  `);
+
+    viewer.document.close();
   };
 
   const handleDownload = (file) => {
-    const url = getAbsoluteFileUrl(file.path);
-    if (!url || url === "#") return;
+    if (!file.path) return;
 
+    const downloadUrl = `${API_BASE_URL}/api/files/${file.id}/download`;
     const link = document.createElement("a");
-    link.href = url;
+    link.href = downloadUrl;
     link.download = file.name;
-    link.target = "_blank";
-    link.rel = "noreferrer";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -937,12 +1000,14 @@ export default function FieldFileUpload() {
 
                       <td>
                         <div className="field-files-actions">
-                          <ActionIconButton
-                            icon={<FiEye />}
-                            label="Lihat file"
-                            onClick={() => handleView(file)}
-                            disabled={!file.path}
-                          />
+                          {isPdfFile(file) && (
+                            <ActionIconButton
+                              icon={<FiEye />}
+                              label="Lihat file"
+                              onClick={() => handleView(file)}
+                              disabled={!file.path}
+                            />
+                          )}
 
                           <ActionIconButton
                             icon={<FiDownload />}
@@ -1001,12 +1066,14 @@ export default function FieldFileUpload() {
                   </p>
 
                   <div className="field-files-actions">
-                    <ActionIconButton
-                      icon={<FiEye />}
-                      label="Lihat file"
-                      onClick={() => handleView(file)}
-                      disabled={!file.path}
-                    />
+                    {isPdfFile(file) && (
+                      <ActionIconButton
+                        icon={<FiEye />}
+                        label="Lihat file"
+                        onClick={() => handleView(file)}
+                        disabled={!file.path}
+                      />
+                    )}
 
                     <ActionIconButton
                       icon={<FiDownload />}

@@ -48,7 +48,14 @@ router.post('/forgot-password', [PasswordResetsController, 'forgotPassword'])
 router.post('/reset-password', [PasswordResetsController, 'resetPassword'])
 
 // =========================
-// PUBLIC CALENDAR HOLIDAY API
+// FILES - Open & Download TANPA AUTH
+// Diakses langsung oleh browser (iframe / anchor download),
+// tidak bisa dikirim lewat fetch dengan header Authorization
+// karena akan diblokir ad blocker. Upload, delete, dan list
+// tetap protected di dalam grup auth di bawah.
+// =========================
+router.get('/api/files/:id/open', '#controllers/files_controller.open')
+router.get('/api/files/:id/download', '#controllers/files_controller.download')
 // Endpoint:
 // GET http://localhost:3333/api/holidays/2026
 //
@@ -142,11 +149,11 @@ router
 
     // =========================
     // FILES
+    // Catatan: open & download sudah dipindah ke luar grup ini (tanpa auth)
+    // supaya bisa diakses langsung oleh browser tanpa XHR/fetch
     // =========================
     router.get('/files', '#controllers/files_controller.index')
     router.post('/files/upload', '#controllers/files_controller.upload')
-    router.get('/files/:id/open', '#controllers/files_controller.open')
-    router.get('/files/:id/download', '#controllers/files_controller.download')
     router.delete('/files/:id', '#controllers/files_controller.destroy')
 
     // =========================

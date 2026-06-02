@@ -5,6 +5,8 @@ function toActivityResponse(activity: ActivityLog) {
   return {
     id: activity.id,
     userId: activity.userId,
+    userName: activity.user?.fullName ?? null,
+    userRole: activity.user?.role ?? null,
     module: activity.module,
     action: activity.action,
     title: activity.title,
@@ -40,7 +42,7 @@ export default class ActivityLogsController {
       query.where('is_read', true)
     }
 
-    const activities = await query
+    const activities = await query.preload('user')
 
     return response.ok({
       message: 'Data aktivitas berhasil diambil.',

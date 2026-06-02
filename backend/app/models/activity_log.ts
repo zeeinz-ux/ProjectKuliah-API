@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import User from '#models/user'
 
 export default class ActivityLog extends BaseModel {
   static table = 'activity_logs'
@@ -9,6 +11,11 @@ export default class ActivityLog extends BaseModel {
 
   @column()
   declare userId: number | null
+
+  @belongsTo(() => User, {
+    foreignKey: 'userId',
+  })
+  declare user: BelongsTo<typeof User>
 
   @column()
   declare module: string
