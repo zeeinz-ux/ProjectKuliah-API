@@ -151,13 +151,10 @@ export default function Notifications() {
       setLoading(true);
       setErrorMsg("");
 
-      const response = await fetch(
-        buildApiUrl("/api/activity-logs?limit=100"),
-        {
-          method: "GET",
-          headers: getAuthHeaders(),
-        },
-      );
+      const response = await fetch(buildApiUrl("/api/activity-logs?limit=10"), {
+        method: "GET",
+        headers: getAuthHeaders(),
+      });
 
       const result = await response.json().catch(() => ({}));
 
@@ -307,11 +304,11 @@ export default function Notifications() {
     <div className="notifications-page">
       <div className="notifications-header">
         <div>
-          <p className="notifications-eyebrow">ACTIVITY CENTER</p>
-          <h1>Notifications</h1>
+          <p className="notifications-eyebrow">PUSAT AKTIVITAS</p>
+          <h1>Notifikasi</h1>
           <p>
-            Pantau semua aktivitas terbaru dari project, client, material, file,
-            calendar, laporan, dan user.
+            Pantau semua aktivitas terbaru dari proyek, klien, material, file,
+            kalender, laporan, dan pengguna.
           </p>
         </div>
 
@@ -322,7 +319,7 @@ export default function Notifications() {
           disabled={actionLoading || unreadCount === 0}
         >
           <CheckCheck size={18} />
-          {actionLoading ? "Processing..." : "Mark all as read"}
+          {actionLoading ? "Memproses..." : "Tandai semua dibaca"}
         </button>
       </div>
 
@@ -330,12 +327,12 @@ export default function Notifications() {
         <div className="notifications-panel-head">
           <div>
             <div className="notifications-title-row">
-              <h2>All Notifications</h2>
+              <h2>Semua Notifikasi</h2>
 
               {unreadCount > 0 ? (
-                <span className="unread-pill">{unreadCount} unread</span>
+                <span className="unread-pill">{unreadCount} Belum Dibaca</span>
               ) : (
-                <span className="read-pill">All read</span>
+                <span className="read-pill">Semua sudah dibaca</span>
               )}
             </div>
 
@@ -348,7 +345,7 @@ export default function Notifications() {
             onClick={fetchActivities}
             disabled={loading}
           >
-            {loading ? "Refreshing..." : "Refresh"}
+            {loading ? "Memuat..." : "Perbarui"}
           </button>
         </div>
 
@@ -369,7 +366,7 @@ export default function Notifications() {
               className={activeStatus === "all" ? "active" : ""}
               onClick={() => setActiveStatus("all")}
             >
-              All
+              Semua
             </button>
 
             <button
@@ -377,7 +374,7 @@ export default function Notifications() {
               className={activeStatus === "unread" ? "active" : ""}
               onClick={() => setActiveStatus("unread")}
             >
-              Unread
+              Belum Dibaca
             </button>
 
             <button
@@ -385,7 +382,7 @@ export default function Notifications() {
               className={activeStatus === "read" ? "active" : ""}
               onClick={() => setActiveStatus("read")}
             >
-              Read
+              Sudah Dibaca
             </button>
           </div>
 
@@ -396,7 +393,7 @@ export default function Notifications() {
           >
             {moduleOptions.map((module) => (
               <option key={module} value={module}>
-                {module === "all" ? "All Modules" : module}
+                {module === "all" ? "Semua Modul" : module}
               </option>
             ))}
           </select>
@@ -472,7 +469,7 @@ export default function Notifications() {
                       event.stopPropagation();
                       openDeleteModal(item);
                     }}
-                    title="Hapus notifikasi"
+                    title="Hapus Notifikasi"
                   >
                     <Trash2 size={17} />
                   </button>
@@ -506,9 +503,9 @@ export default function Notifications() {
               ×
             </button>
 
-            <h3 id="delete-notification-title">Delete Notification</h3>
+            <h3 id="delete-notification-title">Hapus Notifikasi</h3>
 
-            <p>Are you sure you want to delete this notification?</p>
+            <p>Apakah Anda yakin ingin menghapus notifikasi ini?</p>
 
             {deleteError ? (
               <div className="notification-confirm-error">
@@ -524,7 +521,7 @@ export default function Notifications() {
                 onClick={closeDeleteModal}
                 disabled={deleteLoading}
               >
-                Cancel
+                Batal
               </button>
 
               <button
@@ -533,7 +530,7 @@ export default function Notifications() {
                 onClick={confirmDeleteNotification}
                 disabled={deleteLoading}
               >
-                {deleteLoading ? "Deleting..." : "Delete"}
+                {deleteLoading ? "Menghapus..." : "Hapus"}
               </button>
             </div>
           </div>

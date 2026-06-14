@@ -107,6 +107,13 @@ export default class FilesController {
   async index({ request, response }: HttpContext) {
     try {
       const projectId = parseNullableInt(request.input('projectId'))
+      const page = Math.max(1, Number(request.input('page', 1)) || 1)
+      const limit = Math.min(100, Math.max(1, Number(request.input('limit', 25)) || 25))
+      const monthInput = request.input('month')
+      const yearInput = request.input('year')
+
+      const month = monthInput ? Number(monthInput) : null
+      const year = yearInput ? Number(yearInput) : null
 
       const query = File.query().orderBy('uploaded_at', 'desc')
 
@@ -114,18 +121,40 @@ export default class FilesController {
         query.where('project_id', projectId)
       }
 
-      const files = await query
+      // Filter berdasarkan uploaded_at; fallback ke created_at kalau null
+      if (year && Number.isInteger(year)) {
+        query.whereRaw('EXTRACT(YEAR FROM COALESCE(uploaded_at, created_at)) = ?', [year])
+      }
+
+      if (month && Number.isInteger(month) && month >= 1 && month <= 12) {
+        query.whereRaw('EXTRACT(MONTH FROM COALESCE(uploaded_at, created_at)) = ?', [month])
+      }
+
+      const files = await query.paginate(page, limit)
 
       const projectIds = files
+        .all()
         .map((file) => file.projectId)
         .filter((id): id is number => Number.isInteger(id))
 
       const projectNameMap = await this.getProjectNameMap(projectIds)
 
       return response.ok({
-        files: files.map((file) =>
-          this.serializeFile(file, file.projectId ? projectNameMap.get(file.projectId) || '-' : '-')
-        ),
+        files: files
+          .all()
+          .map((file) =>
+            this.serializeFile(
+              file,
+              file.projectId ? projectNameMap.get(file.projectId) || '-' : '-'
+            )
+          ),
+
+        pagination: {
+          currentPage: files.currentPage,
+          totalPages: files.lastPage,
+          totalItems: files.total,
+          perPage: files.perPage,
+        },
       })
     } catch (error) {
       return response.badRequest({
@@ -141,7 +170,7 @@ export default class FilesController {
 
     const uploadedFile = request.file('file', {
       size: '5mb',
-      extnames: ['jpg', 'jpeg', 'png', 'pdf', 'xlsx'],
+      extnames: ['pdf', 'xlsx'],
     })
 
     if (!uploadedFile) {
@@ -153,8 +182,7 @@ export default class FilesController {
     if (uploadedFile.hasErrors) {
       return response.badRequest({
         message:
-          uploadedFile.errors?.[0]?.message ||
-          'File tidak valid. Hanya JPG, PNG, PDF, XLSX maksimal 5MB.',
+          uploadedFile.errors?.[0]?.message || 'File tidak valid. Hanya PDF dan XLSX maksimal 5MB.',
         errors: uploadedFile.errors,
       })
     }

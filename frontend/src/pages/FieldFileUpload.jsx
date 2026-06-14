@@ -25,14 +25,14 @@ const STORAGE_LIMIT_BYTES = 10 * 1024 * 1024 * 1024;
 
 const FILTER_TABS = [
   { key: "all", label: "Semua File" },
-  { key: "blueprint", label: "Blueprint PDF" },
-  { key: "excel", label: "File Excel" },
+  { key: "blueprint", label: "Cetak Biru PDF" },
+  { key: "excel", label: "Berkas Excel" },
   { key: "invoice", label: "Invoice & Kwitansi" },
 ];
 
 const CATEGORY_META = {
-  blueprint: { label: "Blueprint PDF", badgeClass: "is-blueprint" },
-  excel: { label: "File Excel", badgeClass: "is-excel" },
+  blueprint: { label: "Cetak Biru PDF", badgeClass: "is-blueprint" },
+  excel: { label: "Berkas Excel", badgeClass: "is-excel" },
   invoice: { label: "Invoice & Kwitansi", badgeClass: "is-invoice" },
   other: { label: "Dokumen Lain", badgeClass: "is-other" },
 };
@@ -257,8 +257,13 @@ function ActionIconButton({
 export default function FieldFileUpload() {
   const inputRef = useRef(null);
   const createdPdfUrlsRef = useRef(new Set());
-
   const [files, setFiles] = useState([]);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage] = useState(25);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [projects, setProjects] = useState(DEFAULT_PROJECTS);
   const [selectedUploadFiles, setSelectedUploadFiles] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -268,7 +273,7 @@ export default function FieldFileUpload() {
   const [loading, setLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
-  const [uploadProjectId, setUploadProjectId] = useState("all");
+  const [uploadProjectId, setUploadProjectId] = useState("");
   const [filterProjectId, setFilterProjectId] = useState("all");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -301,6 +306,8 @@ export default function FieldFileUpload() {
       setError("");
 
       const params = new URLSearchParams();
+      params.set("page", currentPage);
+      params.set("limit", perPage);
 
       if (filterProjectId !== "all") {
         params.set("projectId", filterProjectId);
@@ -318,18 +325,22 @@ export default function FieldFileUpload() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(
-            "Endpoint GET /api/files belum ada di backend AdonisJS kamu.",
-          );
+          throw new Error("Endpoint GET /api/files tidak ditemukan.");
         }
 
-        throw new Error(result.message || "Gagal mengambil data file.");
+        throw new Error(result.message || "Gagal mengambil data berkas.");
       }
 
       setFiles(normalizeFiles(result));
+      const pagination = result?.pagination;
+
+      if (pagination) {
+        setTotalPages(pagination.totalPages || 1);
+        setTotalItems(pagination.totalItems || 0);
+      }
     } catch (err) {
       setFiles([]);
-      setError(err.message || "Terjadi kesalahan saat mengambil data file.");
+      setError(err.message || "Terjadi kesalahan saat mengambil data berkas.");
     } finally {
       setLoading(false);
     }
@@ -341,7 +352,19 @@ export default function FieldFileUpload() {
 
   useEffect(() => {
     fetchFiles();
+  }, [filterProjectId, currentPage, perPage]);
+
+  useEffect(() => {
+    setSelectedIds([]);
   }, [filterProjectId]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterProjectId]);
+
+  useEffect(() => {
+    setSelectedIds([]);
+  }, [activeTab]);
 
   useEffect(() => {
     if (!deleteTarget) return;
@@ -493,6 +516,10 @@ export default function FieldFileUpload() {
   };
 
   const handleUpload = async () => {
+    if (!uploadProjectId) {
+      setError("Silakan pilih proyek terlebih dahulu.");
+      return;
+    }
     if (!selectedUploadFiles.length) {
       setError("Silakan pilih file terlebih dahulu.");
       return;
@@ -547,7 +574,7 @@ export default function FieldFileUpload() {
 
       setSuccess("File berhasil diupload ke server dan metadata tersimpan.");
       setSelectedUploadFiles([]);
-      setUploadProjectId("all");
+      setUploadProjectId("");
       fetchFiles();
     } catch (err) {
       setError(err.message || "Terjadi kesalahan saat upload file.");
@@ -704,6 +731,20 @@ export default function FieldFileUpload() {
     });
   };
 
+  const startItem = totalItems === 0 ? 0 : (currentPage - 1) * perPage + 1;
+
+  const endItem = Math.min(currentPage * perPage, totalItems);
+
+  const goToPreviousPage = () => {
+    if (currentPage <= 1) return;
+    setCurrentPage((prev) => prev - 1);
+  };
+
+  const goToNextPage = () => {
+    if (currentPage >= totalPages) return;
+    setCurrentPage((prev) => prev + 1);
+  };
+
   return (
     <div className="field-files-page">
       <div className="field-files-shell">
@@ -723,16 +764,16 @@ export default function FieldFileUpload() {
             <div className="field-files-storage">
               <div className="field-files-storage-label">
                 <FiHardDrive />
-                <span>Storage Used</span>
+                <span>Penyimpanan Digunakan</span>
               </div>
 
               <p className="field-files-storage-value">
-                {formatStorage(totalStorageUsed)} of{" "}
+                {formatStorage(totalStorageUsed)} /{" "}
                 {formatStorage(STORAGE_LIMIT_BYTES)}
               </p>
 
               <p className="field-files-storage-note">
-                Total file tersimpan: {files.length}
+                Total file tersimpan: {totalItems}
               </p>
             </div>
           </div>
@@ -760,7 +801,7 @@ export default function FieldFileUpload() {
               </div>
 
               <h2 className="field-files-drop-title">
-                Pilih atau drop file di sini
+                Pilih atau seret file ke sini
               </h2>
 
               <p className="field-files-drop-note">
@@ -772,7 +813,7 @@ export default function FieldFileUpload() {
                 onClick={handleBrowseClick}
                 className="field-files-primary-btn"
               >
-                Select Files
+                Pilih File
               </button>
             </div>
 
@@ -785,8 +826,8 @@ export default function FieldFileUpload() {
                     </h3>
 
                     <p className="field-files-upload-subtitle">
-                      File fisik disimpan di server, metadata disimpan di
-                      PostgreSQL.
+                      File akan disimpan dan dikaitkan dengan proyek yang
+                      dipilih.
                     </p>
                   </div>
 
@@ -798,11 +839,14 @@ export default function FieldFileUpload() {
                       }
                       className="field-files-select"
                     >
-                      {projects.map((project) => (
-                        <option key={project.id} value={project.id}>
-                          {project.name}
-                        </option>
-                      ))}
+                      <option value="">Pilih Proyek</option>
+                      {projects
+                        .filter((project) => project.id !== "all")
+                        .map((project) => (
+                          <option key={project.id} value={project.id}>
+                            {project.name}
+                          </option>
+                        ))}
                     </select>
 
                     <button
@@ -811,7 +855,7 @@ export default function FieldFileUpload() {
                       disabled={isUploading}
                       className="field-files-primary-btn"
                     >
-                      {isUploading ? "Uploading..." : "Upload ke Server"}
+                      {isUploading ? "Mengunggah..." : "Mengunggah ke Server"}
                     </button>
                   </div>
                 </div>
@@ -896,7 +940,7 @@ export default function FieldFileUpload() {
                 className={`field-files-view-btn ${
                   viewMode === "list" ? "is-active" : ""
                 }`}
-                title="List view"
+                title="Tampilan Daftar"
               >
                 <FiList />
               </button>
@@ -907,7 +951,7 @@ export default function FieldFileUpload() {
                 className={`field-files-view-btn ${
                   viewMode === "grid" ? "is-active" : ""
                 }`}
-                title="Grid view"
+                title="Tampilan Grid"
               >
                 <FiGrid />
               </button>
@@ -918,7 +962,7 @@ export default function FieldFileUpload() {
         <section className="field-files-table-card">
           <div className="field-files-table-head">
             <div>
-              <h2 className="field-files-table-title">Recent Activity</h2>
+              <h2 className="field-files-table-title">Aktivitas Terbaru</h2>
 
               <p className="field-files-table-meta">
                 Menampilkan dokumen proyek yang diupload tim lapangan.
@@ -932,7 +976,7 @@ export default function FieldFileUpload() {
               className="field-files-secondary-btn"
             >
               <FiDownload />
-              Download All Selected
+              Unduh Semua yang Dipilih
             </button>
           </div>
 
@@ -984,7 +1028,7 @@ export default function FieldFileUpload() {
                             <p className="field-files-row-title">{file.name}</p>
 
                             <p className="field-files-row-subtitle">
-                              Project: {file.projectName || "-"}
+                              Proyek: {file.projectName || "-"}
                             </p>
                           </div>
                         </div>
@@ -1011,7 +1055,7 @@ export default function FieldFileUpload() {
 
                           <ActionIconButton
                             icon={<FiDownload />}
-                            label="Download file"
+                            label="Unduh file"
                             onClick={() => handleDownload(file)}
                             disabled={!file.path}
                           />
@@ -1044,7 +1088,7 @@ export default function FieldFileUpload() {
                         <p className="field-files-row-title">{file.name}</p>
 
                         <p className="field-files-row-subtitle">
-                          {file.projectName || "-"}
+                          Proyek: {file.projectName || "-"}
                         </p>
                       </div>
                     </div>
@@ -1062,7 +1106,7 @@ export default function FieldFileUpload() {
                   </div>
 
                   <p className="field-files-row-subtitle">
-                    Uploaded: {formatDate(file.uploadedAt)}
+                    Diunggah: {formatDate(file.uploadedAt)}
                   </p>
 
                   <div className="field-files-actions">
@@ -1077,7 +1121,7 @@ export default function FieldFileUpload() {
 
                     <ActionIconButton
                       icon={<FiDownload />}
-                      label="Download file"
+                      label="Unduh file"
                       onClick={() => handleDownload(file)}
                       disabled={!file.path}
                     />
@@ -1091,6 +1135,61 @@ export default function FieldFileUpload() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* PAGINATION */}
+
+          {totalItems > 0 && (
+            <div className="field-files-pagination">
+              <p className="field-files-pagination-info">
+                Menampilkan {startItem}–{endItem} dari {totalItems} file
+              </p>
+
+              <div className="field-files-pagination-controls">
+                <div className="field-files-pagination-size">
+                  <span>Baris</span>
+
+                  <select
+                    value={perPage}
+                    onChange={(e) => {
+                      setPerPage(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="field-files-select"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={goToPreviousPage}
+                  disabled={currentPage <= 1}
+                  className="field-files-secondary-btn"
+                >
+                  Sebelumnya
+                </button>
+
+                <button
+                  type="button"
+                  className="field-files-pagination-page is-active"
+                >
+                  {currentPage}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={goToNextPage}
+                  disabled={currentPage >= totalPages}
+                  className="field-files-secondary-btn"
+                >
+                  Berikutnya
+                </button>
+              </div>
             </div>
           )}
         </section>
@@ -1120,11 +1219,11 @@ export default function FieldFileUpload() {
             </button>
 
             <h3 id="delete-file-title" className="field-files-modal-title">
-              Delete File
+              Hapus File
             </h3>
 
             <p className="field-files-modal-text">
-              Are you sure you want to delete this file?
+              Apakah Anda yakin ingin menghapus file ini?
             </p>
 
             <p className="field-files-modal-file-name">{deleteTarget.name}</p>
@@ -1140,7 +1239,7 @@ export default function FieldFileUpload() {
                 disabled={deleteLoading}
                 className="field-files-modal-cancel"
               >
-                Cancel
+                Batal
               </button>
 
               <button
@@ -1149,7 +1248,7 @@ export default function FieldFileUpload() {
                 disabled={deleteLoading}
                 className="field-files-modal-delete"
               >
-                {deleteLoading ? "Deleting..." : "Delete"}
+                {deleteLoading ? "Menghapus..." : "Hapus"}
               </button>
             </div>
           </div>

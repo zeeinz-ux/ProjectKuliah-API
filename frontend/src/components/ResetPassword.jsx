@@ -36,12 +36,12 @@ function ResetPassword() {
     }
 
     if (password.length < 6) {
-      setErrorMsg("Password baru minimal harus 6 karakter.");
+      setErrorMsg("Kata sandi baru minimal harus 6 karakter.");
       return;
     }
 
     if (password !== passwordConfirmation) {
-      setErrorMsg("Konfirmasi password tidak sama.");
+      setErrorMsg("Konfirmasi kata sandi tidak sama.");
       return;
     }
 
@@ -68,7 +68,7 @@ function ResetPassword() {
 
       setSuccessMsg(
         data.message ||
-          "Password berhasil direset. Silakan login dengan password baru.",
+          "Kata sandi berhasil direset. Silakan masuk dengan kata sandi baru.",
       );
 
       setPassword("");
@@ -91,10 +91,10 @@ function ResetPassword() {
           />
         </div>
 
-        <h1 className="reset-title">Reset Password</h1>
+        <h1 className="reset-title">Atur Ulang Kata Sandi</h1>
         <p className="reset-subtitle">
-          Masukkan password baru untuk akun kamu. Token reset akan dibaca
-          otomatis dari URL.
+          Masukkan kata sandi baru untuk akun Anda. Token reset akan dibaca
+          secara otomatis dari URL.
         </p>
 
         {!token && (
@@ -112,7 +112,7 @@ function ResetPassword() {
           <div className="reset-alert reset-alert-success">
             <p>{successMsg}</p>
             <Link to="/login" className="reset-login-link">
-              Kembali ke Login
+              Kembali ke Halaman Masuk
             </Link>
           </div>
         )}
@@ -120,13 +120,13 @@ function ResetPassword() {
         <form className="reset-form" onSubmit={handleSubmit}>
           <div className="reset-form-group">
             <label htmlFor="password" className="reset-label">
-              Password Baru
+              Kata Sandi Baru
             </label>
             <input
               id="password"
               type="password"
               className="reset-input"
-              placeholder="Masukkan password baru"
+              placeholder="Masukkan kata sandi baru"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
@@ -139,13 +139,13 @@ function ResetPassword() {
 
           <div className="reset-form-group">
             <label htmlFor="passwordConfirmation" className="reset-label">
-              Konfirmasi Password Baru
+              Konfirmasi Kata Sandi Baru
             </label>
             <input
               id="passwordConfirmation"
               type="password"
               className="reset-input"
-              placeholder="Ulangi password baru"
+              placeholder="Ulangi kata sandi baru"
               value={passwordConfirmation}
               onChange={(e) => {
                 setPasswordConfirmation(e.target.value);
@@ -161,13 +161,13 @@ function ResetPassword() {
             className="reset-button"
             disabled={loading || !token}
           >
-            {loading ? "Menyimpan..." : "Simpan Password Baru"}
+            {loading ? "Menyimpan..." : "Simpan Kata Sandi Baru"}
           </button>
         </form>
 
         <div className="reset-footer">
           <Link to="/login" className="reset-back-link">
-            ← Kembali ke Login
+            ← Kembali ke Halaman Masuk
           </Link>
         </div>
       </div>

@@ -13,8 +13,10 @@
 // ============================================================
 
 import type { HttpContext } from '@adonisjs/core/http'
+import app from '@adonisjs/core/services/app'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
+import fs from 'node:fs'
 
 import Project from '#models/project'
 import Client from '#models/client'
@@ -29,9 +31,6 @@ import { createActivityLog } from '#services/activity_log_service'
 function getCurrentUserId(ctx: HttpContext) {
   const authUser = (ctx as any).auth?.user
   const requestUser = (ctx.request as any).user
-
-  console.log('AUTH USER:', authUser)
-  console.log('REQUEST USER:', requestUser)
 
   const user = authUser || requestUser
 
@@ -304,6 +303,33 @@ async function restoreProjectMaterialsStock(projectId: number) {
 }
 
 // ============================================================
+// HELPER: Hapus semua file foto dari progress logs suatu project
+// Dipanggil sebelum project.delete() supaya tidak ada file orphan
+// di public/uploads/progress/
+// ============================================================
+function deleteProgressLogImages(project: Project) {
+  const logs = project.progressLogs || []
+
+  for (const log of logs) {
+    if (!log.image) continue
+
+    const cleanPath = String(log.image).replace(/^\/+/, '')
+
+    if (!cleanPath.startsWith('uploads/progress/')) continue
+
+    const filePath = app.makePath('public', cleanPath)
+
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
+    } catch {
+      // File sudah tidak ada atau tidak bisa dihapus — lanjut saja
+    }
+  }
+}
+
+// ============================================================
 // HELPER: Load semua relasi project yang dibutuhkan frontend
 // ============================================================
 async function loadProjectRelations(project: Project) {
@@ -429,15 +455,33 @@ export default class ProjectsController {
   // ============================================================
   // GET /api/projects
   // ============================================================
-  async index({ response }: HttpContext) {
-    const projects = await Project.query()
+  async index({ request, response }: HttpContext) {
+    const monthInput = request.input('month')
+    const yearInput = request.input('year')
+
+    const month = monthInput ? Number(monthInput) : null
+    const year = yearInput ? Number(yearInput) : null
+
+    const query = Project.query()
       .preload('client')
       .preload('tasks')
       .preload('progressLogs')
-      .preload('projectMaterials', (query) => {
-        query.preload('material')
+      .preload('projectMaterials', (q) => {
+        q.preload('material')
       })
       .orderBy('created_at', 'desc')
+
+    // Filter berdasarkan tahun dari created_at
+    if (year && Number.isInteger(year)) {
+      query.whereRaw('EXTRACT(YEAR FROM created_at) = ?', [year])
+    }
+
+    // Filter berdasarkan bulan dari created_at (1-12)
+    if (month && Number.isInteger(month) && month >= 1 && month <= 12) {
+      query.whereRaw('EXTRACT(MONTH FROM created_at) = ?', [month])
+    }
+
+    const projects = await query
 
     return response.ok({
       message: 'Data project berhasil diambil.',
@@ -688,6 +732,9 @@ export default class ProjectsController {
 
     try {
       await restoreProjectMaterialsStock(project.id)
+
+      // Hapus semua file foto progress logs dari disk sebelum row dihapus
+      deleteProgressLogImages(project)
 
       await project.delete()
 

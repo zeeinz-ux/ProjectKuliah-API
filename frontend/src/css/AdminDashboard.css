@@ -75,6 +75,80 @@
   color: #617187;
 }
 
+/* =========================
+   Dashboard header top (title + filter)
+   ========================= */
+.dashboard-header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.filter-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #ffffff
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235f6f84' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  background-size: 12px;
+  border: 1px solid #dde5e7;
+  border-radius: 10px;
+  color: #0a1622;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  height: 38px;
+  padding: 0 32px 0 12px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.filter-select:hover {
+  border-color: #9db2bf;
+}
+
+.filter-select:focus {
+  border-color: #0f9c4a;
+  box-shadow: 0 0 0 3px rgba(15, 156, 74, 0.12);
+  outline: none;
+}
+
+.filter-reset-btn {
+  background: transparent;
+  border: 1px solid #dde5e7;
+  border-radius: 10px;
+  color: #617187;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  height: 38px;
+  padding: 0 14px;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  white-space: nowrap;
+}
+
+.filter-reset-btn:hover {
+  background: #f1f5f9;
+  border-color: #9db2bf;
+  color: #0a1622;
+}
+
 .dashboard-error-banner {
   margin-bottom: 16px;
   padding: 12px 14px;
@@ -947,6 +1021,21 @@
 
   .dashboard-header {
     margin-bottom: 14px;
+  }
+
+  .dashboard-header-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .dashboard-filter-bar {
+    width: 100%;
+  }
+
+  .filter-select {
+    flex: 1;
+    min-width: 120px;
   }
 
   .dashboard-header p {

@@ -39,8 +39,24 @@ function materialResponse(material: Material) {
 }
 
 export default class MaterialsController {
-  async index({ response }: HttpContext) {
-    const materials = await Material.query().orderBy('created_at', 'desc')
+  async index({ request, response }: HttpContext) {
+    const monthInput = request.input('month')
+    const yearInput = request.input('year')
+
+    const month = monthInput ? Number(monthInput) : null
+    const year = yearInput ? Number(yearInput) : null
+
+    const query = Material.query().orderBy('created_at', 'desc')
+
+    if (year && Number.isInteger(year)) {
+      query.whereRaw('EXTRACT(YEAR FROM created_at) = ?', [year])
+    }
+
+    if (month && Number.isInteger(month) && month >= 1 && month <= 12) {
+      query.whereRaw('EXTRACT(MONTH FROM created_at) = ?', [month])
+    }
+
+    const materials = await query
 
     return response.ok({
       message: 'Data material berhasil diambil.',

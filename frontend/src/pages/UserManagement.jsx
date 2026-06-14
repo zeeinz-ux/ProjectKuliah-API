@@ -5,19 +5,19 @@ import "../css/UserManagement.css";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
 const TABS = [
-  { label: "All", value: "all" },
-  { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
+  { label: "Semua", value: "all" },
+  { label: "Aktif", value: "active" },
+  { label: "Nonaktif", value: "inactive" },
 ];
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
-  { value: "project_manager", label: "Project Manager" },
+  { value: "project_manager", label: "Manajer Proyek" },
   { value: "finance", label: "Finance" },
 ];
 
 const DEPARTEMEN_OPTIONS = [
-  { value: "Super User", label: "Super User" },
+  { value: "Super User", label: "Super Pengguna" },
   { value: "Operator Data", label: "Operator Data" },
   { value: "Accounting", label: "Accounting" },
 ];
@@ -122,7 +122,7 @@ export default function UserManagement() {
       const data = await response.json().catch(() => []);
 
       if (!response.ok) {
-        throw new Error(data.message || "Gagal mengambil data user");
+        throw new Error(data.message || "Gagal mengambil data pengguna");
       }
 
       const normalizedUsers = Array.isArray(data)
@@ -147,7 +147,7 @@ export default function UserManagement() {
       setUsers(normalizedUsers);
     } catch (err) {
       setFetchError(
-        err.message || "Terjadi kesalahan saat mengambil data user",
+        err.message || "Terjadi kesalahan saat mengambil data pengguna",
       );
     } finally {
       setLoading(false);
@@ -355,7 +355,7 @@ export default function UserManagement() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Gagal menyimpan data user");
+        throw new Error(data.message || "Gagal menyimpan data pengguna");
       }
 
       closeModal();
@@ -399,12 +399,12 @@ export default function UserManagement() {
 
   const handleExport = () => {
     const headers = [
-      "Name",
+      "Nama",
       "Email",
       "Role",
-      "Department",
+      "Departemen",
       "Status",
-      "Last Active",
+      "Terakhir Aktif",
     ];
 
     const rows = filteredUsers.map((user) => [
@@ -428,7 +428,7 @@ export default function UserManagement() {
     const link = document.createElement("a");
 
     link.href = url;
-    link.setAttribute("download", "users-export.csv");
+    link.setAttribute("download", "data-user.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -485,10 +485,10 @@ export default function UserManagement() {
     <div className="user-management-page">
       <div className="user-management-top">
         <div className="user-management-heading">
-          <span className="user-management-eyebrow">Team Management</span>
-          <h1 className="user-management-title">Users</h1>
+          <span className="user-management-eyebrow">Manajemen Pengguna</span>
+          <h1 className="user-management-title">Pengguna</h1>
           <p className="user-management-subtitle">
-            Manage team members, roles, and permissions.
+            Kelola user, peran, dan hak akses sistem.
           </p>
         </div>
 
@@ -498,7 +498,7 @@ export default function UserManagement() {
             className="user-btn user-btn--primary"
             onClick={openCreateModal}
           >
-            + Add User
+            + Tambah User
           </button>
         )}
       </div>
@@ -524,7 +524,7 @@ export default function UserManagement() {
             <span className="user-search-icon">⌕</span>
             <input
               type="text"
-              placeholder="Search users..."
+              placeholder="Cari user..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -537,7 +537,7 @@ export default function UserManagement() {
                 className="user-btn user-btn--secondary"
                 onClick={() => setShowColumnsMenu((prev) => !prev)}
               >
-                ☷ Columns
+                ☷ Kolom
               </button>
 
               {showColumnsMenu && (
@@ -556,7 +556,7 @@ export default function UserManagement() {
                       checked={visibleColumns.department}
                       onChange={() => handleToggleColumn("department")}
                     />
-                    Department
+                    Departemen
                   </label>
                   <label>
                     <input
@@ -572,7 +572,7 @@ export default function UserManagement() {
                       checked={visibleColumns.lastActive}
                       onChange={() => handleToggleColumn("lastActive")}
                     />
-                    Last Active
+                    Terakhir Aktif
                   </label>
                 </div>
               )}
@@ -583,7 +583,7 @@ export default function UserManagement() {
               className="user-btn user-btn--secondary"
               onClick={handleExport}
             >
-              ⭳ Export
+              ⭳ Ekspor
             </button>
           </div>
         </div>
@@ -594,12 +594,12 @@ export default function UserManagement() {
           <table className="user-table">
             <thead>
               <tr>
-                <th>Name</th>
+                <th>Nama</th>
                 {visibleColumns.role && <th>Role</th>}
-                {visibleColumns.department && <th>Department</th>}
+                {visibleColumns.department && <th>Departemen</th>}
                 {visibleColumns.status && <th>Status</th>}
-                {visibleColumns.lastActive && <th>Last Active</th>}
-                {isSuperAdmin && <th className="user-action-column">Action</th>}
+                {visibleColumns.lastActive && <th>Terakhir Aktif</th>}
+                {isSuperAdmin && <th className="user-action-column">Aksi</th>}
               </tr>
             </thead>
 
@@ -607,7 +607,9 @@ export default function UserManagement() {
               {loading ? (
                 <tr>
                   <td colSpan={totalVisibleColumns}>
-                    <div className="user-empty-state">Loading users...</div>
+                    <div className="user-empty-state">
+                      Memuat data pengguna...
+                    </div>
                   </td>
                 </tr>
               ) : fetchError ? (
@@ -653,7 +655,7 @@ export default function UserManagement() {
                     {visibleColumns.status && (
                       <td>
                         <span className={getStatusClass(user.status)}>
-                          {capitalize(user.status)}
+                          {user.status === "active" ? "Aktif" : "Nonaktif"}
                         </span>
                       </td>
                     )}
@@ -688,7 +690,7 @@ export default function UserManagement() {
                 <tr>
                   <td colSpan={totalVisibleColumns}>
                     <div className="user-empty-state">
-                      No users found for this filter or search.
+                      Tidak ada pengguna yang ditemukan.
                     </div>
                   </td>
                 </tr>
@@ -699,12 +701,12 @@ export default function UserManagement() {
 
         <div className="user-table-footer">
           <p className="user-results-text">
-            Showing {startEntry}-{endEntry} of {filteredUsers.length} results
+            Menampilkan {startEntry}-{endEntry} dari {filteredUsers.length} data
           </p>
 
           <div className="user-pagination-wrap">
             <div className="user-rows-select">
-              <span>Rows</span>
+              <span>Baris</span>
               <select
                 value={rowsPerPage}
                 onChange={(e) => setRowsPerPage(Number(e.target.value))}
@@ -722,7 +724,7 @@ export default function UserManagement() {
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
               >
-                Previous
+                Sebelumnya
               </button>
 
               {pageNumbers.map((page) => (
@@ -746,7 +748,7 @@ export default function UserManagement() {
                 }
                 disabled={currentPage === totalPages}
               >
-                Next
+                Berikutnya
               </button>
             </div>
           </div>
@@ -761,7 +763,7 @@ export default function UserManagement() {
               <div className="user-modal__header">
                 <div>
                   <h3>
-                    {modalMode === "create" ? "Add New User" : "Edit User"}
+                    {modalMode === "create" ? "Tambah User Baru" : "Edit User"}
                   </h3>
                   <p>
                     {modalMode === "create"
@@ -885,8 +887,8 @@ export default function UserManagement() {
                       }
                       required
                     >
-                      <option value="true">Active</option>
-                      <option value="false">Inactive</option>
+                      <option value="true">Aktif</option>
+                      <option value="false">Nonaktif</option>
                     </select>
                   </div>
                 </div>
@@ -898,7 +900,7 @@ export default function UserManagement() {
                     onClick={closeModal}
                     disabled={submitLoading}
                   >
-                    Cancel
+                    Batal
                   </button>
 
                   <button
@@ -909,8 +911,8 @@ export default function UserManagement() {
                     {submitLoading
                       ? "Menyimpan..."
                       : modalMode === "create"
-                        ? "Save User"
-                        : "Save Changes"}
+                        ? "Simpan User"
+                        : "Simpan Perubahan"}
                   </button>
                 </div>
               </form>
@@ -944,10 +946,10 @@ export default function UserManagement() {
                 ×
               </button>
 
-              <h3 id="delete-user-title">Delete User</h3>
+              <h3 id="delete-user-title">Hapus User</h3>
 
               <p>
-                Are you sure you want to delete user{" "}
+                Apakah Anda yakin ingin menghapus user{" "}
                 <strong className="user-delete-modal__target">
                   {deleteTarget.full_name}
                 </strong>
@@ -965,7 +967,7 @@ export default function UserManagement() {
                   onClick={closeDeleteModal}
                   disabled={deleteLoading}
                 >
-                  Cancel
+                  Batal
                 </button>
 
                 <button
@@ -974,7 +976,7 @@ export default function UserManagement() {
                   onClick={confirmDeleteUser}
                   disabled={deleteLoading}
                 >
-                  {deleteLoading ? "Deleting..." : "Delete"}
+                  {deleteLoading ? "Menghapus..." : "Hapus"}
                 </button>
               </div>
             </div>

@@ -69,7 +69,7 @@ export default function Register() {
 
       setTimeout(() => {
         navigate("/login");
-      }, 1200);
+      }, 1500);
     } catch (err) {
       setError(err.message || "Terjadi kesalahan saat registrasi");
     } finally {
@@ -92,7 +92,7 @@ export default function Register() {
 
           <div className="register-header">
             <p className="register-label">Pendaftaran</p>
-            <h1 className="register-title">Create account</h1>
+            <h1 className="register-title">Buat Akun</h1>
             <p className="register-subtitle">
               Silakan lengkapi data untuk membuat akun baru
             </p>
@@ -138,14 +138,14 @@ export default function Register() {
             </div>
 
             <div className="register-field">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Kata Sandi</label>
               <input
                 id="password"
                 type="password"
                 name="password"
                 value={form.password}
                 onChange={handleChange}
-                placeholder="Masukkan password"
+                placeholder="Masukkan kata sandi"
                 autoComplete="new-password"
                 minLength={6}
                 required

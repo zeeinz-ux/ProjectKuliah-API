@@ -40,28 +40,28 @@ function getAuthHeaders() {
 const COLOR_OPTIONS = [
   {
     value: "emerald",
-    label: "🟢 Emerald (Hijau): Progress Proyek",
+    label: "🟢: Progres Proyek",
     badgeClass: "border border-emerald-200 bg-emerald-100 text-emerald-700",
     dotClass: "bg-emerald-500",
-    shortLabel: "progress",
+    shortLabel: "progres",
   },
   {
     value: "blue",
-    label: "🔵 Blue (Biru): Pengiriman Material",
+    label: "🔵: Pengiriman Material",
     badgeClass: "border border-blue-200 bg-blue-100 text-blue-700",
     dotClass: "bg-blue-500",
     shortLabel: "material",
   },
   {
     value: "amber",
-    label: "🟡 Amber (Kuning): Kunjungan Lapangan",
+    label: "🟡: Kunjungan Lapangan",
     badgeClass: "border border-amber-200 bg-amber-100 text-amber-700",
     dotClass: "bg-amber-500",
-    shortLabel: "visit",
+    shortLabel: "kunjungan",
   },
   {
     value: "red",
-    label: "🔴 Red (Merah): Deadline Kritis",
+    label: "🔴: Deadline",
     badgeClass: "border border-red-200 bg-red-100 text-red-700",
     dotClass: "bg-red-500",
     shortLabel: "deadline",
@@ -92,7 +92,7 @@ function getColorMeta(colorKey) {
 function formatFullDate(dateString) {
   if (!dateString) return "";
 
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("id-ID", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -103,7 +103,7 @@ function formatFullDate(dateString) {
 function formatShortDate(dateString) {
   if (!dateString) return "";
 
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -131,7 +131,7 @@ function normalizeCalendarEvent(event) {
 
   return {
     id: String(event?.id),
-    title: event?.title || "Untitled Event",
+    title: event?.title || "Acara Tanpa Judul",
     start: event?.start || event?.date || event?.eventDate,
     allDay: true,
     extendedProps: {
@@ -201,7 +201,7 @@ export default function Calendar() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.message || "Gagal mengambil data event calendar");
+        throw new Error(data?.message || "Gagal mengambil data acara kalender");
       }
 
       const backendEvents = Array.isArray(data.events) ? data.events : [];
@@ -225,7 +225,7 @@ export default function Calendar() {
 
       if (!response.ok) {
         throw new Error(
-          data?.message || "Gagal mengambil data holiday dari backend",
+          data?.message || "Gagal mengambil data hari libur dari server",
         );
       }
 
@@ -313,7 +313,7 @@ export default function Calendar() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.message || "Gagal menghapus event.");
+        throw new Error(data?.message || "Gagal menghapus acara.");
       }
 
       setEvents((prev) =>
@@ -323,7 +323,7 @@ export default function Calendar() {
       closeDeleteConfirm();
     } catch (error) {
       console.error("Delete calendar event error:", error);
-      alert(error.message || "Gagal menghapus event.");
+      alert(error.message || "Gagal menghapus acara.");
     } finally {
       setIsDeletingEvent(false);
     }
@@ -375,12 +375,12 @@ export default function Calendar() {
     setFormError("");
 
     if (!form.title.trim() || !form.date) {
-      setFormError("Title dan Date wajib diisi.");
+      setFormError("Judul dan Tanggal wajib diisi.");
       return;
     }
 
     if (form.startTime && form.endTime && form.endTime < form.startTime) {
-      setFormError("End Time tidak boleh lebih kecil dari Start Time.");
+      setFormError("Waktu selesai tidak boleh lebih awal dari waktu mulai.");
       return;
     }
 
@@ -412,7 +412,7 @@ export default function Calendar() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.message || "Gagal menyimpan event.");
+        throw new Error(data?.message || "Gagal menyimpan acara.");
       }
 
       const savedEvent = normalizeCalendarEvent(data.event);
@@ -430,8 +430,8 @@ export default function Calendar() {
       setSelectedDate(savedEvent.start);
       closeModal();
     } catch (error) {
-      console.error("Save calendar event error:", error);
-      setFormError(error.message || "Gagal menyimpan event.");
+      console.error("Save acara error:", error);
+      setFormError(error.message || "Gagal menyimpan acara.");
     } finally {
       setIsSavingEvent(false);
     }
@@ -461,10 +461,10 @@ export default function Calendar() {
           <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                Calendar
+                Kalender
               </h1>
               <p className="mt-2 text-base text-slate-500">
-                Schedule and manage interior project events
+                Kelola dan jadwalkan aktivitas proyek interior
               </p>
             </div>
 
@@ -476,7 +476,7 @@ export default function Calendar() {
               className={primaryButtonClass}
             >
               <Plus size={18} />
-              Add Event
+              Tambah Acara
             </button>
           </div>
 
@@ -501,7 +501,7 @@ export default function Calendar() {
                   </button>
 
                   <h2 className="ml-2 text-2xl font-bold text-slate-900">
-                    {currentTitle || "Calendar"}
+                    {currentTitle || "Kalender"}
                   </h2>
                 </div>
 
@@ -510,7 +510,7 @@ export default function Calendar() {
                   onClick={handleToday}
                   className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
-                  Today
+                  Hari Ini
                 </button>
               </div>
 
@@ -563,10 +563,10 @@ export default function Calendar() {
                       <Clock3 size={28} />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900">
-                      No date selected
+                      Belum Ada Tanggal Dipilih
                     </h3>
                     <p className="mt-3 max-w-[260px] text-sm leading-6 text-slate-500">
-                      Click a day on the calendar to view its events
+                      Pilih tanggal pada kalender untuk melihat aktivitas
                     </p>
                   </div>
                 ) : (
@@ -578,7 +578,7 @@ export default function Calendar() {
                         </h3>
                         <p className="mt-1 text-sm text-slate-500">
                           {selectedDateTotalItems}{" "}
-                          {selectedDateTotalItems === 1 ? "event" : "events"}
+                          {selectedDateTotalItems === 1 ? "acara" : "acara"}
                         </p>
                       </div>
 
@@ -589,7 +589,7 @@ export default function Calendar() {
                           className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                         >
                           <Plus size={18} />
-                          Add
+                          Tambah
                         </button>
 
                         <button
@@ -604,7 +604,7 @@ export default function Calendar() {
 
                     {selectedDateTotalItems === 0 ? (
                       <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
-                        No events on this date yet.
+                        Belum ada aktivitas pada tanggal ini.
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -623,7 +623,7 @@ export default function Calendar() {
                                   {holiday.name || "Hari Libur Nasional"}
                                 </h4>
                                 <p className="mt-1 text-xs font-medium text-red-500">
-                                  Public Holiday
+                                  Hari Libur Nasional
                                 </p>
                               </div>
                             </div>
@@ -672,7 +672,7 @@ export default function Calendar() {
                                     type="button"
                                     onClick={() => openEditEventModal(event)}
                                     className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100 hover:text-emerald-700"
-                                    title="Edit event"
+                                    title="Ubah acara"
                                   >
                                     <Pencil size={17} />
                                   </button>
@@ -683,7 +683,7 @@ export default function Calendar() {
                                       handleQuickDeleteEvent(event.id)
                                     }
                                     className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-500 transition hover:bg-red-100 hover:text-red-600"
-                                    title="Delete event"
+                                    title="Hapus acara"
                                   >
                                     <Trash2 size={18} />
                                   </button>
@@ -692,7 +692,7 @@ export default function Calendar() {
 
                               <p className="mb-4 text-sm leading-7 text-slate-500">
                                 {event.extendedProps?.description ||
-                                  "No additional description."}
+                                  "Belum ada deskripsi."}
                               </p>
 
                               <span
@@ -711,16 +711,16 @@ export default function Calendar() {
 
               <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
                 <h3 className="text-2xl font-bold text-slate-900">
-                  Upcoming Events
+                  Agenda Mendatang
                 </h3>
 
                 {isEventsLoading ? (
                   <div className="py-10 text-center text-sm text-slate-500">
-                    Loading events...
+                    Memuat data...
                   </div>
                 ) : upcomingEvents.length === 0 ? (
                   <div className="py-10 text-center text-sm text-slate-500">
-                    No upcoming events
+                    Belum ada agenda mendatang
                   </div>
                 ) : (
                   <div className="mt-5 space-y-3">
@@ -766,12 +766,12 @@ export default function Calendar() {
             <div className="flex items-start justify-between border-b border-slate-200 px-6 py-5 md:px-7">
               <div>
                 <h2 className="text-3xl font-bold text-slate-900">
-                  {editingEventId ? "Edit Event" : "Add Event"}
+                  {editingEventId ? "Ubah Acara" : "Tambah Acara"}
                 </h2>
                 <p className="mt-2 text-sm text-slate-500">
                   {editingEventId
-                    ? "Update schedule for interior project monitoring."
-                    : "Add a new schedule for interior project monitoring."}
+                    ? "Perbarui jadwal monitoring proyek interior."
+                    : "Tambah jadwal baru untuk monitoring proyek interior."}
                 </p>
               </div>
 
@@ -793,18 +793,18 @@ export default function Calendar() {
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <label className={labelClass}>Title</label>
+                  <label className={labelClass}>Judul</label>
                   <input
                     type="text"
                     value={form.title}
                     onChange={(e) => handleChangeForm("title", e.target.value)}
-                    placeholder="Input Title"
+                    placeholder="Masukkan judul acara"
                     className={inputClass}
                   />
                 </div>
 
                 <div>
-                  <label className={labelClass}>Date</label>
+                  <label className={labelClass}>Tanggal</label>
                   <input
                     type="date"
                     value={form.date}
@@ -814,7 +814,7 @@ export default function Calendar() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Color Picker</label>
+                  <label className={labelClass}>Kategori</label>
                   <select
                     value={form.colorKey}
                     onChange={(e) =>
@@ -831,7 +831,7 @@ export default function Calendar() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>Start Time</label>
+                  <label className={labelClass}>Waktu Mulai</label>
                   <input
                     type="time"
                     value={form.startTime}
@@ -843,7 +843,7 @@ export default function Calendar() {
                 </div>
 
                 <div>
-                  <label className={labelClass}>End Time</label>
+                  <label className={labelClass}>Waktu Selesai</label>
                   <input
                     type="time"
                     value={form.endTime}
@@ -855,14 +855,14 @@ export default function Calendar() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className={labelClass}>Description</label>
+                  <label className={labelClass}>Deskripsi</label>
                   <textarea
                     rows="4"
                     value={form.description}
                     onChange={(e) =>
                       handleChangeForm("description", e.target.value)
                     }
-                    placeholder="Additional event details..."
+                    placeholder="Tambahkan deskripsi acara..."
                     className={`${inputClass} resize-none`}
                   />
                 </div>
@@ -874,7 +874,7 @@ export default function Calendar() {
                   onClick={closeModal}
                   className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
-                  Cancel
+                  Batal
                 </button>
 
                 <button
@@ -883,10 +883,10 @@ export default function Calendar() {
                   className={primaryButtonClass}
                 >
                   {isSavingEvent
-                    ? "Saving..."
+                    ? "Menyimpan..."
                     : editingEventId
-                      ? "Update Event"
-                      : "Save Event"}
+                      ? "Simpan Perubahan"
+                      : "Simpan Acara"}
                 </button>
               </div>
             </form>
@@ -900,10 +900,10 @@ export default function Calendar() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-2xl font-bold text-slate-900">
-                  Delete Event
+                  Hapus acara
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-slate-500">
-                  Are you sure you want to delete this event?
+                  Apakah Anda yakin ingin menghapus acara ini?
                 </p>
               </div>
 
@@ -922,7 +922,7 @@ export default function Calendar() {
                 onClick={closeDeleteConfirm}
                 className="inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
               >
-                Cancel
+                Batal
               </button>
 
               <button
@@ -931,7 +931,7 @@ export default function Calendar() {
                 disabled={isDeletingEvent}
                 className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isDeletingEvent ? "Deleting..." : "Delete"}
+                {isDeletingEvent ? "Menghapus..." : "Hapus"}
               </button>
             </div>
           </div>

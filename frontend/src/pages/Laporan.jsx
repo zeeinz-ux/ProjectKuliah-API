@@ -284,9 +284,7 @@ function Laporan() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(
-            "Endpoint GET /api/reports/summary belum ada di backend AdonisJS kamu.",
-          );
+          throw new Error("Endpoint GET /api/reports/summary tidak ditemukan.");
         }
 
         throw new Error(result.message || "Gagal mengambil ringkasan laporan.");
@@ -299,7 +297,7 @@ function Laporan() {
         stockCount: 0,
         financeTotal: 0,
       });
-      setError(err.message || "Terjadi kesalahan saat mengambil summary.");
+      setError(err.message || "Terjadi kesalahan saat mengambil ringkasan.");
     } finally {
       setLoadingSummary(false);
     }
@@ -321,9 +319,7 @@ function Laporan() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(
-            "Endpoint GET /api/report-logs belum ada di backend AdonisJS kamu.",
-          );
+          throw new Error("Endpoint GET /api/report-logs tidak ditemukan.");
         }
 
         throw new Error(result.message || "Gagal mengambil log laporan.");
@@ -386,13 +382,11 @@ function Laporan() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new Error(
-            "Endpoint GET /api/reports/export belum ada di backend AdonisJS kamu.",
-          );
+          throw new Error("Endpoint GET /api/reports/export tidak ditemukan.");
         }
 
         const result = await response.json().catch(() => ({}));
-        throw new Error(result.message || "Gagal generate laporan CSV.");
+        throw new Error(result.message || "Gagal membuat laporan CSV.");
       }
 
       const blob = await response.blob();
@@ -408,7 +402,7 @@ function Laporan() {
 
       fetchReportLogs();
     } catch (err) {
-      setError(err.message || "Terjadi kesalahan saat export laporan CSV.");
+      setError(err.message || "Terjadi kesalahan saat mengunduh laporan CSV.");
     } finally {
       setExportingType("");
     }
@@ -424,34 +418,35 @@ function Laporan() {
   const cards = [
     {
       id: "project",
-      title: "Laporan Project",
+      title: "Laporan Proyek",
       value: `${summary.projectCount} Proyek`,
       icon: <FiFileText />,
       description:
-        "Export data proyek, client, status, progress, lokasi, deadline, dan budget dalam format CSV.",
+        "Ekspor data proyek, klien, status, progres, lokasi, tenggat, dan anggaran ke format CSV.",
       buttonLabel:
-        exportingType === "project" ? "Generating..." : "Download CSV",
+        exportingType === "project" ? "Membuat laporan..." : "Unduh CSV",
       actionIcon: <FiDownload />,
     },
     {
       id: "stock",
       title: "Laporan Stok",
-      value: `${summary.stockCount} Item`,
+      value: `${summary.stockCount} Data`,
       icon: <FiPackage />,
       description:
-        "Export rekap stok material, barang masuk, barang keluar, harga, dan nilai stok terakhir dalam format CSV.",
-      buttonLabel: exportingType === "stock" ? "Generating..." : "Download CSV",
+        "Ekspor rekap stok material, barang masuk, barang keluar, harga, dan nilai stok terakhir ke format CSV.",
+      buttonLabel:
+        exportingType === "stock" ? "Membuat laporan..." : "Unduh CSV",
       actionIcon: <FiDownload />,
     },
     {
       id: "finance",
-      title: "Laporan Keuangan / Summary",
+      title: "Laporan Keuangan",
       value: formatCurrency(summary.financeTotal),
       icon: <FiDollarSign />,
       description:
-        "Export ringkasan budget proyek, estimasi biaya material, dan sisa budget dalam format CSV.",
+        "Ekspor ringkasan anggaran proyek, estimasi biaya material, dan sisa anggaran ke format CSV.",
       buttonLabel:
-        exportingType === "finance" ? "Generating..." : "Download CSV",
+        exportingType === "finance" ? "Membuat laporan..." : "Unduh CSV",
       actionIcon: <FiDownload />,
     },
   ];
@@ -464,9 +459,9 @@ function Laporan() {
             <span className="laporan-eyebrow">Monitoring Interior</span>
             <h1>Pusat Laporan</h1>
             <p>
-              Halaman ini khusus output & summary. Tidak ada upload file di
-              sini. Semua data ditarik dari database lalu diekspor menjadi file
-              CSV yang bisa dibuka di Excel.
+              Halaman ini khusus ringkasan & ekspor laporan. Semua data ditarik
+              dari database lalu diekspor menjadi file CSV yang bisa dibuka di
+              Excel.
             </p>
           </div>
         </div>
@@ -483,7 +478,7 @@ function Laporan() {
               className="laporan-filter-reset-btn"
               onClick={handleResetFilter}
             >
-              Reset Filter
+              Atur Ulang Filter
             </button>
           </div>
 
@@ -572,7 +567,7 @@ function Laporan() {
           <div className="laporan-table-header">
             <div>
               <h3>Aktivitas Laporan Terakhir</h3>
-              <p>Riwayat user yang melakukan export / download laporan CSV.</p>
+              <p>Riwayat pengguna yang mengunduh laporan CSV.</p>
             </div>
           </div>
 

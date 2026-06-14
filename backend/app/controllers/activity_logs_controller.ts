@@ -20,15 +20,41 @@ function toActivityResponse(activity: ActivityLog) {
   }
 }
 
+const MAX_ACTIVITY_LOGS = 10
+
+// Hapus log lama sehingga total tidak melebihi MAX_ACTIVITY_LOGS.
+// Dipanggil setiap kali log baru dibuat via createActivityLog service.
+export async function pruneActivityLogs() {
+  try {
+    const total = await ActivityLog.query().count('* as total').first()
+    const count = Number(total?.$extras?.total || 0)
+
+    if (count <= MAX_ACTIVITY_LOGS) return
+
+    // Ambil id log terlama yang harus dihapus
+    const overflow = count - MAX_ACTIVITY_LOGS
+
+    const oldest = await ActivityLog.query()
+      .orderBy('created_at', 'asc')
+      .limit(overflow)
+      .select('id')
+
+    const ids = oldest.map((row) => row.id)
+
+    if (ids.length > 0) {
+      await ActivityLog.query().whereIn('id', ids).delete()
+    }
+  } catch {
+    // Prune gagal tidak boleh crash request utama
+  }
+}
+
 export default class ActivityLogsController {
   async index({ request, response }: HttpContext) {
-    const limitInput = Number(request.input('limit', 20))
-    const limit = Math.min(Math.max(limitInput || 20, 1), 100)
-
     const module = request.input('module')
     const status = request.input('status')
 
-    const query = ActivityLog.query().orderBy('created_at', 'desc').limit(limit)
+    const query = ActivityLog.query().orderBy('created_at', 'desc').limit(MAX_ACTIVITY_LOGS)
 
     if (module && module !== 'all') {
       query.where('module', module)

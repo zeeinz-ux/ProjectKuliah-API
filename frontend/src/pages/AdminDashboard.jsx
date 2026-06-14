@@ -19,19 +19,19 @@ const avatarClasses = ["green", "cyan", "blue", "yellow", "purple", "green2"];
 
 const statusConfig = {
   on_track: {
-    label: "On Track",
+    label: "Berjalan Baik",
     color: "#0f9c4a",
   },
-  need_review: {
-    label: "Need Review",
-    color: "#0ea5a8",
-  },
+  // need_review: {
+  //   label: "Perlu Ditinjau",
+  //   color: "#0ea5a8",
+  // },
   delayed: {
-    label: "Delayed",
+    label: "Progres",
     color: "#2f80ed",
   },
   completed: {
-    label: "Completed",
+    label: "Selesai",
     color: "#a55ac5",
   },
 };
@@ -288,7 +288,7 @@ function getProjectStatus(project) {
     status.includes("cancelled")
   ) {
     return {
-      label: "Cancelled",
+      label: "Dibatalkan",
       className: "cancelled",
     };
   }
@@ -312,7 +312,7 @@ function getProjectStatus(project) {
     status.includes("review")
   ) {
     return {
-      label: "Pending",
+      label: "Menunggu",
       className: "pending",
     };
   }
@@ -324,13 +324,13 @@ function getProjectStatus(project) {
     progress <= 0
   ) {
     return {
-      label: "Project Baru",
+      label: "Proyek Baru",
       className: "pending",
     };
   }
 
   return {
-    label: "Processing",
+    label: "Diproses",
     className: "processing",
   };
 }
@@ -521,7 +521,7 @@ function normalizeRecentProject(project, index) {
     project.email ||
     project.location ||
     project.address ||
-    "Project Interior";
+    "Proyek Interior";
 
   const projectName = getProjectName(project);
 
@@ -650,7 +650,7 @@ function buildMetricCards(projects, materials, files, monthlyData) {
 
   return [
     {
-      title: "Total Nilai Project",
+      title: "Total Nilai Proyek",
       value: formatCompactIDR(totalBudget),
       change: budgetChange.change,
       changeType: budgetChange.changeType,
@@ -676,7 +676,7 @@ function buildMetricCards(projects, materials, files, monthlyData) {
       value: formatNumber(materialCount),
       change: materialChange.change,
       changeType: materialChange.changeType,
-      note: materials.length ? "dari stok material" : "dari data project",
+      note: materials.length ? "dari stok material" : "dari data proyek",
       icon: "cart",
       iconClass: "blue",
       lineClass: "blue-line",
@@ -687,7 +687,7 @@ function buildMetricCards(projects, materials, files, monthlyData) {
       value: formatNumber(documentationCount),
       change: documentationChange.change,
       changeType: documentationChange.changeType,
-      note: files.length ? "dari data files" : "dari progress project",
+      note: files.length ? "dari data file" : "dari progres proyek",
       icon: "eye",
       iconClass: "yellow",
       lineClass: "yellow-line",
@@ -746,7 +746,7 @@ function buildMonthlyGoals(projects, materials) {
 
   return [
     {
-      title: "Progress Proyek Bulanan",
+      title: "Progres Proyek Bulanan",
       percent: averageProgress,
       value: `${averageProgress}%`,
       target: "Target: 100%",
@@ -755,8 +755,8 @@ function buildMonthlyGoals(projects, materials) {
     {
       title: "Pemasangan Selesai",
       percent: completedPercent,
-      value: `${completedProjects} project`,
-      target: `Target: ${totalProjects} project`,
+      value: `${completedProjects} proyek`,
+      target: `Target: ${totalProjects} proyek`,
       color: "#0ea5a8",
     },
     {
@@ -767,7 +767,7 @@ function buildMonthlyGoals(projects, materials) {
         : "0 material",
       target: materials.length
         ? "Target: semua tersedia"
-        : "Endpoint material kosong",
+        : "Data material belum tersedia",
       color: "#2f80ed",
     },
   ];
@@ -856,7 +856,7 @@ function buildProjectFallbackActivities(projects) {
 
       return {
         id: project.id || index,
-        title: "Update project",
+        title: "Pembaruan Proyek",
         desc: `${getProjectName(project)} - ${status.label} (${getProjectProgress(
           project,
         )}%)`,
@@ -1049,9 +1049,9 @@ function OverviewChart({ data, mode = "progress" }) {
   });
 
   const getTooltipLabel = () => {
-    if (mode === "progress") return "Progress";
+    if (mode === "progress") return "Progres";
     if (mode === "material") return "Material";
-    if (mode === "budget") return "Budget";
+    if (mode === "budget") return "Anggaran";
     return "Value";
   };
 
@@ -1191,7 +1191,7 @@ function DonutChart({ data, total }) {
       >
         <div className="donut-inner">
           <h3>{formatNumber(total)}</h3>
-          <p>Projects</p>
+          <p>Proyek</p>
         </div>
       </div>
 
@@ -1330,6 +1330,10 @@ export default function AdminDashboard() {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState("");
 
+  const currentYear = new Date().getFullYear();
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterYear, setFilterYear] = useState(String(currentYear));
+
   const monthlyData = useMemo(() => {
     return buildMonthlyDashboardData(
       dashboardProjects,
@@ -1382,12 +1386,19 @@ export default function AdminDashboard() {
         ? monthlyData.material
         : monthlyData.budget;
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (month = filterMonth, year = filterYear) => {
     try {
       setProjectsLoading(true);
       setProjectsError("");
 
-      const projectResult = await fetchJson(PROJECT_API_URL);
+      const params = new URLSearchParams();
+      if (year) params.set("year", year);
+      if (month) params.set("month", month);
+      const projectUrl = params.toString()
+        ? `${PROJECT_API_URL}?${params.toString()}`
+        : PROJECT_API_URL;
+
+      const projectResult = await fetchJson(projectUrl);
 
       const projects = normalizeApiCollection(projectResult, [
         "projects",
@@ -1398,8 +1409,16 @@ export default function AdminDashboard() {
 
       const [materialResult, fileResult, activityResult] =
         await Promise.allSettled([
-          fetchJson(MATERIAL_API_URL),
-          fetchJson(FILE_API_URL),
+          fetchJson(
+            params.toString()
+              ? `${MATERIAL_API_URL}?${params.toString()}`
+              : MATERIAL_API_URL,
+          ),
+          fetchJson(
+            params.toString()
+              ? `${FILE_API_URL}?${params.toString()}`
+              : FILE_API_URL,
+          ),
           fetchJson(ACTIVITY_API_URL),
         ]);
 
@@ -1445,25 +1464,82 @@ export default function AdminDashboard() {
     }
   };
 
+  // Re-fetch saat filter berubah
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(filterMonth, filterYear);
+  }, [filterMonth, filterYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Auto-refresh setiap 30 detik supaya data dashboard selalu up-to-date
+  // Auto-refresh setiap 30 detik
+  useEffect(() => {
     const intervalId = setInterval(() => {
-      fetchDashboardData();
+      fetchDashboardData(filterMonth, filterYear);
     }, 30000);
 
-    return () => clearInterval(intervalId); // cleanup saat komponen unmount
-  }, []);
+    return () => clearInterval(intervalId);
+  }, [filterMonth, filterYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="dashboard-page">
       <div className="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>
-          Welcome back. Here's what's happening with your interior business
-          today.
-        </p>
+        <div className="dashboard-header-top">
+          <div>
+            <h1>Dashboard</h1>
+            <p>
+              Selamat datang kembali. Berikut adalah kabar terbaru seputar
+              bisnis interior Anda hari ini.
+            </p>
+          </div>
+
+          <div className="dashboard-filter-bar">
+            <select
+              className="filter-select"
+              value={filterMonth}
+              onChange={(e) => setFilterMonth(e.target.value)}
+              aria-label="Filter bulan"
+            >
+              <option value="">Semua Bulan</option>
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maret</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Agustus</option>
+              <option value="9">September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+
+            <select
+              className="filter-select"
+              value={filterYear}
+              onChange={(e) => setFilterYear(e.target.value)}
+              aria-label="Filter tahun"
+            >
+              <option value="">Semua Tahun</option>
+              {Array.from({ length: 5 }, (_, i) => currentYear - i).map((y) => (
+                <option key={y} value={String(y)}>
+                  {y}
+                </option>
+              ))}
+            </select>
+
+            {(filterMonth || filterYear !== String(currentYear)) && (
+              <button
+                type="button"
+                className="filter-reset-btn"
+                onClick={() => {
+                  setFilterMonth("");
+                  setFilterYear(String(currentYear));
+                }}
+              >
+                Atur Ulang
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {projectsError ? (
@@ -1481,8 +1557,8 @@ export default function AdminDashboard() {
           <div className="panel overview-panel">
             <div className="panel-head panel-head-space">
               <div>
-                <h2>Overview</h2>
-                <p>Monthly performance for the current year</p>
+                <h2>Ringkasan</h2>
+                <p>Performa bulanan untuk tahun ini</p>
               </div>
 
               <div className="segment-tabs">
@@ -1491,7 +1567,7 @@ export default function AdminDashboard() {
                   className={activeTab === "progress" ? "active" : ""}
                   onClick={() => setActiveTab("progress")}
                 >
-                  Progress
+                  Progres
                 </button>
 
                 <button
@@ -1507,7 +1583,7 @@ export default function AdminDashboard() {
                   className={activeTab === "budget" ? "active" : ""}
                   onClick={() => setActiveTab("budget")}
                 >
-                  Budget
+                  Anggaran
                 </button>
               </div>
             </div>
@@ -1518,12 +1594,12 @@ export default function AdminDashboard() {
           <div className="panel clients-panel">
             <div className="clients-head">
               <div>
-                <h2>Recent Clients</h2>
-                <p>Latest client projects from your interior business</p>
+                <h2>Klien Terbaru</h2>
+                <p>Daftar klien yang baru saja terhubung</p>
               </div>
 
               <Link to="/admin/projects" className="view-all-btn">
-                View all <span>↗</span>
+                Lihat Semua <span>↗</span>
               </Link>
             </div>
 
@@ -1531,11 +1607,11 @@ export default function AdminDashboard() {
               <table className="clients-table">
                 <thead>
                   <tr>
-                    <th>Client</th>
-                    <th>Project ID</th>
-                    <th>Project</th>
+                    <th>Klien</th>
+                    <th>ID Proyek</th>
+                    <th>Proyek</th>
                     <th>Status</th>
-                    <th>Budget</th>
+                    <th>Anggaran</th>
                   </tr>
                 </thead>
 
@@ -1587,7 +1663,7 @@ export default function AdminDashboard() {
                   ) : (
                     <tr>
                       <td colSpan={5} className="project-name">
-                        Belum ada data project.
+                        Belum ada data proyek.
                       </td>
                     </tr>
                   )}
@@ -1635,15 +1711,15 @@ export default function AdminDashboard() {
 
                     <div className="client-mobile-meta">
                       <div>
-                        <span>Project ID</span>
+                        <span>ID Proyek</span>
                         <strong>{client.projectId}</strong>
                       </div>
                       <div>
-                        <span>Project</span>
+                        <span>Proyek</span>
                         <strong>{client.projectName}</strong>
                       </div>
                       <div>
-                        <span>Budget</span>
+                        <span>Anggaran</span>
                         <strong>{client.amount}</strong>
                       </div>
                     </div>
@@ -1652,8 +1728,8 @@ export default function AdminDashboard() {
               ) : (
                 <div className="client-mobile-card">
                   <div className="client-info">
-                    <h4>Belum ada data project.</h4>
-                    <p>Buat project baru dari halaman Project.</p>
+                    <h4>Belum ada data proyek.</h4>
+                    <p>Buat proyek baru dari halaman Proyek.</p>
                   </div>
                 </div>
               )}
@@ -1665,8 +1741,8 @@ export default function AdminDashboard() {
           <div className="panel">
             <div className="panel-head">
               <div>
-                <h2>Project Status</h2>
-                <p>Distribution of current interior project conditions</p>
+                <h2>Status Proyek</h2>
+                <p>Distribusi kondisi proyek interior saat ini</p>
               </div>
             </div>
 
@@ -1676,8 +1752,8 @@ export default function AdminDashboard() {
           <div className="panel">
             <div className="panel-head">
               <div>
-                <h2>Monthly Goals</h2>
-                <p>Track progress toward targets</p>
+                <h2>Pencapaian Bulanan</h2>
+                <p>Memantau kemajuan pencapaian target</p>
               </div>
             </div>
 
@@ -1711,8 +1787,8 @@ export default function AdminDashboard() {
           <div className="panel activity-panel">
             <div className="clients-head">
               <div>
-                <h2>Recent Activity</h2>
-                <p>Latest updates from your interior projects</p>
+                <h2>Aktivitas Terbaru</h2>
+                <p>Informasi terbaru dari proyek interior Anda</p>
               </div>
 
               <button
@@ -1721,7 +1797,7 @@ export default function AdminDashboard() {
                 onClick={fetchDashboardData}
                 disabled={projectsLoading}
               >
-                Refresh <span>↗</span>
+                Perbarui <span>↗</span>
               </button>
             </div>
 
@@ -1735,7 +1811,7 @@ export default function AdminDashboard() {
                   <div className="activity-content">
                     <h4>Mengambil aktivitas...</h4>
                     <p>Mohon tunggu sebentar.</p>
-                    <span>Loading</span>
+                    <span>Memuat...</span>
                   </div>
                 </div>
               ) : recentActivities.length > 0 ? (
@@ -1760,7 +1836,7 @@ export default function AdminDashboard() {
 
                   <div className="activity-content">
                     <h4>Belum ada aktivitas</h4>
-                    <p>Activity log masih kosong.</p>
+                    <p>Belum ada aktivitas yang tercatat.</p>
                     <span>-</span>
                   </div>
                 </div>

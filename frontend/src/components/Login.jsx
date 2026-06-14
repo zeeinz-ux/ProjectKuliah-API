@@ -42,6 +42,7 @@ export default function Login() {
   const [role, setRole] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const saveAuthToLocalStorage = (token, user) => {
     localStorage.setItem("token", token);
@@ -51,6 +52,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
     try {
@@ -58,13 +60,17 @@ export default function Login() {
 
       saveAuthToLocalStorage(data.token, data.user);
 
-      navigate(redirectAfterLogin || data.redirectTo || "/admin", {
-        replace: true,
-      });
+      setSuccess("Login berhasil. Mengalihkan ke dashboard...");
+
+      setTimeout(() => {
+        navigate(redirectAfterLogin || data.redirectTo || "/admin", {
+          replace: true,
+        });
+      }, 1000);
     } catch (err) {
       setError(
         err.message ||
-          "Login gagal. Periksa email, password, dan role account.",
+          "Login gagal. Periksa email, kata sandi, dan peran akun.",
       );
     } finally {
       setLoading(false);
@@ -86,13 +92,14 @@ export default function Login() {
 
           <div className="login-header">
             <p className="login-label">Masuk</p>
-            <h1 className="login-title">Welcome back</h1>
+            <h1 className="login-title">Selamat Datang Kembali</h1>
             <p className="login-subtitle">
               Silakan masuk menggunakan akun yang sudah terdaftar
             </p>
           </div>
 
           {error && <div className="login-error">{error}</div>}
+          {success && <div className="login-success">{success}</div>}
 
           <form onSubmit={handleSubmit} className="login-form">
             <div className="login-field">
@@ -109,7 +116,7 @@ export default function Login() {
             </div>
 
             <div className="login-field">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">Kata Sandi</label>
               <input
                 id="password"
                 type="password"
@@ -122,7 +129,7 @@ export default function Login() {
             </div>
 
             <div className="login-field">
-              <label htmlFor="role">Role Account</label>
+              <label htmlFor="role">Role</label>
               <select
                 id="role"
                 required
@@ -130,7 +137,7 @@ export default function Login() {
                 onChange={(e) => setRole(e.target.value)}
               >
                 <option value="" disabled>
-                  Pilih role account
+                  Pilih role
                 </option>
 
                 {ROLE_OPTIONS.map((item) => (
@@ -143,7 +150,7 @@ export default function Login() {
 
             <div className="login-forgot-wrap">
               <Link to="/forgot-password" className="login-forgot-link">
-                Forgot password?
+                Lupa kata sandi?
               </Link>
             </div>
 
@@ -154,14 +161,14 @@ export default function Login() {
                 loading ? "login-submit-disabled" : ""
               }`}
             >
-              {loading ? "Memproses..." : "Sign in"}
+              {loading ? "Memproses..." : "Masuk"}
             </button>
           </form>
 
           <p className="login-footer-text">
-            Don&apos;t have an account?{" "}
+            Belum memiliki akun?{" "}
             <Link to="/register" className="login-footer-link">
-              Sign up
+              Daftar
             </Link>
           </p>
         </div>

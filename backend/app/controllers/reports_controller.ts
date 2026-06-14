@@ -361,7 +361,7 @@ export default class ReportsController {
       })
     } catch (error) {
       return response.badRequest({
-        message: 'Gagal mengambil summary laporan.',
+        message: 'Gagal mengambil ringkasan laporan.',
         error: error instanceof Error ? error.message : error,
       })
     }
@@ -450,13 +450,15 @@ export default class ReportsController {
         reportTitle = `Laporan Keuangan - ${projectName}`
       } else {
         csvContent = await this.buildProjectCsv(projectId, startDate, endDate)
-        reportTitle = `Laporan Project - ${projectName}`
+        reportTitle = `Laporan Proyek - ${projectName}`
       }
 
-      const timestamp = DateTime.now().toFormat('yyyyLLdd_HHmmss')
+      // Nama file untuk header Content-Disposition — tidak disimpan ke disk
+      const timestamp = DateTime.now().setZone('Asia/Jakarta').toFormat('yyyyLLdd_HHmmss')
       const safeType = safeFileName(type)
       const fileName = `laporan_${safeType}_${timestamp}.csv`
 
+      // Catat ke report_logs (hanya metadata, bukan path file fisik)
       await db.table('report_logs').insert({
         project_id: projectId,
         generated_by: generatedBy,
@@ -464,7 +466,7 @@ export default class ReportsController {
         report_name: reportTitle,
         filter_start_date: startDate || null,
         filter_end_date: endDate || null,
-        generated_file_path: fileName,
+        generated_file_path: null,
         generated_at: DateTime.now().toSQL(),
         created_at: DateTime.now().toSQL(),
         updated_at: DateTime.now().toSQL(),
@@ -483,19 +485,19 @@ export default class ReportsController {
           reportName: reportTitle,
           projectId,
           projectName,
-          fileName,
           startDate: startDate || null,
           endDate: endDate || null,
         },
       })
 
+      // Stream langsung ke browser — tidak ada file yang tersimpan di server
       response.header('Content-Type', 'text/csv; charset=utf-8')
       response.header('Content-Disposition', `attachment; filename="${fileName}"`)
 
       return response.send(csvContent)
     } catch (error) {
       return response.badRequest({
-        message: 'Gagal generate laporan CSV.',
+        message: 'Gagal membuat laporan CSV.',
         error: error instanceof Error ? error.message : error,
       })
     }

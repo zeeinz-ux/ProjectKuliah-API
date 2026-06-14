@@ -46,3 +46,7 @@ public/assets
 # OS files
 .DS_Store
 Thumbs.db
+
+# Upload files
+public/uploads/
+storage/uploads/

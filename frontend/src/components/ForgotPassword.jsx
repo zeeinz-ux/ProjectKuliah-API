@@ -37,12 +37,14 @@ function ForgotPassword() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.message || "Gagal membuat link reset password.");
+        throw new Error(
+          data.message || "Gagal membuat tautan reset kata sandi.",
+        );
       }
 
       const generatedResetUrl = data.resetUrl || data.reset_url || "";
 
-      setSuccessMsg(data.message || "Link reset password berhasil dibuat.");
+      setSuccessMsg(data.message || "Tautan reset kata sandi berhasil dibuat.");
       setResetUrl(generatedResetUrl);
       setEmail("");
     } catch (error) {
@@ -63,9 +65,9 @@ function ForgotPassword() {
           />
         </div>
 
-        <h1 className="forgot-title">Forgot Password</h1>
+        <h1 className="forgot-title">Lupa Kata Sandi</h1>
         <p className="forgot-subtitle">
-          Masukkan email akun kamu untuk membuat link reset password.
+          Masukkan email akun Anda untuk membuat tautan reset kata sandi.
         </p>
 
         {errorMsg && (
@@ -78,11 +80,11 @@ function ForgotPassword() {
 
             {resetUrl ? (
               <a href={resetUrl} className="forgot-reset-action">
-                Masuk ke Reset Password
+                Buka Halaman Reset Kata Sandi
               </a>
             ) : (
               <p className="forgot-reset-link-warning">
-                Link reset password belum diterima dari backend.
+                Tautan reset kata sandi belum diterima dari server.
               </p>
             )}
           </div>
@@ -98,7 +100,7 @@ function ForgotPassword() {
               id="email"
               type="email"
               className="forgot-input"
-              placeholder="Masukkan email kamu"
+              placeholder="Masukkan email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -113,13 +115,13 @@ function ForgotPassword() {
           </div>
 
           <button type="submit" className="forgot-button" disabled={loading}>
-            {loading ? "Membuat link..." : "Buat Link Reset"}
+            {loading ? "Membuat tautan..." : "Buat Tautan Reset"}
           </button>
         </form>
 
         <div className="forgot-footer">
           <Link to="/login" className="forgot-back-link">
-            ← Kembali ke Login
+            ← Kembali ke Halaman Masuk
           </Link>
         </div>
       </div>

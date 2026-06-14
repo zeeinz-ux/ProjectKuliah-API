@@ -64,29 +64,29 @@ function formatRoleLabel(role = "") {
 
 const menuSections = [
   {
-    title: "Overview",
+    title: "Ikhtisar",
     items: [
       { to: "/admin", label: "Dashboard", exact: true, icon: FiGrid },
-      { to: "/admin/projects", label: "Project", icon: FiTrendingUp },
+      { to: "/admin/projects", label: "Proyek", icon: FiTrendingUp },
       { to: "/admin/materials", label: "Stok Material", icon: FiBox },
-      { to: "/admin/calendar", label: "Calendar", icon: FiCalendar },
+      { to: "/admin/calendar", label: "Kalender", icon: FiCalendar },
     ],
   },
   {
-    title: "Commerce",
+    title: "Bisnis",
     items: [
       // { to: "/admin/chat", label: "Chat", icon: FiMessageCircle },
-      { to: "/admin/clients", label: "Client", icon: FiUsers },
-      { to: "/admin/documentation", label: "Files", icon: FiFolder },
+      { to: "/admin/clients", label: "Klien", icon: FiUsers },
+      { to: "/admin/documentation", label: "Berkas", icon: FiFolder },
       { to: "/admin/laporan", label: "Laporan", icon: FiFileText },
     ],
   },
   {
-    title: "Management",
+    title: "Manajemen",
     items: [
-      { to: "/admin/users", label: "Users", icon: FiUser },
-      { to: "/admin/notifications", label: "Notifications", icon: FiBell },
-      { to: "/admin/settings", label: "Settings", icon: FiSettings },
+      { to: "/admin/users", label: "Pengguna", icon: FiUser },
+      { to: "/admin/notifications", label: "Notifikasi", icon: FiBell },
+      { to: "/admin/settings", label: "Pengaturan", icon: FiSettings },
     ],
   },
 ];
@@ -287,8 +287,8 @@ export default function AdminLayout() {
               type="button"
               className="profile-logout-btn"
               onClick={handleLogout}
-              aria-label="Logout"
-              title="Logout"
+              aria-label="Keluar"
+              title="Keluar"
             >
               <FiLogOut />
             </button>
@@ -320,7 +320,7 @@ export default function AdminLayout() {
             </button>
 
             <div>
-              <p className="admin-kicker">Admin Area</p>
+              <p className="admin-kicker">Area Admin</p>
               <h2 className="admin-title">Sistem Monitoring Interior</h2>
             </div>
           </div>
@@ -328,7 +328,7 @@ export default function AdminLayout() {
           <div className="admin-topbar__right">
             <span className="layout-status-badge">
               <span className="layout-status-dot" />
-              Online
+              Aktif
             </span>
           </div>
         </header>

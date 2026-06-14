@@ -5,7 +5,11 @@ import "../css/ClientManagement.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
 
-const statusTabs = ["All", "Active", "Inactive"];
+const statusTabs = [
+  { label: "Semua", value: "all" },
+  { label: "Aktif", value: "Active" },
+  { label: "Nonaktif", value: "Inactive" },
+];
 
 const emptyFormData = {
   name: "",
@@ -28,7 +32,7 @@ function ClientManagement() {
   // State filter, search, pagination
   // =========================
   const [searchTerm, setSearchTerm] = useState("");
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -105,7 +109,7 @@ function ClientManagement() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal mengambil data client.");
+        throw new Error(result.message || "Gagal mengambil data klien.");
       }
 
       const data = Array.isArray(result) ? result : result.data || [];
@@ -168,7 +172,7 @@ function ClientManagement() {
   const filteredClients = useMemo(() => {
     return clients.filter((client) => {
       const matchesStatus =
-        activeTab === "All" ? true : client.status === activeTab;
+        activeTab === "all" ? true : client.status === activeTab;
 
       const keyword = searchTerm.toLowerCase();
 
@@ -345,7 +349,7 @@ function ClientManagement() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal menyimpan data client.");
+        throw new Error(result.message || "Gagal menyimpan data klien.");
       }
 
       await fetchClients();
@@ -396,7 +400,7 @@ function ClientManagement() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal menghapus client.");
+        throw new Error(result.message || "Gagal menghapus klien.");
       }
 
       setClients((prev) =>
@@ -410,7 +414,7 @@ function ClientManagement() {
       setDeleteTarget(null);
     } catch (error) {
       setDeleteError(
-        error.message || "Terjadi kesalahan saat menghapus client.",
+        error.message || "Terjadi kesalahan saat menghapus klien.",
       );
     } finally {
       setDeleteLoading(false);
@@ -422,8 +426,8 @@ function ClientManagement() {
       {/* Header halaman */}
       <div className="client-page__header">
         <div className="client-page__title-wrap">
-          <span className="client-page__eyebrow">Client Management</span>
-          <h1>Client</h1>
+          <span className="client-page__eyebrow">Manajemen Klien</span>
+          <h1>Klien</h1>
         </div>
 
         <button
@@ -432,7 +436,7 @@ function ClientManagement() {
           onClick={handleOpenAddModal}
         >
           <Plus size={18} />
-          Add Client
+          Tambah Klien
         </button>
       </div>
 
@@ -451,12 +455,12 @@ function ClientManagement() {
         <div className="client-tabs">
           {statusTabs.map((tab) => (
             <button
-              key={tab}
+              key={tab.value}
               type="button"
-              className={`client-tab ${activeTab === tab ? "active" : ""}`}
-              onClick={() => handleChangeTab(tab)}
+              className={`client-tab ${activeTab === tab.value ? "active" : ""}`}
+              onClick={() => handleChangeTab(tab.value)}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -465,7 +469,7 @@ function ClientManagement() {
           <Search className="client-search__icon" size={17} />
           <input
             type="text"
-            placeholder="Search clients..."
+            placeholder="Cari klien..."
             value={searchTerm}
             onChange={handleSearchChange}
           />
@@ -478,12 +482,12 @@ function ClientManagement() {
           <table className="client-table">
             <thead>
               <tr>
-                <th>Customer</th>
+                <th>Klien</th>
                 <th>Status</th>
-                <th>Joined</th>
-                <th>Orders</th>
-                <th>Total Spent</th>
-                <th>Actions</th>
+                <th>Bergabung</th>
+                <th>Jumlah Proyek</th>
+                <th>Total Pengeluaran</th>
+                <th>Aksi</th>
               </tr>
             </thead>
 
@@ -493,7 +497,7 @@ function ClientManagement() {
                   <td colSpan="6">
                     <div className="client-empty">
                       <Loader2 className="client-spin" size={22} />
-                      Loading data client...
+                      Memuat data klien...
                     </div>
                   </td>
                 </tr>
@@ -532,7 +536,11 @@ function ClientManagement() {
                           client.status,
                         )}`}
                       >
-                        {client.status}
+                        {client.status === "Active"
+                          ? "Aktif"
+                          : client.status === "Inactive"
+                            ? "Nonaktif"
+                            : client.status}
                       </span>
                     </td>
 
@@ -553,7 +561,7 @@ function ClientManagement() {
                             setSelectedClient(client);
                             handleOpenEditModal(client);
                           }}
-                          title="Edit client"
+                          title="Ubah klien"
                         >
                           <Pencil size={15} />
                         </button>
@@ -565,7 +573,7 @@ function ClientManagement() {
                             e.stopPropagation();
                             handleOpenDeleteModal(client);
                           }}
-                          title="Delete client"
+                          title="Hapus klien"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -578,7 +586,7 @@ function ClientManagement() {
                   <td colSpan="6">
                     <div className="client-empty">
                       <Users size={24} />
-                      Tidak ada data client yang cocok.
+                      Tidak ada data klien yang cocok.
                     </div>
                   </td>
                 </tr>
@@ -590,12 +598,12 @@ function ClientManagement() {
         {/* Footer table */}
         <div className="client-footer">
           <p>
-            Showing {startItem}-{endItem} of {filteredClients.length} results
+            Menampilkan {startItem}-{endItem} dari {filteredClients.length} data
           </p>
 
           <div className="client-pagination">
             <div className="client-rows">
-              <span>Rows</span>
+              <span>Baris</span>
               <select value={rowsPerPage} onChange={handleRowsChange}>
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -608,7 +616,7 @@ function ClientManagement() {
               disabled={currentPage === 1}
               onClick={() => setCurrentPage((prev) => prev - 1)}
             >
-              Previous
+              Sebelumnya
             </button>
 
             {Array.from({ length: totalPages }, (_, index) => index + 1).map(
@@ -632,7 +640,7 @@ function ClientManagement() {
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage((prev) => prev + 1)}
             >
-              Next
+              Berikutnya
             </button>
           </div>
         </div>
@@ -650,15 +658,15 @@ function ClientManagement() {
             <aside className="client-drawer">
               <div className="client-drawer__header">
                 <div>
-                  <h2>Client Detail</h2>
-                  <p>Informasi lengkap client interior.</p>
+                  <h2>Detail Klien</h2>
+                  <p>Informasi lengkap klien interior.</p>
                 </div>
 
                 <button
                   type="button"
                   className="client-close-btn"
                   onClick={() => setSelectedClient(null)}
-                  aria-label="Tutup detail client"
+                  aria-label="Tutup detail klien"
                 >
                   <X size={20} />
                 </button>
@@ -678,27 +686,31 @@ function ClientManagement() {
                         selectedClient.status,
                       )}`}
                     >
-                      {selectedClient.status}
+                      {selectedClient.status === "Active"
+                        ? "Aktif"
+                        : selectedClient.status === "Inactive"
+                          ? "Nonaktif"
+                          : selectedClient.status}
                     </span>
                   </div>
                 </div>
 
                 <div className="drawer-section">
-                  <h4>Client Info</h4>
+                  <h4>Informasi Klien</h4>
 
                   <div className="drawer-info-grid">
                     <div className="drawer-info-card">
-                      <span>Joined</span>
+                      <span>Bergabung</span>
                       <strong>{formatDate(selectedClient.joined)}</strong>
                     </div>
 
                     <div className="drawer-info-card">
-                      <span>Total Orders</span>
+                      <span>Total Proyek</span>
                       <strong>{selectedClient.projectCount}</strong>
                     </div>
 
                     <div className="drawer-info-card">
-                      <span>Total Spent</span>
+                      <span>Total Pengeluaran</span>
                       <strong>
                         {formatCurrency(selectedClient.totalSpent)}
                       </strong>
@@ -707,7 +719,7 @@ function ClientManagement() {
                 </div>
 
                 <div className="drawer-section">
-                  <h4>Contact</h4>
+                  <h4>Kontak</h4>
 
                   <div className="drawer-contact-list">
                     <div>
@@ -716,12 +728,12 @@ function ClientManagement() {
                     </div>
 
                     <div>
-                      <span>Phone</span>
+                      <span>Telepon</span>
                       <strong>{selectedClient.phone || "-"}</strong>
                     </div>
 
                     <div>
-                      <span>Address</span>
+                      <span>Alamat</span>
                       <strong>{selectedClient.address || "-"}</strong>
                     </div>
                   </div>
@@ -734,7 +746,7 @@ function ClientManagement() {
                     onClick={() => handleOpenEditModal(selectedClient)}
                   >
                     <Pencil size={16} />
-                    Edit Client
+                    Ubah Klien
                   </button>
 
                   <button
@@ -743,7 +755,7 @@ function ClientManagement() {
                     onClick={() => handleOpenDeleteModal(selectedClient)}
                   >
                     <Trash2 size={16} />
-                    Delete Client
+                    Hapus Klien
                   </button>
                 </div>
               </div>
@@ -765,12 +777,12 @@ function ClientManagement() {
               <div className="client-modal__header">
                 <div>
                   <h3>
-                    {formMode === "add" ? "Add New Client" : "Edit Client"}
+                    {formMode === "add" ? "Tambah Klien Baru" : "Ubah Klien"}
                   </h3>
                   <p>
                     {formMode === "add"
-                      ? "Tambahkan data client baru ke database."
-                      : "Perbarui data client yang sudah tersimpan."}
+                      ? "Tambahkan data klien baru ke sistem."
+                      : "Perbarui data klien yang sudah tersimpan."}
                   </p>
                 </div>
 
@@ -787,7 +799,7 @@ function ClientManagement() {
               <form className="client-form" onSubmit={handleSubmitClient}>
                 <div className="client-form__grid">
                   <div className="client-form__group">
-                    <label>Nama Client</label>
+                    <label>Nama Klien</label>
                     <input
                       type="text"
                       name="name"
@@ -809,7 +821,7 @@ function ClientManagement() {
                   </div>
 
                   <div className="client-form__group">
-                    <label>Phone</label>
+                    <label>Telepon</label>
                     <input
                       type="text"
                       name="phone"
@@ -826,13 +838,13 @@ function ClientManagement() {
                       value={formData.status}
                       onChange={handleInputChange}
                     >
-                      <option value="Active">Active</option>
-                      <option value="Inactive">Inactive</option>
+                      <option value="Active">Aktif</option>
+                      <option value="Inactive">Nonaktif</option>
                     </select>
                   </div>
 
                   <div className="client-form__group">
-                    <label>Joined Date</label>
+                    <label>Tanggal Bergabung</label>
                     <input
                       type="date"
                       name="joined"
@@ -842,12 +854,12 @@ function ClientManagement() {
                   </div>
 
                   <div className="client-form__group client-form__group--full">
-                    <label>Address</label>
+                    <label>Alamat</label>
                     <textarea
                       name="address"
                       value={formData.address}
                       onChange={handleInputChange}
-                      placeholder="Alamat client"
+                      placeholder="Alamat klien"
                       rows="3"
                     />
                   </div>
@@ -860,7 +872,7 @@ function ClientManagement() {
                     onClick={handleCloseFormModal}
                     disabled={submitLoading}
                   >
-                    Cancel
+                    Batal
                   </button>
 
                   <button
@@ -871,7 +883,7 @@ function ClientManagement() {
                     {submitLoading && (
                       <Loader2 className="client-spin" size={16} />
                     )}
-                    {formMode === "add" ? "Save Client" : "Update Client"}
+                    {formMode === "add" ? "Simpan Klien" : "Simpan Perubahan"}
                   </button>
                 </div>
               </form>
@@ -905,10 +917,10 @@ function ClientManagement() {
                 <X size={22} />
               </button>
 
-              <h3 id="delete-client-title">Delete Client</h3>
+              <h3 id="delete-client-title">Hapus Klien</h3>
 
               <p>
-                Are you sure you want to delete client{" "}
+                Apakah Anda yakin ingin menghapus klien{" "}
                 <strong>{deleteTarget.name}</strong>?
               </p>
 
@@ -923,7 +935,7 @@ function ClientManagement() {
                   onClick={handleCloseDeleteModal}
                   disabled={deleteLoading}
                 >
-                  Cancel
+                  Batal
                 </button>
 
                 <button
@@ -935,7 +947,7 @@ function ClientManagement() {
                   {deleteLoading && (
                     <Loader2 className="client-spin" size={16} />
                   )}
-                  {deleteLoading ? "Deleting..." : "Delete"}
+                  {deleteLoading ? "Menghapus..." : "Hapus"}
                 </button>
               </div>
             </div>

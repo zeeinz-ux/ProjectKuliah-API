@@ -46,50 +46,50 @@ const DEFAULT_CATEGORIES = [
   "Furniture",
   "Storage",
   "Lighting",
-  "Wall Decor",
-  "Decorative Accessories",
+  "Dekorasi Dinding",
+  "Aksesori Dekoratif",
   "Textiles",
   "Flooring",
-  "Ceiling Elements",
-  "Wall Finishing",
-  "Kitchen Furniture",
-  "Bathroom Furniture",
-  "Office Furniture",
-  "Door Accessories",
-  "Window Accessories",
-  "Comfort Items",
-  "Decorative Style Items",
+  "Elemen Plafon",
+  "Finishing Dinding",
+  "Furnitur Dapur",
+  "Furnitur Kamar Mandi",
+  "Furnitur Kantor",
+  "Aksesori Pintu",
+  "Aksesori Jendela",
+  "Perlengkapan Kenyamanan",
+  "Item Gaya Dekoratif",
   "Fastener",
 ];
 
 const TAB_KEYS = [
-  { key: "all", label: "All" },
-  { key: "tersedia", label: "Ready Stock" },
-  { key: "menipis", label: "Low Stock" },
-  { key: "habis", label: "Out of Stock" },
+  { key: "all", label: "Semua" },
+  { key: "tersedia", label: "Stok Tersedia" },
+  { key: "menipis", label: "Stok Menipis" },
+  { key: "habis", label: "Tidak Tersedia" },
 ];
 
 const COLUMN_OPTIONS = [
-  { key: "category", label: "Category" },
+  { key: "category", label: "Kategori" },
   { key: "status", label: "Status" },
-  { key: "stock", label: "Stock" },
-  { key: "price", label: "Price" },
-  { key: "updated", label: "Updated" },
+  { key: "stock", label: "Stok" },
+  { key: "price", label: "Harga" },
+  { key: "updated", label: "Terakhir Diperbarui" },
 ];
 
 const STATUS_CONFIG = {
   tersedia: {
-    label: "Ready Stock",
+    label: "Stok Tersedia",
     badgeClass: "is-ready",
     dotClass: "is-ready",
   },
   menipis: {
-    label: "Low Stock",
+    label: "Stok Menipis",
     badgeClass: "is-low",
     dotClass: "is-low",
   },
   habis: {
-    label: "Out of Stock",
+    label: "Tidak Tersedia",
     badgeClass: "is-empty",
     dotClass: "is-empty",
   },
@@ -1005,6 +1005,14 @@ export default function StokMaterial() {
 
         <div className="stok-summary-grid">
           <StatCard
+            icon={<FiPackage size={18} />}
+            iconClass="is-emerald"
+            label="Total Stok"
+            value={summary.totalStok}
+            note="Akumulasi seluruh stok material"
+          />
+
+          <StatCard
             icon={<FiBox size={18} />}
             iconClass="is-blue"
             label="Jenis Material"
@@ -1017,7 +1025,7 @@ export default function StokMaterial() {
             iconClass="is-amber"
             label="Stok Menipis"
             value={summary.stokMenipis}
-            note="Perlu restock segera"
+            note="Perlu penambahan stok segera"
             noteClass="is-warning"
           />
 
@@ -1060,7 +1068,7 @@ export default function StokMaterial() {
               <FiSearch size={14} />
               <input
                 type="text"
-                placeholder="Search materials..."
+                placeholder="Cari material..."
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
@@ -1077,7 +1085,7 @@ export default function StokMaterial() {
                   }}
                 >
                   <FiColumns size={13} />
-                  Columns
+                  Kolom
                 </button>
 
                 {columnsOpen && (
@@ -1105,7 +1113,7 @@ export default function StokMaterial() {
                 onClick={handleExport}
               >
                 <FiDownload size={13} />
-                Export
+                Ekspor
               </button>
 
               <div className="stok-dropdown" ref={catRef}>
@@ -1173,11 +1181,11 @@ export default function StokMaterial() {
 
                   <th>Material</th>
 
-                  {visibleColumns.category && <th>Category</th>}
+                  {visibleColumns.category && <th>Kategori</th>}
                   {visibleColumns.status && <th>Status</th>}
-                  {visibleColumns.stock && <th>Stock</th>}
-                  {visibleColumns.price && <th>Price</th>}
-                  {visibleColumns.updated && <th>Updated</th>}
+                  {visibleColumns.stock && <th>Stok</th>}
+                  {visibleColumns.price && <th>Harga</th>}
+                  {visibleColumns.updated && <th>Terakhir Diperbarui</th>}
 
                   <th className="stok-action-col"></th>
                 </tr>
@@ -1309,7 +1317,7 @@ export default function StokMaterial() {
           <div className="stok-table-footer">
             <div className="stok-footer-left">
               <span>
-                Showing {visibleStart}-{visibleEnd} of {totalResults} results
+                Menampilkan {visibleStart}-{visibleEnd} dari {totalResults} data
               </span>
 
               {selected.length > 0 && (
@@ -1320,7 +1328,7 @@ export default function StokMaterial() {
             </div>
 
             <div className="stok-pagination">
-              <span>Rows</span>
+              <span>Baris</span>
 
               <select
                 value={rowsPerPage}
@@ -1340,7 +1348,7 @@ export default function StokMaterial() {
                 disabled={safeCurrentPage === 1}
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               >
-                Previous
+                Sebelumnya
               </button>
 
               {Array.from({ length: totalPages }, (_, index) => {
@@ -1365,7 +1373,7 @@ export default function StokMaterial() {
                   setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                 }
               >
-                Next
+                Berikutnya
               </button>
             </div>
           </div>
@@ -1395,7 +1403,7 @@ export default function StokMaterial() {
 
             <button type="button" onClick={() => openEdit(activeMenuItem)}>
               <FiEdit2 size={13} />
-              Edit
+              Ubah
             </button>
 
             <hr />
@@ -1435,7 +1443,7 @@ export default function StokMaterial() {
                   <h3>
                     {modalMode === "add"
                       ? "Tambah Material Baru"
-                      : "Edit Material"}
+                      : "Ubah Material"}
                   </h3>
                   <p>
                     {modalMode === "add"
@@ -1472,7 +1480,7 @@ export default function StokMaterial() {
                       name="description"
                       value={formData.description}
                       onChange={handleChange}
-                      placeholder="Deskripsi singkat produk"
+                      placeholder="Deskripsi singkat material"
                     />
                   </FormGroup>
 
@@ -1654,7 +1662,7 @@ export default function StokMaterial() {
                       ? "Menyimpan..."
                       : modalMode === "add"
                         ? "Simpan Material"
-                        : "Update Material"}
+                        : "Perbarui Material"}
                   </button>
                 </div>
               </form>
@@ -1824,7 +1832,7 @@ export default function StokMaterial() {
                     setDetailItem(null);
                   }}
                 >
-                  Edit Material
+                  Ubah Material
                 </button>
 
                 <button
@@ -1866,20 +1874,20 @@ export default function StokMaterial() {
 
               <h3 id="delete-material-title">
                 {deleteConfirm.mode === "bulk"
-                  ? "Delete Materials"
-                  : "Delete Material"}
+                  ? "Hapus Material"
+                  : "Hapus Material"}
               </h3>
 
               <p>
                 {deleteConfirm.mode === "bulk" ? (
                   <>
-                    Are you sure you want to delete{" "}
-                    <strong>{deleteConfirm.ids.length}</strong> selected
-                    materials?
+                    Apakah Anda yakin ingin menghapus{" "}
+                    <strong>{deleteConfirm.ids.length}</strong> material yang
+                    dipilih?
                   </>
                 ) : (
                   <>
-                    Are you sure you want to delete material{" "}
+                    Apakah Anda yakin ingin menghapus material yang dipilih?{" "}
                     <strong>{deleteConfirm.item?.name}</strong>?
                   </>
                 )}
@@ -1896,7 +1904,7 @@ export default function StokMaterial() {
                   onClick={closeDeleteConfirm}
                   disabled={deleteSaving}
                 >
-                  Cancel
+                  Batal
                 </button>
 
                 <button
@@ -1905,7 +1913,7 @@ export default function StokMaterial() {
                   onClick={handleConfirmDelete}
                   disabled={deleteSaving}
                 >
-                  {deleteSaving ? "Deleting..." : "Delete"}
+                  {deleteSaving ? "Menghapus..." : "Hapus"}
                 </button>
               </div>
             </div>

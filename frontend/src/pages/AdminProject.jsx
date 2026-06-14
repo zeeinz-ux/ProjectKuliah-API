@@ -186,7 +186,7 @@ function buildTaskTimeline(tasks = []) {
       id: task.id,
       done: true,
       date: formatTaskDateTime(getTaskCompletionDate(task)),
-      label: task.label || "Task selesai",
+      label: task.label || "Tugas selesai",
     }));
 }
 
@@ -450,7 +450,7 @@ function ProjectCard({ project, onClick, onEdit, onDelete }) {
               type="button"
               className="icon-btn"
               onClick={() => onEdit(project)}
-              title="Edit project"
+              title="Ubah proyek"
             >
               <FiEdit2 size={15} />
             </button>
@@ -459,7 +459,7 @@ function ProjectCard({ project, onClick, onEdit, onDelete }) {
               type="button"
               className="icon-btn danger"
               onClick={() => onDelete(project)}
-              title="Hapus project"
+              title="Hapus proyek"
             >
               <FiTrash2 size={15} />
             </button>
@@ -553,7 +553,7 @@ function TabOverview({ project }) {
               <FiHome size={15} />
 
               <div>
-                <span className="meta-label">Budget</span>
+                <span className="meta-label">Anggaran</span>
                 <span className="meta-value">
                   {formatCurrency(project.budget)}
                 </span>
@@ -574,10 +574,10 @@ function TabOverview({ project }) {
           <div className="mb-5">
             <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-400">
               <span>
-                {doneTasks}/{totalTasks} task selesai
+                {doneTasks}/{totalTasks} Tugas selesai
               </span>
 
-              <span>Realtime dari checklist task</span>
+              <span>Otomatis dari checklist pekerjaan</span>
             </div>
 
             <div className="h-3 overflow-hidden rounded-full bg-slate-200">
@@ -590,8 +590,8 @@ function TabOverview({ project }) {
 
           {dynamicTimeline.length === 0 ? (
             <p className="empty-state">
-              Belum ada task yang selesai. Checklist task di tab Task untuk
-              menampilkan timeline.
+              Belum ada tugas yang selesai. Checklist pekerjaan di tab Tugas
+              untuk menampilkan timeline.
             </p>
           ) : (
             <ul className="timeline-list">
@@ -615,10 +615,10 @@ function TabOverview({ project }) {
       <div className="content-card mt-6">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <h4 className="section-label no-margin">History Foto Progress</h4>
+            <h4 className="section-label no-margin">Riwayat Foto Progres</h4>
 
             <p className="mt-2 text-sm font-medium text-slate-400">
-              Kumpulan foto terbaru dari update progress lapangan.
+              Kumpulan foto terbaru dari pembaruan progres lapangan.
             </p>
           </div>
 
@@ -632,7 +632,7 @@ function TabOverview({ project }) {
             <FiCamera size={28} className="mx-auto mb-3 text-slate-300" />
 
             <p className="text-sm font-semibold text-slate-400">
-              Belum ada foto progress.
+              Belum ada foto progres.
             </p>
           </div>
         ) : (
@@ -644,7 +644,7 @@ function TabOverview({ project }) {
                 onClick={() =>
                   setOverviewLightboxImage({
                     src: item.imageUrl,
-                    alt: item.note || "Foto progress",
+                    alt: item.note || "Foto progres",
                   })
                 }
                 className="group overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-sm transition hover:border-emerald-100 hover:shadow-md"
@@ -653,7 +653,7 @@ function TabOverview({ project }) {
                 <div className="h-40 overflow-hidden bg-slate-100">
                   <img
                     src={item.imageUrl}
-                    alt={item.note || "Foto progress"}
+                    alt={item.note || "Foto progres"}
                     loading="lazy"
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-90"
                   />
@@ -796,7 +796,7 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-            Progress Keseluruhan
+            Progres Keseluruhan
           </span>
 
           <span className="rounded-full bg-emerald-100 px-4 py-2 text-sm font-black text-emerald-700">
@@ -812,13 +812,13 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
         </div>
 
         <p className="mt-3 text-sm leading-6 text-slate-500">
-          Progress otomatis dihitung dari jumlah task yang sudah selesai.
+          Progres otomatis dihitung dari jumlah tugas yang sudah selesai.
         </p>
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h4 className="mb-5 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-          Tambah Update Progress
+          Tambah Pembaruan Progres
         </h4>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -838,7 +838,7 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
 
           <div>
             <label className="mb-2 block text-sm font-bold text-slate-800">
-              Foto Progress
+              Foto Progres
             </label>
 
             <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-300 bg-emerald-50 px-4 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
@@ -887,14 +887,14 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
               onClick={() =>
                 setLightboxImage({
                   src: imagePreview,
-                  alt: "Preview progress",
+                  alt: "Pratinjau progres",
                 })
               }
               className="group block overflow-hidden rounded-2xl bg-slate-200"
             >
               <img
                 src={imagePreview}
-                alt="Preview progress"
+                alt="Pratinjau progres"
                 className="h-32 w-48 object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-90"
               />
             </button>
@@ -903,11 +903,11 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
 
         <div className="mt-5">
           <label className="mb-2 block text-sm font-bold text-slate-800">
-            Catatan Progress
+            Catatan Progres
           </label>
 
           <textarea
-            placeholder="Tuliskan progress hari ini, kendala, atau catatan penting..."
+            placeholder="Tuliskan progres hari ini, kendala, atau catatan penting..."
             value={note}
             onChange={(event) => setNote(event.target.value)}
             rows={4}
@@ -922,14 +922,14 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
             className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 active:scale-[0.98]"
           >
             <FiPlus size={16} />
-            Kirim Update
+            Tambah Pembaruan
           </button>
         </div>
       </div>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h4 className="mb-5 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-          Riwayat Progress
+          Riwayat Progres
         </h4>
 
         {progressFeed.length === 0 ? (
@@ -937,7 +937,7 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
             <FiCamera size={28} className="mx-auto mb-3 text-slate-300" />
 
             <p className="text-sm font-semibold text-slate-400">
-              Belum ada update progress.
+              Belum ada pembaruan progres.
             </p>
           </div>
         ) : (
@@ -965,7 +965,7 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
                       type="button"
                       onClick={() => onDeleteProgress(project.id, item.id)}
                       className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-red-500 transition hover:bg-red-100"
-                      title="Hapus update progress"
+                      title="Hapus pembaruan progres"
                     >
                       <FiTrash2 size={16} />
                     </button>
@@ -977,7 +977,7 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
                           onClick={() =>
                             setLightboxImage({
                               src: imageUrl,
-                              alt: "Foto progress",
+                              alt: "Foto progres",
                             })
                           }
                           className="group/thumb h-36 w-full flex-shrink-0 overflow-hidden rounded-2xl bg-slate-100 md:h-36 md:w-48"
@@ -985,7 +985,7 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
                         >
                           <img
                             src={imageUrl}
-                            alt="Foto progress"
+                            alt="Foto progres"
                             loading="lazy"
                             className="h-full w-full object-cover transition duration-300 group-hover/thumb:scale-105 group-hover/thumb:opacity-90"
                           />
@@ -1120,7 +1120,7 @@ function TabTask({ project, onToggleTask, onAddTask, onDeleteTask }) {
           <input
             type="text"
             className="mini-input grow"
-            placeholder="Tambah task baru..."
+            placeholder="Tambah tugas baru..."
             value={taskInput}
             onChange={(event) => setTaskInput(event.target.value)}
           />
@@ -1130,7 +1130,7 @@ function TabTask({ project, onToggleTask, onAddTask, onDeleteTask }) {
             className="secondary-btn"
             onClick={handleAddTask}
           >
-            <FiPlus size={14} /> Tambah Task
+            <FiPlus size={14} /> Tambah Tugas
           </button>
         </div>
       </div>
@@ -1188,9 +1188,9 @@ function TabTask({ project, onToggleTask, onAddTask, onDeleteTask }) {
 }
 
 const TABS = [
-  { key: "overview", label: "Overview", icon: <FiGrid size={14} /> },
-  { key: "task", label: "Task", icon: <FiCheckCircle size={14} /> },
-  { key: "progress", label: "Progress", icon: <FiCamera size={14} /> },
+  { key: "overview", label: "Ringkasan", icon: <FiGrid size={14} /> },
+  { key: "task", label: "Tugas", icon: <FiCheckCircle size={14} /> },
+  { key: "progress", label: "Progres", icon: <FiCamera size={14} /> },
 ];
 
 function ProjectDetail({
@@ -1223,7 +1223,7 @@ function ProjectDetail({
 
         <div className="detail-overlay">
           <span className={`badge badge-${projectStatus} badge-lg`}>
-            {projectStatus === "done" ? "Selesai" : "Sedang Berjalan"}
+            {projectStatus === "done" ? "Selesai" : "Berjalan"}
           </span>
 
           <h2 className="detail-title">{project.name}</h2>
@@ -1452,7 +1452,7 @@ function ProjectModal({
       <div className="project-modal">
         <div className="modal-header">
           <div>
-            <h3>{isEdit ? "Edit Proyek" : "Tambah Proyek Baru"}</h3>
+            <h3>{isEdit ? "Ubah Proyek" : "Tambah Proyek Baru"}</h3>
             <p>Lengkapi data proyek interior di bawah ini.</p>
           </div>
 
@@ -1476,7 +1476,7 @@ function ProjectModal({
             </div>
 
             <div className="form-group">
-              <label>Client</label>
+              <label>Klien</label>
               <select
                 value={form.clientId}
                 onChange={(event) =>
@@ -1486,7 +1486,7 @@ function ProjectModal({
                   }))
                 }
               >
-                <option value="">Pilih client</option>
+                <option value="">Pilih klien</option>
                 {clients.map((client) => (
                   <option key={client.id} value={client.id}>
                     {client.name}
@@ -1538,7 +1538,7 @@ function ProjectModal({
             </div>
 
             <div className="form-group">
-              <label>Budget</label>
+              <label>Anggaran</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -1575,7 +1575,7 @@ function ProjectModal({
                 </h4>
 
                 <p>
-                  Pilih material dari Stok Material untuk kebutuhan project ini.
+                  Pilih material dari Stok Material untuk kebutuhan proyek ini.
                 </p>
               </div>
 
@@ -1662,7 +1662,7 @@ function ProjectModal({
                         </div>
 
                         <div>
-                          <label>Qty</label>
+                          <label>Jumlah</label>
 
                           <input
                             type="text"
@@ -1680,7 +1680,7 @@ function ProjectModal({
                         </div>
 
                         <div>
-                          <label>Subtotal</label>
+                          <label>Total</label>
 
                           <div className="project-material-subtotal">
                             {formatCurrency(item.subtotal)}
@@ -1717,7 +1717,7 @@ function ProjectModal({
                       }))
                     }
                   >
-                    Gunakan sebagai Budget
+                    Gunakan sebagai Anggaran
                   </button>
                 </div>
               </div>
@@ -1763,7 +1763,7 @@ function AlertPopup({ title, message, onClose }) {
           type="button"
           className="project-confirm-close"
           onClick={onClose}
-          aria-label="Tutup alert"
+          aria-label="Tutup peringatan"
         >
           <FiX size={21} />
         </button>
@@ -1813,10 +1813,10 @@ function DeleteProjectModal({ project, loading, error, onClose, onConfirm }) {
           <FiX size={21} />
         </button>
 
-        <h3 id="delete-project-title">Delete Project</h3>
+        <h3 id="delete-project-title">Hapus Proyek</h3>
 
         <p>
-          Are you sure you want to delete project{" "}
+          Apakah Anda yakin ingin menghapus proyek{" "}
           <strong>{project.name}</strong>?
         </p>
 
@@ -1829,7 +1829,7 @@ function DeleteProjectModal({ project, loading, error, onClose, onConfirm }) {
             onClick={onClose}
             disabled={loading}
           >
-            Cancel
+            Batal
           </button>
 
           <button
@@ -1838,7 +1838,7 @@ function DeleteProjectModal({ project, loading, error, onClose, onConfirm }) {
             onClick={onConfirm}
             disabled={loading}
           >
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? "Menghapus..." : "Hapus"}
           </button>
         </div>
       </div>
@@ -1930,14 +1930,14 @@ export default function AdminProject() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal mengambil data client.");
+        throw new Error(result.message || "Gagal mengambil data klien.");
       }
 
       const data = Array.isArray(result) ? result : result.data || [];
       setClients(data);
     } catch (error) {
       setErrorMsg(
-        error.message || "Terjadi kesalahan saat mengambil data client.",
+        error.message || "Terjadi kesalahan saat mengambil data klien.",
       );
     }
   };
@@ -2108,7 +2108,7 @@ export default function AdminProject() {
     ) {
       openAlertBox(
         "Form Belum Lengkap",
-        "Nama proyek, client, lokasi, dan deadline wajib diisi.",
+        "Nama proyek, klien, lokasi, dan deadline wajib diisi.",
       );
       return;
     }
@@ -2238,7 +2238,9 @@ export default function AdminProject() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal menambahkan update progress.");
+        throw new Error(
+          result.message || "Gagal menambahkan pembaruan progres.",
+        );
       }
 
       const newProgressLog = {
@@ -2272,7 +2274,8 @@ export default function AdminProject() {
       );
     } catch (error) {
       setErrorMsg(
-        error.message || "Terjadi kesalahan saat menambahkan update progress.",
+        error.message ||
+          "Terjadi kesalahan saat menambahkan pembaruan progres.",
       );
     }
   };
@@ -2292,7 +2295,7 @@ export default function AdminProject() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal menghapus update progress.");
+        throw new Error(result.message || "Gagal menghapus pembaruan progres.");
       }
 
       setProjects((prev) =>
@@ -2309,7 +2312,7 @@ export default function AdminProject() {
       );
     } catch (error) {
       setErrorMsg(
-        error.message || "Terjadi kesalahan saat menghapus update progress.",
+        error.message || "Terjadi kesalahan saat menghapus pembaruan progres.",
       );
     }
   };
@@ -2340,7 +2343,7 @@ export default function AdminProject() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal memperbarui task.");
+        throw new Error(result.message || "Gagal memperbarui tugas.");
       }
 
       const responseTask = result.data || {};
@@ -2384,7 +2387,7 @@ export default function AdminProject() {
         }),
       );
     } catch (error) {
-      setErrorMsg(error.message || "Terjadi kesalahan saat memperbarui task.");
+      setErrorMsg(error.message || "Terjadi kesalahan saat memperbarui tugas.");
     }
   };
 
@@ -2409,7 +2412,7 @@ export default function AdminProject() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal menambahkan task.");
+        throw new Error(result.message || "Gagal menambahkan tugas.");
       }
 
       const newTask = {
@@ -2449,7 +2452,7 @@ export default function AdminProject() {
         }),
       );
     } catch (error) {
-      setErrorMsg(error.message || "Terjadi kesalahan saat menambahkan task.");
+      setErrorMsg(error.message || "Terjadi kesalahan saat menambahkan tugas.");
     }
   };
 
@@ -2468,7 +2471,7 @@ export default function AdminProject() {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(result.message || "Gagal menghapus task.");
+        throw new Error(result.message || "Gagal menghapus tugas.");
       }
 
       setProjects((prev) =>
@@ -2488,7 +2491,7 @@ export default function AdminProject() {
         }),
       );
     } catch (error) {
-      setErrorMsg(error.message || "Terjadi kesalahan saat menghapus task.");
+      setErrorMsg(error.message || "Terjadi kesalahan saat menghapus tugas.");
     }
   };
 
@@ -2511,12 +2514,12 @@ export default function AdminProject() {
       <div className="page-shell">
         <div className="page-header">
           <div>
-            <span className="eyebrow">Project Monitoring</span>
+            <span className="eyebrow">Monitoring Proyek</span>
 
             <h1 className="page-title">Daftar Proyek Interior</h1>
 
             <p className="page-sub">
-              Kelola proyek, progress lapangan, dan checklist pekerjaan dalam
+              Kelola proyek, progres lapangan, dan checklist pekerjaan dalam
               satu halaman.
             </p>
           </div>
@@ -2526,7 +2529,7 @@ export default function AdminProject() {
             className="new-project-btn"
             onClick={openCreateModal}
           >
-            <FiPlus size={16} /> Proyek Baru
+            <FiPlus size={16} /> Tambah Proyek
           </button>
         </div>
 
@@ -2548,7 +2551,7 @@ export default function AdminProject() {
           </div>
 
           <div className="stat-card">
-            <span className="stat-label">Sedang Berjalan</span>
+            <span className="stat-label">Berjalan</span>
             <strong>{stats.active}</strong>
           </div>
 

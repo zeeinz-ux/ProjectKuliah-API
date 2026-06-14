@@ -1,4 +1,5 @@
 import ActivityLog from '#models/activity_log'
+import { pruneActivityLogs } from '#controllers/activity_logs_controller'
 
 type CreateActivityLogPayload = {
   userId?: number | null
@@ -13,7 +14,7 @@ type CreateActivityLogPayload = {
 
 export async function createActivityLog(payload: CreateActivityLogPayload) {
   try {
-    return await ActivityLog.create({
+    const log = await ActivityLog.create({
       userId: payload.userId || null,
       module: payload.module,
       action: payload.action,
@@ -24,6 +25,11 @@ export async function createActivityLog(payload: CreateActivityLogPayload) {
       isRead: false,
       metadata: payload.metadata || null,
     })
+
+    // Pastikan total log tidak melebihi 10 — hapus yang terlama
+    await pruneActivityLogs()
+
+    return log
   } catch (error) {
     console.error('Create activity log error:', error)
     return null

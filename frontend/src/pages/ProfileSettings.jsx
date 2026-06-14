@@ -203,13 +203,13 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     clearMessages();
 
     if (!file.type.startsWith("image/")) {
-      setErrorMessage("File avatar harus berupa gambar.");
+      setErrorMessage("File foto profil harus berupa gambar.");
       e.target.value = "";
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      setErrorMessage("Ukuran avatar maksimal 2 MB.");
+      setErrorMessage("Ukuran foto profil maksimal 2 MB.");
       e.target.value = "";
       return;
     }
@@ -241,7 +241,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data?.error?.message || "Upload avatar gagal.");
+        throw new Error(data?.error?.message || "Unggah foto profil gagal.");
       }
 
       setFormData((prev) => ({
@@ -249,9 +249,11 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
         avatar: data.secure_url,
       }));
 
-      setSuccessMessage("Avatar berhasil diubah.");
+      setSuccessMessage("Foto profil berhasil diubah.");
     } catch (error) {
-      setErrorMessage(error.message || "Terjadi kesalahan saat upload avatar.");
+      setErrorMessage(
+        error.message || "Terjadi kesalahan saat mengunggah foto profil.",
+      );
     } finally {
       setIsUploading(false);
       e.target.value = "";
@@ -274,18 +276,20 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
 
     if (!currentPassword) {
       setErrorMessage(
-        "Current Password wajib diisi jika ingin mengganti password.",
+        "Password saat ini wajib diisi jika ingin mengganti password.",
       );
       return false;
     }
 
     if (newPassword.length < 6) {
-      setErrorMessage("New Password minimal harus 6 karakter.");
+      setErrorMessage("Password baru minimal harus 6 karakter.");
       return false;
     }
 
     if (newPassword !== confirmNewPassword) {
-      setErrorMessage("New Password dan Confirm New Password harus sama.");
+      setErrorMessage(
+        "Kata Sandi Baru dan Konfirmasi Password Baru harus sama.",
+      );
       return false;
     }
 
@@ -382,8 +386,8 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
     <div className="profile-settings-page">
       <div className="profile-settings-header">
         <div>
-          <span className="profile-settings-eyebrow">Account Settings</span>
-          <h1>Profile Settings</h1>
+          <span className="profile-settings-eyebrow">Pengaturan Akun</span>
+          <h1>Profil Pengguna</h1>
           <p className="profile-subtitle">
             Kelola data akun, avatar, dan informasi profil user yang sedang
             login.
@@ -397,7 +401,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
             {formData.avatar ? (
               <img
                 src={formData.avatar}
-                alt="Profile Avatar"
+                alt="Foto Profil"
                 className="avatar-preview-image"
               />
             ) : (
@@ -431,7 +435,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
             onClick={handleOpenFilePicker}
             disabled={isUploading}
           >
-            {isUploading ? "Uploading..." : "Change Avatar"}
+            {isUploading ? "Mengunggah..." : "Ganti Foto Profil"}
           </button>
 
           <small className="avatar-hint">
@@ -452,7 +456,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
 
           <div className="profile-form-grid">
             <div className="profile-form-group">
-              <label htmlFor="firstName">First Name</label>
+              <label htmlFor="firstName">Nama Depan</label>
               <input
                 id="firstName"
                 name="firstName"
@@ -465,7 +469,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
             </div>
 
             <div className="profile-form-group">
-              <label htmlFor="lastName">Last Name</label>
+              <label htmlFor="lastName">Nama Belakang</label>
               <input
                 id="lastName"
                 name="lastName"
@@ -506,16 +510,16 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
 
           <div className="profile-section-divider">
             <div>
-              <h2>Change Password</h2>
+              <h2>Ubah Kata Sandi</h2>
               <p>
-                Isi bagian ini hanya jika kamu ingin mengganti password akun.
+                Isi bagian ini hanya jika kamu ingin mengganti kata sandi akun.
               </p>
             </div>
           </div>
 
           <div className="profile-form-grid password-form-grid">
             <div className="profile-form-group password-field">
-              <label htmlFor="currentPassword">Current Password</label>
+              <label htmlFor="currentPassword">Kata sandi saat ini</label>
               <div className="password-input-wrapper">
                 <input
                   id="currentPassword"
@@ -532,7 +536,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
                   className="password-toggle-btn"
                   onClick={() => togglePasswordVisibility("currentPassword")}
                   disabled={loadingUser}
-                  aria-label="Toggle current password visibility"
+                  aria-label="Tampilkan/Sembunyikan Kata Sandi Saat Ini"
                 >
                   {showPassword.currentPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -540,7 +544,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
             </div>
 
             <div className="profile-form-group password-field">
-              <label htmlFor="newPassword">New Password</label>
+              <label htmlFor="newPassword">Kata Sandi Baru</label>
               <div className="password-input-wrapper">
                 <input
                   id="newPassword"
@@ -557,7 +561,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
                   className="password-toggle-btn"
                   onClick={() => togglePasswordVisibility("newPassword")}
                   disabled={loadingUser}
-                  aria-label="Toggle new password visibility"
+                  aria-label="Tampilkan/Sembunyikan Kata Sandi Baru"
                 >
                   {showPassword.newPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -565,7 +569,9 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
             </div>
 
             <div className="profile-form-group password-field">
-              <label htmlFor="confirmNewPassword">Confirm New Password</label>
+              <label htmlFor="confirmNewPassword">
+                Konfirmasi Kata Sandi Baru
+              </label>
               <div className="password-input-wrapper">
                 <input
                   id="confirmNewPassword"
@@ -582,7 +588,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
                   className="password-toggle-btn"
                   onClick={() => togglePasswordVisibility("confirmNewPassword")}
                   disabled={loadingUser}
-                  aria-label="Toggle confirm password visibility"
+                  aria-label="Tampilkan/Sembunyikan Konfirmasi Kata Sandi"
                 >
                   {showPassword.confirmNewPassword ? <FaEyeSlash /> : <FaEye />}
                 </button>
@@ -597,7 +603,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               onClick={handleReset}
               disabled={loadingUser || isSaving}
             >
-              Reset
+              Atur Ulang
             </button>
 
             <button
@@ -605,7 +611,7 @@ const ProfileSettings = ({ currentUser, setCurrentUser }) => {
               className="primary-profile-btn"
               disabled={loadingUser || isSaving}
             >
-              {isSaving ? "Saving..." : "Save Changes"}
+              {isSaving ? "Menyimpan..." : "Simpan Perubahan"}
             </button>
           </div>
         </div>

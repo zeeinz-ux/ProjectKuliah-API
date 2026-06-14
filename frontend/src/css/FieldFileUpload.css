@@ -315,6 +315,45 @@
   @apply mt-4 flex items-center justify-between text-xs text-slate-500;
 }
 
+.field-files-pagination {
+  @apply flex flex-col gap-4 border-t border-slate-200 px-6 py-5 lg:flex-row lg:items-center lg:justify-between;
+}
+
+.field-files-pagination-info {
+  @apply text-sm text-slate-500;
+}
+
+.field-files-pagination-controls {
+  @apply flex flex-wrap items-center gap-3;
+}
+
+.field-files-pagination-size {
+  @apply flex items-center gap-2 text-sm text-slate-500;
+}
+
+.field-files-pagination-size .field-files-select {
+  @apply min-w-[80px];
+}
+
+.field-files-pagination-page {
+  @apply inline-flex h-10 min-w-[40px] items-center justify-center rounded-xl border border-emerald-600 bg-emerald-600 px-3 text-sm font-semibold text-white shadow-sm;
+}
+
+.field-files-pagination-page.is-active {
+  @apply border-emerald-600 bg-emerald-600 text-white;
+}
+.field-files-pagination-controls .field-files-secondary-btn {
+  @apply h-10 border-slate-200 bg-white text-slate-400;
+}
+
+.field-files-pagination-controls
+  .field-files-secondary-btn:hover:not(:disabled) {
+  @apply border-emerald-400 bg-white text-emerald-700;
+}
+
+.field-files-pagination-controls .field-files-secondary-btn:disabled {
+  @apply border-slate-200 bg-white text-slate-400 opacity-60;
+}
 /* =========================================================
    Delete File Modal
    Style mengikuti patokan Delete Event
