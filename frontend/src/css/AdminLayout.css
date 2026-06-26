@@ -195,6 +195,10 @@
 .menu-text {
   @apply flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-[0.95rem] font-semibold;
 
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
   transition:
     opacity 0.25s ease,
     width 0.25s ease;
@@ -572,4 +576,25 @@
   .admin-content__card {
     @apply rounded-[18px] p-3.5;
   }
+}
+
+/* =========================
+   Notification badge on sidebar menu
+   ========================= */
+.menu-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0 6px;
+  margin-left: auto;
+  line-height: 1;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px #0b1f4d;
 }

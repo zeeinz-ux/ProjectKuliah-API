@@ -17,13 +17,13 @@ export default class extends BaseSchema {
         .notNullable()
 
       // Data utama proyek
-      table.string('name', 150).notNullable()
+      table.string('name', 100).notNullable()
       table.string('status', 30).notNullable().defaultTo('progress')
       table.integer('progress').notNullable().defaultTo(0)
 
       // Detail proyek
-      table.string('cover', 500).nullable()
-      table.string('location', 150).nullable()
+      table.string('cover', 255).nullable()
+      table.string('location', 100).nullable()
       table.date('deadline').nullable()
       table.bigInteger('budget').notNullable().defaultTo(0)
       table.text('overview').nullable()

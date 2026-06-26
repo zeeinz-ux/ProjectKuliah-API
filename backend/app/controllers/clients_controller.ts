@@ -35,13 +35,17 @@ export default class ClientsController {
       clients.map(async (client) => {
         const summary = await db
           .from('projects')
+          .leftJoin('project_materials', 'projects.id', 'project_materials.project_id')
           .where('client_id', client.id)
-          .count('* as project_count')
-          .sum('budget as total_budget')
+          .countDistinct('projects.id as project_count')
+          .sum('projects.budget as total_budget')
+          .sum('project_materials.subtotal as total_material_cost')
           .first()
 
         const projectCount = Number(summary?.project_count || 0)
         const totalBudget = Number(summary?.total_budget || 0)
+        const totalMaterialCost = Number(summary?.total_material_cost || 0)
+        const totalSpent = totalBudget + totalMaterialCost
 
         return {
           id: client.id,
@@ -56,11 +60,13 @@ export default class ClientsController {
           project_count: projectCount,
           orders: projectCount,
 
-          totalSpent: totalBudget,
-          total_spent: totalBudget,
+          totalSpent,
+          total_spent: totalSpent,
 
           totalBudget,
           total_budget: totalBudget,
+          totalMaterialCost,
+          total_material_cost: totalMaterialCost,
 
           createdAt: client.createdAt,
           updatedAt: client.updatedAt,

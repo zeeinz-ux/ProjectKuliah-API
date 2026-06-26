@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Project from '#models/project'
 import ProjectTask from '#models/project_task'
+import { createActivityLog } from '#services/activity_log_service'
 
 export default class ProjectTasksController {
   // =========================
@@ -28,6 +29,24 @@ export default class ProjectTasksController {
       projectId: project.id,
       label: String(label).trim(),
       done: false,
+    })
+
+    const user = (request as any).user
+
+    await createActivityLog({
+      userId: user?.id,
+      module: 'project_task',
+      action: 'created',
+      title: `Task "${task.label}" ditambahkan`,
+      description: `Task baru untuk proyek "${project.name}" telah ditambahkan.`,
+      icon: 'doc',
+      color: 'green',
+      metadata: {
+        taskId: task.id,
+        taskLabel: task.label,
+        projectId: project.id,
+        projectName: project.name,
+      },
     })
 
     return response.created({
@@ -76,6 +95,30 @@ export default class ProjectTasksController {
 
     await task.save()
 
+    const user = (request as any).user
+    const project = await Project.find(params.projectId)
+
+    await createActivityLog({
+      userId: user?.id,
+      module: 'project_task',
+      action: 'updated',
+      title: `Task "${task.label}" diperbarui`,
+      description: label !== undefined
+        ? `Label task diubah menjadi "${task.label}".`
+        : done !== undefined
+          ? `Status task "${task.label}" diubah menjadi ${done ? 'selesai' : 'belum selesai'}.`
+          : `Task "${task.label}" telah diperbarui.`,
+      icon: 'doc',
+      color: 'blue',
+      metadata: {
+        taskId: task.id,
+        taskLabel: task.label,
+        taskDone: task.done,
+        projectId: task.projectId,
+        projectName: project?.name,
+      },
+    })
+
     return response.ok({
       message: 'Task berhasil diperbarui.',
       data: {
@@ -91,7 +134,7 @@ export default class ProjectTasksController {
   // DELETE /api/projects/:projectId/tasks/:taskId
   // Hapus task dari project
   // =========================
-  async destroy({ params, response }: HttpContext) {
+  async destroy({ params, request, response }: HttpContext) {
     const task = await ProjectTask.query()
       .where('id', params.taskId)
       .where('project_id', params.projectId)
@@ -103,7 +146,27 @@ export default class ProjectTasksController {
       })
     }
 
+    const project = await Project.find(params.projectId)
+
     await task.delete()
+
+    const user = (request as any).user
+
+    await createActivityLog({
+      userId: user?.id,
+      module: 'project_task',
+      action: 'deleted',
+      title: `Task "${task.label}" dihapus`,
+      description: `Task dari proyek "${project?.name || '#'}" telah dihapus.`,
+      icon: 'doc',
+      color: 'red',
+      metadata: {
+        taskId: task.id,
+        taskLabel: task.label,
+        projectId: params.projectId,
+        projectName: project?.name,
+      },
+    })
 
     return response.ok({
       message: 'Task berhasil dihapus.',

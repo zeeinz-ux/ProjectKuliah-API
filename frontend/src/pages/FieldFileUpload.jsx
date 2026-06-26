@@ -12,6 +12,8 @@ import {
   FiUploadCloud,
   FiX,
 } from "react-icons/fi";
+import AccessControl from "../components/AccessControl";
+import { useAuth } from "../hooks/useAuth";
 import "../css/FieldFileUpload.css";
 
 const API_BASE_URL = (
@@ -165,6 +167,8 @@ function normalizeFiles(payload) {
       projectName:
         item.projectName || item.project?.name || item.project_title || "-",
       categoryKey,
+      uploadedBy: item.uploadedBy || null,
+      uploadedByRole: item.uploadedByRole || null,
     };
   });
 }
@@ -255,6 +259,7 @@ function ActionIconButton({
 }
 
 export default function FieldFileUpload() {
+  const { user } = useAuth();
   const inputRef = useRef(null);
   const createdPdfUrlsRef = useRef(new Set());
   const [files, setFiles] = useState([]);
@@ -779,109 +784,111 @@ export default function FieldFileUpload() {
           </div>
 
           <div className="field-files-body">
-            <div
-              className={`field-files-dropzone ${
-                isDragActive ? "is-drag-active" : ""
-              }`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-            >
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".pdf,.xlsx"
-                multiple
-                onChange={handleInputChange}
-                className="hidden"
-              />
-
-              <div className="field-files-drop-icon">
-                <FiUploadCloud />
-              </div>
-
-              <h2 className="field-files-drop-title">
-                Pilih atau seret file ke sini
-              </h2>
-
-              <p className="field-files-drop-note">
-                Format: PDF, XLSX • Maksimal 5MB
-              </p>
-
-              <button
-                type="button"
-                onClick={handleBrowseClick}
-                className="field-files-primary-btn"
+            <AccessControl action="write" resource="files">
+              <div
+                className={`field-files-dropzone ${
+                  isDragActive ? "is-drag-active" : ""
+                }`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
               >
-                Pilih File
-              </button>
-            </div>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  accept=".pdf,.xlsx"
+                  multiple
+                  onChange={handleInputChange}
+                  className="hidden"
+                />
 
-            {selectedUploadFiles.length > 0 && (
-              <div className="field-files-upload-panel">
-                <div className="field-files-upload-head">
-                  <div>
-                    <h3 className="field-files-upload-title">
-                      File terpilih ({selectedUploadFiles.length})
-                    </h3>
-
-                    <p className="field-files-upload-subtitle">
-                      File akan disimpan dan dikaitkan dengan proyek yang
-                      dipilih.
-                    </p>
-                  </div>
-
-                  <div className="field-files-upload-actions">
-                    <select
-                      value={uploadProjectId}
-                      onChange={(event) =>
-                        setUploadProjectId(event.target.value)
-                      }
-                      className="field-files-select"
-                    >
-                      <option value="">Pilih Proyek</option>
-                      {projects
-                        .filter((project) => project.id !== "all")
-                        .map((project) => (
-                          <option key={project.id} value={project.id}>
-                            {project.name}
-                          </option>
-                        ))}
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={handleUpload}
-                      disabled={isUploading}
-                      className="field-files-primary-btn"
-                    >
-                      {isUploading ? "Mengunggah..." : "Mengunggah ke Server"}
-                    </button>
-                  </div>
+                <div className="field-files-drop-icon">
+                  <FiUploadCloud />
                 </div>
 
-                <div className="field-files-chip-list">
-                  {selectedUploadFiles.map((file) => (
-                    <div
-                      key={`${file.name}-${file.size}-${file.lastModified}`}
-                      className="field-files-chip"
-                    >
-                      <span className="field-files-chip-text">
-                        {file.name} • {formatBytes(file.size)}
-                      </span>
+                <h2 className="field-files-drop-title">
+                  Pilih atau seret file ke sini
+                </h2>
+
+                <p className="field-files-drop-note">
+                  Format: PDF, XLSX • Maksimal 5MB
+                </p>
+
+                <button
+                  type="button"
+                  onClick={handleBrowseClick}
+                  className="field-files-primary-btn"
+                >
+                  Pilih File
+                </button>
+              </div>
+
+              {selectedUploadFiles.length > 0 && (
+                <div className="field-files-upload-panel">
+                  <div className="field-files-upload-head">
+                    <div>
+                      <h3 className="field-files-upload-title">
+                        File terpilih ({selectedUploadFiles.length})
+                      </h3>
+
+                      <p className="field-files-upload-subtitle">
+                        File akan disimpan dan dikaitkan dengan proyek yang
+                        dipilih.
+                      </p>
+                    </div>
+
+                    <div className="field-files-upload-actions">
+                      <select
+                        value={uploadProjectId}
+                        onChange={(event) =>
+                          setUploadProjectId(event.target.value)
+                        }
+                        className="field-files-select"
+                      >
+                        <option value="">Pilih Proyek</option>
+                        {projects
+                          .filter((project) => project.id !== "all")
+                          .map((project) => (
+                            <option key={project.id} value={project.id}>
+                              {project.name}
+                            </option>
+                          ))}
+                      </select>
 
                       <button
                         type="button"
-                        onClick={() => removeSelectedUploadFile(file)}
-                        className="field-files-chip-close"
+                        onClick={handleUpload}
+                        disabled={isUploading}
+                        className="field-files-primary-btn"
                       >
-                        <FiX />
+                        {isUploading ? "Mengunggah..." : "Mengunggah ke Server"}
                       </button>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="field-files-chip-list">
+                    {selectedUploadFiles.map((file) => (
+                      <div
+                        key={`${file.name}-${file.size}-${file.lastModified}`}
+                        className="field-files-chip"
+                      >
+                        <span className="field-files-chip-text">
+                          {file.name} • {formatBytes(file.size)}
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={() => removeSelectedUploadFile(file)}
+                          className="field-files-chip-close"
+                        >
+                          <FiX />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </AccessControl>
 
             {error && (
               <div className="field-files-message is-error">{error}</div>
@@ -1060,12 +1067,16 @@ export default function FieldFileUpload() {
                             disabled={!file.path}
                           />
 
-                          <ActionIconButton
-                            icon={<FiTrash2 />}
-                            label="Hapus file"
-                            onClick={() => openDeleteModal(file)}
-                            danger
-                          />
+                    {user?.role === 'admin' || file.uploadedByRole === user?.role ? (
+                            <AccessControl action="delete" resource="files">
+                              <ActionIconButton
+                                icon={<FiTrash2 />}
+                                label="Hapus file"
+                                onClick={() => openDeleteModal(file)}
+                                danger
+                              />
+                            </AccessControl>
+                          ) : null}
                         </div>
                       </td>
                     </tr>
@@ -1126,12 +1137,16 @@ export default function FieldFileUpload() {
                       disabled={!file.path}
                     />
 
-                    <ActionIconButton
-                      icon={<FiTrash2 />}
-                      label="Hapus file"
-                      onClick={() => openDeleteModal(file)}
-                      danger
-                    />
+                    {user?.role === 'admin' || !file.uploadedByRole || file.uploadedByRole === user?.role ? (
+                      <AccessControl action="delete" resource="files">
+                        <ActionIconButton
+                          icon={<FiTrash2 />}
+                          label="Hapus file"
+                          onClick={() => openDeleteModal(file)}
+                          danger
+                        />
+                      </AccessControl>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -1242,14 +1257,16 @@ export default function FieldFileUpload() {
                 Batal
               </button>
 
-              <button
-                type="button"
-                onClick={confirmDelete}
-                disabled={deleteLoading}
-                className="field-files-modal-delete"
-              >
-                {deleteLoading ? "Menghapus..." : "Hapus"}
-              </button>
+              <AccessControl action="delete" resource="files">
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  disabled={deleteLoading}
+                  className="field-files-modal-delete"
+                >
+                  {deleteLoading ? "Menghapus..." : "Hapus"}
+                </button>
+              </AccessControl>
             </div>
           </div>
         </div>

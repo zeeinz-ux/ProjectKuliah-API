@@ -3,7 +3,7 @@ import hash from '@adonisjs/core/services/hash'
 import { BaseModel, beforeSave, column } from '@adonisjs/lucid/orm'
 
 export type UserRole = 'admin' | 'project_manager' | 'finance'
-export type UserDepartemen = 'Super User' | 'Operator Data' | 'Accounting'
+export type UserDepartemen = 'Super User' | 'Operator Data' | 'Keuangan'
 
 export default class User extends BaseModel {
   public static table = 'users'
@@ -25,9 +25,6 @@ export default class User extends BaseModel {
 
   @column()
   declare departemen: UserDepartemen
-
-  @column({ columnName: 'google_id' })
-  declare googleId: string | null
 
   @column({ columnName: 'is_active' })
   declare isActive: boolean

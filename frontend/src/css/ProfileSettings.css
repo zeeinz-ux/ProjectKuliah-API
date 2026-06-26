@@ -40,7 +40,7 @@
     var(--profile-bg-bottom) 100%
   );
   color: var(--profile-text);
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 /* =========================================================
@@ -372,6 +372,7 @@
 
 .profile-settings-page .secondary-profile-btn,
 .profile-settings-page .reset-profile-btn {
+  font-weight: 600;
   background: #ffffff;
   border: 1px solid var(--profile-line-2);
   color: var(--profile-text);

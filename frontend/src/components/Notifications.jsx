@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+
 import {
   CheckCheck,
   Trash2,
@@ -78,6 +79,9 @@ function getIconByModule(module, icon) {
 }
 
 function normalizeActivity(item) {
+  const meta = item.metadata || {};
+  const projectId = meta.projectId || meta.project_id || null;
+
   return {
     id: item.id,
     userId: item.userId || item.user_id || null,
@@ -92,9 +96,10 @@ function normalizeActivity(item) {
     icon: item.icon || "bell",
     color: item.color || "green",
     isRead: Boolean(item.isRead ?? item.is_read),
-    metadata: item.metadata || {},
+    metadata: meta,
     createdAt: item.createdAt || item.created_at,
     updatedAt: item.updatedAt || item.updated_at,
+    projectId,
   };
 }
 export default function Notifications() {
@@ -109,6 +114,18 @@ export default function Notifications() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  const currentUserRole = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('user');
+      if (!raw) return null;
+      return JSON.parse(raw).role;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const canDismiss = currentUserRole === 'finance' || currentUserRole === 'project_manager';
 
   const unreadCount = useMemo(() => {
     return activities.filter((item) => !item.isRead).length;
@@ -469,7 +486,7 @@ export default function Notifications() {
                       event.stopPropagation();
                       openDeleteModal(item);
                     }}
-                    title="Hapus Notifikasi"
+                    title={canDismiss ? "Hapus dari daftar saya" : "Hapus Notifikasi"}
                   >
                     <Trash2 size={17} />
                   </button>
@@ -503,9 +520,15 @@ export default function Notifications() {
               ×
             </button>
 
-            <h3 id="delete-notification-title">Hapus Notifikasi</h3>
+            <h3 id="delete-notification-title">
+              {canDismiss ? "Hapus Dari Daftar Saya" : "Hapus Notifikasi"}
+            </h3>
 
-            <p>Apakah Anda yakin ingin menghapus notifikasi ini?</p>
+            <p>
+              {canDismiss
+                ? "Apakah Anda yakin ingin menghapus notifikasi ini dari daftar Anda? Notifikasi ini hanya akan hilang dari tampilan Anda dan tetap tersedia untuk pengguna lain."
+                : "Apakah Anda yakin ingin menghapus notifikasi ini?"}
+            </p>
 
             {deleteError ? (
               <div className="notification-confirm-error">
@@ -530,7 +553,7 @@ export default function Notifications() {
                 onClick={confirmDeleteNotification}
                 disabled={deleteLoading}
               >
-                {deleteLoading ? "Menghapus..." : "Hapus"}
+                {deleteLoading ? "Memproses..." : canDismiss ? "Hapus dari Saya" : "Hapus"}
               </button>
             </div>
           </div>

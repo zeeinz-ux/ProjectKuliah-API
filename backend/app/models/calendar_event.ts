@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
+import Project from '#models/project'
 
 export default class CalendarEvent extends BaseModel {
   static table = 'calendar_events'
@@ -25,9 +27,15 @@ export default class CalendarEvent extends BaseModel {
   @column()
   declare description: string | null
 
+  @column({ columnName: 'project_id' })
+  declare projectId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  @belongsTo(() => Project)
+  declare project: BelongsTo<typeof Project>
 }

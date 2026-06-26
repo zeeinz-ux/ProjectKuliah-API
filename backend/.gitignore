@@ -47,6 +47,11 @@ public/assets
 .DS_Store
 Thumbs.db
 
-# Upload files
-public/uploads/
-storage/uploads/
+# Progress images
+public/uploads/progress/**
+
+# Generated reports
+storage/reports/**
+
+# Uploaded files
+storage/uploads/files/**

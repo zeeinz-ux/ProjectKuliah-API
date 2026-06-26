@@ -1,178 +1,100 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import "../css/ResetPassword.css";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import "../css/Login.css";
 import logoMedtic from "../assets/logo.svg";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
 
-function ResetPassword() {
+export default function ResetPassword() {
   const location = useLocation();
-
-  const token = useMemo(() => {
-    const params = new URLSearchParams(location.search);
-    return params.get("token") || "";
-  }, [location.search]);
+  const token = useMemo(() => new URLSearchParams(location.search).get("token") || "", [location.search]);
 
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-
-  const clearMessages = () => {
-    setErrorMsg("");
-    setSuccessMsg("");
-  };
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    clearMessages();
-
-    if (!token) {
-      setErrorMsg("Token reset password tidak ditemukan di URL.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setErrorMsg("Kata sandi baru minimal harus 6 karakter.");
-      return;
-    }
-
-    if (password !== passwordConfirmation) {
-      setErrorMsg("Konfirmasi kata sandi tidak sama.");
-      return;
-    }
-
+    setError("");
+    setSuccess("");
+    if (!token) { setError("Token reset tidak ditemukan."); return; }
+    if (password.length < 6) { setError("Kata sandi minimal 6 karakter."); return; }
+    if (password !== passwordConfirmation) { setError("Konfirmasi kata sandi tidak sama."); return; }
     setLoading(true);
-
     try {
-      const response = await fetch(`${API_BASE_URL}/reset-password`, {
+      const res = await fetch(`${API_BASE_URL}/reset-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token,
-          password,
-          password_confirmation: passwordConfirmation,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password, password_confirmation: passwordConfirmation }),
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(data.message || "Gagal mereset password.");
-      }
-
-      setSuccessMsg(
-        data.message ||
-          "Kata sandi berhasil direset. Silakan masuk dengan kata sandi baru.",
-      );
-
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Gagal mereset password.");
+      setSuccess(data.message || "Kata sandi berhasil direset.");
       setPassword("");
       setPasswordConfirmation("");
-    } catch (error) {
-      setErrorMsg(error.message || "Terjadi kesalahan. Silakan coba lagi.");
+    } catch (err) {
+      setError(err.message || "Terjadi kesalahan.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="reset-page">
-      <div className="reset-card">
-        <div className="reset-brand-block">
-          <img
-            src={logoMedtic}
-            alt="Logo Medtic Indonesia"
-            className="reset-company-logo"
-          />
-        </div>
-
-        <h1 className="reset-title">Atur Ulang Kata Sandi</h1>
-        <p className="reset-subtitle">
-          Masukkan kata sandi baru untuk akun Anda. Token reset akan dibaca
-          secara otomatis dari URL.
-        </p>
-
-        {!token && (
-          <div className="reset-alert reset-alert-error">
-            Token reset password tidak ditemukan. Pastikan kamu membuka link
-            reset yang benar.
-          </div>
-        )}
-
-        {errorMsg && (
-          <div className="reset-alert reset-alert-error">{errorMsg}</div>
-        )}
-
-        {successMsg && (
-          <div className="reset-alert reset-alert-success">
-            <p>{successMsg}</p>
-            <Link to="/login" className="reset-login-link">
-              Kembali ke Halaman Masuk
-            </Link>
-          </div>
-        )}
-
-        <form className="reset-form" onSubmit={handleSubmit}>
-          <div className="reset-form-group">
-            <label htmlFor="password" className="reset-label">
-              Kata Sandi Baru
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="reset-input"
-              placeholder="Masukkan kata sandi baru"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (errorMsg || successMsg) clearMessages();
-              }}
-              autoComplete="new-password"
-              required
-            />
+    <div className="auth-page">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <div className="auth-brand">
+            <img src={logoMedtic} alt="Logo" className="auth-logo" />
+            <h2 className="auth-brand-name">Medtic Indonesia</h2>
           </div>
 
-          <div className="reset-form-group">
-            <label htmlFor="passwordConfirmation" className="reset-label">
-              Konfirmasi Kata Sandi Baru
-            </label>
-            <input
-              id="passwordConfirmation"
-              type="password"
-              className="reset-input"
-              placeholder="Ulangi kata sandi baru"
-              value={passwordConfirmation}
-              onChange={(e) => {
-                setPasswordConfirmation(e.target.value);
-                if (errorMsg || successMsg) clearMessages();
-              }}
-              autoComplete="new-password"
-              required
-            />
+          <div className="auth-header">
+            <span className="auth-label">Reset Kata Sandi</span>
+            <h1 className="auth-title">Atur Ulang Kata Sandi</h1>
+            <p className="auth-subtitle">Masukkan kata sandi baru untuk akun Anda.</p>
           </div>
 
-          <button
-            type="submit"
-            className="reset-button"
-            disabled={loading || !token}
-          >
-            {loading ? "Menyimpan..." : "Simpan Kata Sandi Baru"}
-          </button>
-        </form>
+          {!token && <div className="auth-alert auth-alert--error">Token reset tidak valid. Periksa link yang Anda buka.</div>}
+          {error && <div className="auth-alert auth-alert--error">{error}</div>}
+          {success && (
+            <div className="auth-alert auth-alert--success">
+              <p>{success}</p>
+              <Link to="/login" className="auth-footer-link" style={{ display: "inline-block", marginTop: 10 }}>Kembali ke Halaman Masuk</Link>
+            </div>
+          )}
 
-        <div className="reset-footer">
-          <Link to="/login" className="reset-back-link">
-            ← Kembali ke Halaman Masuk
-          </Link>
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <label htmlFor="password">Kata Sandi Baru</label>
+              <div className="auth-password-wrap">
+                <input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); if (error || success) { setError(""); setSuccess(""); } }} placeholder="Masukkan kata sandi baru" autoComplete="new-password" required />
+                <button type="button" className="auth-password-toggle" onClick={() => setShowPassword((p) => !p)} tabIndex={-1}>
+                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="auth-field">
+              <label htmlFor="passwordConfirmation">Konfirmasi Kata Sandi Baru</label>
+              <div className="auth-password-wrap">
+                <input id="passwordConfirmation" type={showPassword ? "text" : "password"} value={passwordConfirmation} onChange={(e) => { setPasswordConfirmation(e.target.value); if (error || success) { setError(""); setSuccess(""); } }} placeholder="Ulangi kata sandi baru" autoComplete="new-password" required />
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading || !token} className="auth-submit">
+              {loading ? "Menyimpan..." : "Simpan Kata Sandi Baru"}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <Link to="/login" className="auth-footer-link">← Kembali ke Halaman Masuk</Link>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default ResetPassword;

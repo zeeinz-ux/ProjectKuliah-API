@@ -3,10 +3,11 @@ import User from '#models/user'
 import hash from '@adonisjs/core/services/hash'
 import jwt from 'jsonwebtoken'
 import env from '#start/env'
+import { createActivityLog } from '#services/activity_log_service'
 
 const ROLES = ['admin', 'project_manager', 'finance'] as const
 
-const DEPARTEMEN_LIST = ['Super User', 'Operator Data', 'Accounting'] as const
+const DEPARTEMEN_LIST = ['Super User', 'Operator Data', 'Keuangan'] as const
 
 type UserRole = (typeof ROLES)[number]
 type UserDepartemen = (typeof DEPARTEMEN_LIST)[number]
@@ -62,6 +63,23 @@ export default class AuthController {
         role,
         departemen,
         isActive: true,
+      })
+
+      await createActivityLog({
+        userId: user.id,
+        module: 'auth',
+        action: 'registered',
+        title: 'User baru terdaftar',
+        description: `${fullName} (${email}) berhasil mendaftar sebagai ${role}.`,
+        icon: 'user',
+        color: 'green',
+        metadata: {
+          userId: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+          departemen: user.departemen,
+        },
       })
 
       return response.created({
@@ -144,6 +162,22 @@ export default class AuthController {
         { expiresIn: '24h' }
       )
 
+      await createActivityLog({
+        userId: user.id,
+        module: 'auth',
+        action: 'logged_in',
+        title: 'Pengguna login',
+        description: `${user.fullName} (${user.email}) berhasil login sebagai ${user.role}.`,
+        icon: 'user',
+        color: 'blue',
+        metadata: {
+          userId: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          role: user.role,
+        },
+      })
+
       return response.ok({
         message: 'Login berhasil',
         token,
@@ -166,3 +200,6 @@ export default class AuthController {
     }
   }
 }
+
+// Sisipkan activity log login setelah login sukses
+// tapi sebelum return response

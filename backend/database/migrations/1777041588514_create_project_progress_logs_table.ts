@@ -15,9 +15,9 @@ export default class extends BaseSchema {
         .onDelete('CASCADE')
         .notNullable()
 
-      table.string('author', 100).notNullable().defaultTo('Tim Lapangan')
+      table.string('author', 60).notNullable().defaultTo('Tim Lapangan')
       table.text('note').notNullable()
-      table.string('image', 500).nullable()
+      table.string('image', 255).nullable()
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

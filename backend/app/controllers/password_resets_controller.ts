@@ -9,6 +9,7 @@ import PasswordReset from '#models/password_reset'
 import { forgotPasswordValidator } from '../validators/forgot_password_validator.js'
 import { resetPasswordValidator } from '../validators/reset_password_validator.js'
 import { generateResetToken } from '../utils/generate_reset_token.js'
+import { createActivityLog } from '#services/activity_log_service'
 
 export default class PasswordResetsController {
   public async forgotPassword({ request, response }: HttpContext) {
@@ -37,6 +38,22 @@ export default class PasswordResetsController {
 
       const frontendUrl = env.get('FRONTEND_URL').replace(/\/$/, '')
       const resetUrl = `${frontendUrl}/reset-password?token=${encodeURIComponent(token)}`
+
+      await createActivityLog({
+        userId: user.id,
+        module: 'password_reset',
+        action: 'token_requested',
+        title: 'Token reset password dibuat',
+        description: `${user.fullName} (${user.email}) meminta reset password.`,
+        icon: 'user',
+        color: 'yellow',
+        metadata: {
+          userId: user.id,
+          fullName: user.fullName,
+          email: user.email,
+          expiresAt: expiresAt.toISO(),
+        },
+      })
 
       return response.ok({
         message: 'Link reset password berhasil dibuat.',
@@ -87,6 +104,21 @@ export default class PasswordResetsController {
       await user.save()
 
       await passwordReset.delete()
+
+      await createActivityLog({
+        userId: user.id,
+        module: 'password_reset',
+        action: 'reset_completed',
+        title: 'Password berhasil direset',
+        description: `${user.fullName} (${user.email}) berhasil mereset password.`,
+        icon: 'user',
+        color: 'green',
+        metadata: {
+          userId: user.id,
+          fullName: user.fullName,
+          email: user.email,
+        },
+      })
 
       return response.ok({
         message: 'Password berhasil direset. Silakan login dengan password baru.',

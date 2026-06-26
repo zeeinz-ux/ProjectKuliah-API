@@ -316,8 +316,8 @@
 }
 
 .client-status-badge.inactive {
-  color: #475569;
-  background: var(--client-slate-soft);
+  color: var(--client-red);
+  background: var(--client-red-soft);
 }
 
 .client-status-badge.on-progress {
@@ -464,6 +464,7 @@
 }
 
 .client-btn--ghost {
+  font-weight: 600;
   background: #ffffff;
   color: var(--client-text);
   border: 1px solid var(--client-line);

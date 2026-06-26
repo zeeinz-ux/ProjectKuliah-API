@@ -35,16 +35,48 @@ function formatEventDate(event: CalendarEvent) {
 }
 
 function toCalendarResponse(event: CalendarEvent) {
+  const today = DateTime.local().startOf('day')
+  const eventDate = event.eventDate?.startOf('day')
+
+  // Default untuk Event biasa (Non-Project)
+  let computedColor = event.colorKey || 'emerald'
+  let computedStatusLabel = 'Event'
+  let isOverdue = false
+
+  // JIKA INI ADALAH EVENT PROYEK:
+  if (event.projectId && event.project) {
+    const pStatus = String(event.project.status || '').toLowerCase()
+    const pProgress = Number(event.project.progress || 0)
+
+    if (pStatus === 'selesai' || pStatus === 'done' || pProgress === 100) {
+      computedColor = 'emerald'
+      computedStatusLabel = 'Proyek Selesai'
+      isOverdue = false
+    } else if (eventDate && eventDate < today) {
+      const diffDays = Math.floor(today.diff(eventDate, 'days').days)
+      computedColor = 'red'
+      computedStatusLabel = `Telat ${diffDays} Hari`
+      isOverdue = true
+    } else {
+      computedColor = 'blue'
+      computedStatusLabel = 'Proyek Berjalan'
+      isOverdue = false
+    }
+  }
+
   return {
     id: String(event.id),
     title: event.title,
     start: formatEventDate(event),
     allDay: true,
     extendedProps: {
-      colorKey: event.colorKey || 'emerald',
+      colorKey: computedColor,
+      statusLabel: computedStatusLabel,
+      isOverdue: isOverdue,
       description: event.description || '',
       startTime: normalizeTime(event.startTime, '09:00'),
       endTime: normalizeTime(event.endTime, '10:00'),
+      projectId: event.projectId ?? null,
     },
   }
 }
@@ -53,10 +85,21 @@ export default class CalendarEventsController {
   async index({ request, response }: HttpContext) {
     const year = request.input('year')
 
-    const query = CalendarEvent.query().orderBy('event_date', 'asc').orderBy('start_time', 'asc')
+    const query = CalendarEvent.query()
+      .where((builder) => {
+        builder.whereNull('project_id').orWhereExists((subQuery) => {
+          subQuery
+            .from('projects')
+            .whereColumn('projects.id', 'calendar_events.project_id')
+            .whereRaw('LOWER(status) != ?', ['done'])
+        })
+      })
+      .orderBy('calendar_events.event_date', 'asc')
+      .orderBy('calendar_events.start_time', 'asc')
+      .select('calendar_events.*')
 
     if (year && /^\d{4}$/.test(String(year))) {
-      query.whereBetween('event_date', [`${year}-01-01`, `${year}-12-31`])
+      query.whereBetween('calendar_events.event_date', [`${year}-01-01`, `${year}-12-31`])
     }
 
     const events = await query

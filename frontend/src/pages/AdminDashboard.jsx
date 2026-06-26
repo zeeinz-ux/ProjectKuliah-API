@@ -14,6 +14,8 @@ const PROJECT_API_URL = `${API_BASE_URL}/api/projects`;
 const MATERIAL_API_URL = `${API_BASE_URL}/api/materials`;
 const FILE_API_URL = `${API_BASE_URL}/api/files`;
 const ACTIVITY_API_URL = `${API_BASE_URL}/api/activity-logs?limit=6`;
+const CRITICAL_PROJECT_API_URL = `${API_BASE_URL}/api/projects/critical`;
+const REMIND_DEADLINE_API_URL = `${API_BASE_URL}/api/projects/remind-deadlines`;
 
 const avatarClasses = ["green", "cyan", "blue", "yellow", "purple", "green2"];
 
@@ -22,13 +24,13 @@ const statusConfig = {
     label: "Berjalan Baik",
     color: "#0f9c4a",
   },
-  // need_review: {
-  //   label: "Perlu Ditinjau",
-  //   color: "#0ea5a8",
-  // },
+  critical: {
+    label: "Mendekati Deadline",
+    color: "#f59e0b",
+  },
   delayed: {
-    label: "Progres",
-    color: "#2f80ed",
+    label: "Terlambat",
+    color: "#ef4444",
   },
   completed: {
     label: "Selesai",
@@ -363,12 +365,35 @@ function isProjectDelayed(project) {
   return deadline < today;
 }
 
+function isProjectCritical(project) {
+  if (isProjectCompleted(project)) return false;
+  if (isProjectDelayed(project)) return false;
+
+  const deadline =
+    parseDate(project.deadline) ||
+    parseDate(project.deadline_date) ||
+    parseDate(project.endDate) ||
+    parseDate(project.end_date);
+
+  if (!deadline) return false;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  deadline.setHours(0, 0, 0, 0);
+
+  const diffTime = deadline.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  return diffDays >= 0 && diffDays <= 7;
+}
+
 function getProjectCondition(project) {
   const rawStatus = String(project.status || "").toLowerCase();
   const progress = getProjectProgress(project);
 
   if (isProjectCompleted(project)) return "completed";
   if (isProjectDelayed(project)) return "delayed";
+  if (isProjectCritical(project)) return "critical";
 
   if (
     rawStatus.includes("pending") ||
@@ -701,7 +726,7 @@ function buildStatusProject(projects) {
 
   const counts = {
     on_track: 0,
-    need_review: 0,
+    critical: 0,
     delayed: 0,
     completed: 0,
   };
@@ -818,6 +843,8 @@ function detectActivityIcon(activity) {
 
 function normalizeActivity(activity, index) {
   const iconConfig = detectActivityIcon(activity);
+  const meta = activity.metadata || {};
+  const projectId = meta.projectId || meta.project_id || null;
 
   return {
     id: activity.id || index,
@@ -840,6 +867,7 @@ function normalizeActivity(activity, index) {
     ),
     color: iconConfig.color,
     icon: iconConfig.icon,
+    projectId,
   };
 }
 
@@ -1292,6 +1320,53 @@ function ActivityIcon({ type }) {
   }
 }
 
+function CriticalProjectsWidget({ projects }) {
+  if (!projects || projects.length === 0) return null;
+
+  const overdueCount = projects.filter((p) => p.isOverdue).length;
+  const upcomingCount = projects.length - overdueCount;
+
+  return (
+    <div className="panel critical-projects-panel">
+      <div className="panel-head">
+        <div>
+          <h2 className="critical-projects-title">Proyek Kritis</h2>
+          <p>{overdueCount > 0 ? `${overdueCount} proyek telat, ${upcomingCount} mendekati deadline` : `Proyek dengan deadline H-7 atau kurang`}</p>
+        </div>
+        <span className="critical-badge">{projects.length}</span>
+      </div>
+      <div className="critical-projects-list">
+        {projects.map((p) => {
+          const daysLeft = p.daysLeft ?? p.daysUntilDeadline;
+          const isOverdue = p.isOverdue || daysLeft < 0;
+          const isUrgent = !isOverdue && daysLeft <= 3;
+
+          return (
+            <Link
+              key={p.id}
+              to={`/admin/projects?id=${p.id}`}
+              className="critical-project-item"
+            >
+              <div className="critical-project-left">
+                <span
+                  className={`critical-project-dot ${isOverdue ? "overdue" : isUrgent ? "urgent" : "warning"}`}
+                />
+                <div className="critical-project-info">
+                  <strong>{p.name}</strong>
+                  <span>{p.client || "-"}</span>
+                </div>
+              </div>
+              <div className={`critical-project-deadline ${isOverdue ? "overdue-text" : isUrgent ? "urgent-text" : "warning-text"}`}>
+                {isOverdue ? `Telat ${Math.abs(daysLeft)} hari` : daysLeft > 0 ? `H-${daysLeft}` : "Hari Ini"}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function MetricCard({ item }) {
   return (
     <div className="metric-card">
@@ -1329,6 +1404,7 @@ export default function AdminDashboard() {
   const [dashboardActivities, setDashboardActivities] = useState([]);
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [projectsError, setProjectsError] = useState("");
+  const [criticalProjects, setCriticalProjects] = useState([]);
 
   const currentYear = new Date().getFullYear();
   const [filterMonth, setFilterMonth] = useState("");
@@ -1464,16 +1540,41 @@ export default function AdminDashboard() {
     }
   };
 
+  const fetchCriticalProjects = async () => {
+    try {
+      const result = await fetchJson(CRITICAL_PROJECT_API_URL);
+      const items = normalizeApiCollection(result, ["data"]);
+      setCriticalProjects(Array.isArray(items) ? items : []);
+    } catch {
+      setCriticalProjects([]);
+    }
+  };
+
+  const triggerDeadlineReminders = async () => {
+    try {
+      await fetch(REMIND_DEADLINE_API_URL, {
+        method: "POST",
+        headers: getAuthHeaders(),
+      });
+    } catch {
+      // silent — notifikasi opsional
+    }
+  };
+
   // Re-fetch saat filter berubah
   useEffect(() => {
     fetchDashboardData(filterMonth, filterYear);
+    fetchCriticalProjects();
+    triggerDeadlineReminders();
   }, [filterMonth, filterYear]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-refresh setiap 30 detik
+  // Auto-refresh setiap 15 detik
   useEffect(() => {
     const intervalId = setInterval(() => {
       fetchDashboardData(filterMonth, filterYear);
-    }, 30000);
+      fetchCriticalProjects();
+      triggerDeadlineReminders();
+    }, 15000);
 
     return () => clearInterval(intervalId);
   }, [filterMonth, filterYear]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -1738,6 +1839,8 @@ export default function AdminDashboard() {
         </div>
 
         <div className="right-column">
+          <CriticalProjectsWidget projects={criticalProjects} />
+
           <div className="panel">
             <div className="panel-head">
               <div>
@@ -1815,19 +1918,35 @@ export default function AdminDashboard() {
                   </div>
                 </div>
               ) : recentActivities.length > 0 ? (
-                recentActivities.map((item, index) => (
-                  <div className="activity-item" key={`${item.id}-${index}`}>
-                    <div className={`activity-icon ${item.color}`}>
-                      <ActivityIcon type={item.icon} />
-                    </div>
+                recentActivities.map((item, index) => {
+                  const itemContent = (
+                    <>
+                      <div className={`activity-icon ${item.color}`}>
+                        <ActivityIcon type={item.icon} />
+                      </div>
 
-                    <div className="activity-content">
-                      <h4>{item.title}</h4>
-                      <p>{item.desc}</p>
-                      <span>{item.time}</span>
+                      <div className="activity-content">
+                        <h4>{item.title}</h4>
+                        <p>{item.desc}</p>
+                        <span>{item.time}</span>
+                      </div>
+                    </>
+                  );
+
+                  return item.projectId ? (
+                    <Link
+                      to={`/admin/projects?id=${item.projectId}`}
+                      className="activity-item activity-item--link"
+                      key={`${item.id}-${index}`}
+                    >
+                      {itemContent}
+                    </Link>
+                  ) : (
+                    <div className="activity-item" key={`${item.id}-${index}`}>
+                      {itemContent}
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="activity-item">
                   <div className="activity-icon green">

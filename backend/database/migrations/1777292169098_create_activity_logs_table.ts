@@ -18,20 +18,20 @@ export default class extends BaseSchema {
         .onDelete('SET NULL')
 
       // Modul sumber aktivitas: project, client, material, file, report, calendar, user, dll.
-      table.string('module').notNullable()
+      table.string('module', 30).notNullable()
 
       // Aksi aktivitas: created, updated, deleted, uploaded, downloaded, completed, dll.
-      table.string('action').notNullable()
+      table.string('action', 30).notNullable()
 
       // Judul notifikasi yang tampil di Dashboard / Page Notifikasi
-      table.string('title').notNullable()
+      table.string('title', 100).notNullable()
 
       // Deskripsi detail aktivitas
       table.text('description').nullable()
 
       // Icon dan warna untuk frontend
-      table.string('icon').notNullable().defaultTo('doc')
-      table.string('color').notNullable().defaultTo('green')
+      table.string('icon', 30).notNullable().defaultTo('doc')
+      table.string('color', 20).notNullable().defaultTo('green')
 
       // Status sudah dibaca / belum dibaca
       table.boolean('is_read').notNullable().defaultTo(false)

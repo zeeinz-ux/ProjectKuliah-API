@@ -156,8 +156,8 @@ function normalizeSummary(payload) {
     stockCount: Number(
       data.stockCount ?? data.stock?.count ?? data.stock?.total ?? 0,
     ),
-    financeTotal: Number(
-      data.financeTotal ?? data.finance?.total ?? data.finance?.amount ?? 0,
+    keuanganTotal: Number(
+      data.keuanganTotal ?? data.keuangan?.total ?? data.keuangan?.amount ?? 0,
     ),
   };
 }
@@ -231,7 +231,7 @@ function Laporan() {
   const [summary, setSummary] = useState({
     projectCount: 0,
     stockCount: 0,
-    financeTotal: 0,
+    keuanganTotal: 0,
   });
   const [reportLogs, setReportLogs] = useState([]);
   const [loadingSummary, setLoadingSummary] = useState(true);
@@ -295,7 +295,7 @@ function Laporan() {
       setSummary({
         projectCount: 0,
         stockCount: 0,
-        financeTotal: 0,
+        keuanganTotal: 0,
       });
       setError(err.message || "Terjadi kesalahan saat mengambil ringkasan.");
     } finally {
@@ -439,14 +439,14 @@ function Laporan() {
       actionIcon: <FiDownload />,
     },
     {
-      id: "finance",
+      id: "keuangan",
       title: "Laporan Keuangan",
-      value: formatCurrency(summary.financeTotal),
+      value: formatCurrency(summary.keuanganTotal),
       icon: <FiDollarSign />,
       description:
         "Ekspor ringkasan anggaran proyek, estimasi biaya material, dan sisa anggaran ke format CSV.",
       buttonLabel:
-        exportingType === "finance" ? "Membuat laporan..." : "Unduh CSV",
+        exportingType === "keuangan" ? "Membuat laporan..." : "Unduh CSV",
       actionIcon: <FiDownload />,
     },
   ];

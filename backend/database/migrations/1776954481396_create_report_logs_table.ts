@@ -13,7 +13,7 @@ export default class extends BaseSchema {
       table.integer('generated_by').unsigned().nullable()
 
       table.string('report_type', 50).notNullable()
-      table.string('report_name', 255).notNullable()
+      table.string('report_name', 100).notNullable()
 
       table.date('filter_start_date').nullable()
       table.date('filter_end_date').nullable()

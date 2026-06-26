@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search, Plus, X, Trash2, Pencil, Users, Loader2 } from "lucide-react";
+import AccessControl from "../components/AccessControl";
 import "../css/ClientManagement.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3333";
@@ -430,14 +431,16 @@ function ClientManagement() {
           <h1>Klien</h1>
         </div>
 
-        <button
-          type="button"
-          className="client-btn client-btn--primary"
-          onClick={handleOpenAddModal}
-        >
-          <Plus size={18} />
-          Tambah Klien
-        </button>
+        <AccessControl action="write" resource="clients">
+          <button
+            type="button"
+            className="client-btn client-btn--primary"
+            onClick={handleOpenAddModal}
+          >
+            <Plus size={18} />
+            Tambah Klien
+          </button>
+        </AccessControl>
       </div>
 
       {/* Pesan error */}
@@ -553,30 +556,34 @@ function ClientManagement() {
 
                     <td>
                       <div className="client-action-group">
-                        <button
-                          type="button"
-                          className="client-icon-btn client-icon-btn--edit"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedClient(client);
-                            handleOpenEditModal(client);
-                          }}
-                          title="Ubah klien"
-                        >
-                          <Pencil size={15} />
-                        </button>
+                        <AccessControl action="write" resource="clients">
+                          <button
+                            type="button"
+                            className="client-icon-btn client-icon-btn--edit"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedClient(client);
+                              handleOpenEditModal(client);
+                            }}
+                            title="Ubah klien"
+                          >
+                            <Pencil size={15} />
+                          </button>
+                        </AccessControl>
 
-                        <button
-                          type="button"
-                          className="client-icon-btn client-icon-btn--danger"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleOpenDeleteModal(client);
-                          }}
-                          title="Hapus klien"
-                        >
-                          <Trash2 size={15} />
-                        </button>
+                        <AccessControl action="delete" resource="clients">
+                          <button
+                            type="button"
+                            className="client-icon-btn client-icon-btn--danger"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenDeleteModal(client);
+                            }}
+                            title="Hapus klien"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </AccessControl>
                       </div>
                     </td>
                   </tr>
@@ -740,23 +747,27 @@ function ClientManagement() {
                 </div>
 
                 <div className="drawer-actions">
-                  <button
-                    type="button"
-                    className="client-btn client-btn--ghost"
-                    onClick={() => handleOpenEditModal(selectedClient)}
-                  >
-                    <Pencil size={16} />
-                    Ubah Klien
-                  </button>
+                  <AccessControl action="write" resource="clients">
+                    <button
+                      type="button"
+                      className="client-btn client-btn--ghost"
+                      onClick={() => handleOpenEditModal(selectedClient)}
+                    >
+                      <Pencil size={16} />
+                      Ubah Klien
+                    </button>
+                  </AccessControl>
 
-                  <button
-                    type="button"
-                    className="client-btn client-btn--danger-solid"
-                    onClick={() => handleOpenDeleteModal(selectedClient)}
-                  >
-                    <Trash2 size={16} />
-                    Hapus Klien
-                  </button>
+                  <AccessControl action="delete" resource="clients">
+                    <button
+                      type="button"
+                      className="client-btn client-btn--danger-solid"
+                      onClick={() => handleOpenDeleteModal(selectedClient)}
+                    >
+                      <Trash2 size={16} />
+                      Hapus Klien
+                    </button>
+                  </AccessControl>
                 </div>
               </div>
             </aside>

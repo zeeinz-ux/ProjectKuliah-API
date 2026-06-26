@@ -20,6 +20,7 @@ import {
   FiMessageCircle,
   FiBell,
 } from "react-icons/fi";
+import { can } from "../utils/permissions";
 
 const COMPANY_NAME = "Medtic Indonesia";
 const COMPANY_LOGO = logo;
@@ -66,27 +67,26 @@ const menuSections = [
   {
     title: "Ikhtisar",
     items: [
-      { to: "/admin", label: "Dashboard", exact: true, icon: FiGrid },
-      { to: "/admin/projects", label: "Proyek", icon: FiTrendingUp },
-      { to: "/admin/materials", label: "Stok Material", icon: FiBox },
-      { to: "/admin/calendar", label: "Kalender", icon: FiCalendar },
+      { to: "/admin", label: "Dashboard", exact: true, icon: FiGrid, resource: 'projects', action: 'read' },
+      { to: "/admin/projects", label: "Proyek", icon: FiTrendingUp, resource: 'projects', action: 'read' },
+      { to: "/admin/materials", label: "Stok Material", icon: FiBox, resource: 'materials', action: 'read' },
+      { to: "/admin/calendar", label: "Kalender", icon: FiCalendar, resource: 'calendar-events', action: 'read' },
     ],
   },
   {
     title: "Bisnis",
     items: [
-      // { to: "/admin/chat", label: "Chat", icon: FiMessageCircle },
-      { to: "/admin/clients", label: "Klien", icon: FiUsers },
-      { to: "/admin/documentation", label: "Berkas", icon: FiFolder },
-      { to: "/admin/laporan", label: "Laporan", icon: FiFileText },
+      { to: "/admin/clients", label: "Klien", icon: FiUsers, resource: 'clients', action: 'read' },
+      { to: "/admin/documentation", label: "Berkas", icon: FiFolder, resource: 'files', action: 'read' },
+      { to: "/admin/laporan", label: "Laporan", icon: FiFileText, resource: 'reports', action: 'read' },
     ],
   },
   {
     title: "Manajemen",
     items: [
-      { to: "/admin/users", label: "Pengguna", icon: FiUser },
-      { to: "/admin/notifications", label: "Notifikasi", icon: FiBell },
-      { to: "/admin/settings", label: "Pengaturan", icon: FiSettings },
+      { to: "/admin/users", label: "Pengguna", icon: FiUser, resource: 'users', action: 'read' },
+      { to: "/admin/notifications", label: "Notifikasi", icon: FiBell, resource: 'activity-logs', action: 'read' },
+      { to: "/admin/settings", label: "Pengaturan", icon: FiSettings, resource: 'activity-logs', action: 'read' },
     ],
   },
 ];
@@ -99,6 +99,7 @@ export default function AdminLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [avatarFailed, setAvatarFailed] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const loadUserFromStorage = () => {
     const raw = localStorage.getItem("user");
@@ -148,6 +149,7 @@ export default function AdminLayout() {
   useEffect(() => {
     loadUserFromStorage();
     fetchCurrentUser();
+    fetchUnreadCount();
     setIsMobileSidebarOpen(false);
   }, [location.pathname]);
 
@@ -166,9 +168,30 @@ export default function AdminLayout() {
     };
   }, []);
 
+  const fetchUnreadCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await fetch(`${API_BASE_URL}/api/activity-logs/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      setUnreadCount(Number(data?.total ?? 0));
+    } catch {
+      // silent
+    }
+  };
+
+  useEffect(() => {
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    window.dispatchEvent(new Event("auth-user-updated"));
     navigate("/login");
   };
 
@@ -226,35 +249,52 @@ export default function AdminLayout() {
         </div>
 
         <nav className="admin-sidebar__nav">
-          {menuSections.map((section) => (
-            <div className="menu-section" key={section.title}>
-              <p className="menu-section__title">{section.title}</p>
+          {menuSections
+            .map((section) => ({
+              ...section,
+              items: section.items.filter((item) => {
+                if (!user?.role) return true;
+                return can(user.role, item.action, item.resource);
+              }),
+            }))
+            .filter((section) => section.items.length > 0)
+            .map((section) => (
+              <div className="menu-section" key={section.title}>
+                <p className="menu-section__title">{section.title}</p>
 
-              <div className="menu-section__items">
-                {section.items.map((item) => {
-                  const Icon = item.icon;
+                <div className="menu-section__items">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
 
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      end={item.exact}
-                      onClick={() => setIsMobileSidebarOpen(false)}
-                      title={isCollapsed ? item.label : ""}
-                      className={({ isActive }) =>
-                        `menu-link ${isActive ? "active" : ""}`
-                      }
-                    >
-                      <span className="menu-icon">
-                        <Icon />
-                      </span>
-                      <span className="menu-text">{item.label}</span>
-                    </NavLink>
-                  );
-                })}
+                    const isNotificationItem = item.to === "/admin/notifications";
+                    const showBadge = isNotificationItem && unreadCount > 0;
+
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={item.exact}
+                        onClick={() => setIsMobileSidebarOpen(false)}
+                        title={isCollapsed ? item.label : ""}
+                        className={({ isActive }) =>
+                          `menu-link ${isActive ? "active" : ""}`
+                        }
+                      >
+                        <span className="menu-icon">
+                          <Icon />
+                        </span>
+                        <span className="menu-text">
+                          {item.label}
+                          {showBadge && (
+                            <span className="menu-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+                          )}
+                        </span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </nav>
 
         <div className="admin-sidebar__footer">

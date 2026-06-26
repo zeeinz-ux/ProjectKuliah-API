@@ -22,6 +22,7 @@ import Project from '#models/project'
 import Client from '#models/client'
 import Material from '#models/material'
 import ProjectMaterial from '#models/project_material'
+import CalendarEvent from '#models/calendar_event'
 import { createActivityLog } from '#services/activity_log_service'
 
 // ============================================================
@@ -65,6 +66,22 @@ function formatDateValue(value: any) {
   }
 
   return null
+}
+
+// ============================================================
+// HELPER: Hitung sisa hari menuju deadline
+// Positif = masih N hari lagi, Negatif = sudah telat N hari
+// Null = tidak ada deadline
+// ============================================================
+function calcDaysUntilDeadline(deadline: DateTime | null): number | null {
+  if (!deadline) return null
+
+  const now = DateTime.now().startOf('day')
+  const deadlineDay = deadline.startOf('day')
+
+  const diff = deadlineDay.diff(now, 'days').days
+
+  return Math.ceil(diff)
 }
 
 // ============================================================
@@ -411,6 +428,9 @@ function projectResponse(project: Project) {
     cover: project.cover,
     location: project.location,
     deadline: formatDateValue(project.deadline),
+    startDate: formatDateValue(project.startDate),
+    daysUntilDeadline: calcDaysUntilDeadline(project.deadline),
+    team: project.team,
     budget: project.budget,
     overview: project.overview,
     createdAt: project.createdAt,
@@ -448,6 +468,60 @@ function projectResponse(project: Project) {
 
     projectMaterials,
     materials: projectMaterials,
+  }
+}
+
+// ============================================================
+// HELPER: Auto-create / sync calendar events dari project
+// Dipanggil saat project dibuat atau diperbarui.
+// ============================================================
+async function syncProjectCalendarEvents(project: Project) {
+  // Hapus event kalender lama milik project ini (jika ada)
+  await CalendarEvent.query().where('project_id', project.id).delete()
+
+  const events: any[] = []
+
+  // Event untuk start date
+  if (project.startDate) {
+    events.push({
+      title: `Mulai: ${project.name}`,
+      eventDate: project.startDate,
+      startTime: '08:00',
+      endTime: '17:00',
+      colorKey: project.status === 'done' ? 'green' : 'blue',
+      description: `Proyek ${project.name} dimulai.`,
+      projectId: project.id,
+    })
+  }
+
+  // Event untuk deadline (hanya untuk proyek yang belum selesai)
+  if (project.deadline && project.status !== 'done') {
+    events.push({
+      title: `Deadline: ${project.name}`,
+      eventDate: project.deadline,
+      startTime: '08:00',
+      endTime: '17:00',
+      colorKey: 'red',
+      description: `Deadline proyek ${project.name}.`,
+      projectId: project.id,
+    })
+  }
+
+  // Event untuk tanggal selesai (hanya jika proyek sudah done)
+  if (project.status === 'done' && project.updatedAt) {
+    events.push({
+      title: `Selesai: ${project.name}`,
+      eventDate: project.updatedAt.toISODate(),
+      startTime: '08:00',
+      endTime: '17:00',
+      colorKey: 'green',
+      description: `Proyek ${project.name} telah selesai.`,
+      projectId: project.id,
+    })
+  }
+
+  for (const eventData of events) {
+    await CalendarEvent.create(eventData)
   }
 }
 
@@ -507,6 +581,25 @@ export default class ProjectsController {
       })
     }
 
+    if (body.deadline) {
+      const deadlineDate = DateTime.fromISO(body.deadline)
+      if (!deadlineDate.isValid || deadlineDate.startOf('day') < DateTime.now().startOf('day')) {
+        return response.badRequest({
+          message: 'Deadline tidak boleh sebelum hari ini.',
+        })
+      }
+    }
+
+    const rawStartDate = body.startDate || body.start_date
+    if (rawStartDate) {
+      const startDate = DateTime.fromISO(rawStartDate)
+      if (!startDate.isValid || startDate.startOf('day') < DateTime.now().startOf('day')) {
+        return response.badRequest({
+          message: 'Tanggal mulai tidak boleh sebelum hari ini.',
+        })
+      }
+    }
+
     try {
       const progress = Math.max(0, Math.min(100, Number(body.progress || 0)))
 
@@ -518,9 +611,13 @@ export default class ProjectsController {
         cover: body.cover || null,
         location: body.location || null,
         deadline: body.deadline ? DateTime.fromISO(body.deadline) : null,
+        startDate: body.startDate || body.start_date ? DateTime.fromISO(body.startDate || body.start_date) : null,
+        team: body.team || null,
         budget: Number(body.budget || 0),
         overview: body.overview || null,
       })
+
+      await syncProjectCalendarEvents(project)
 
       if (Array.isArray(body.materials)) {
         await syncProjectMaterials(project.id, body.materials)
@@ -619,6 +716,25 @@ export default class ProjectsController {
       project.clientId = Number(nextClientId)
     }
 
+    if (body.deadline !== undefined && body.deadline) {
+      const deadlineDate = DateTime.fromISO(body.deadline)
+      if (!deadlineDate.isValid || deadlineDate.startOf('day') < DateTime.now().startOf('day')) {
+        return response.badRequest({
+          message: 'Deadline tidak boleh sebelum hari ini.',
+        })
+      }
+    }
+
+    const rawStartDate = body.startDate !== undefined ? body.startDate : body.start_date
+    if (rawStartDate !== undefined && rawStartDate) {
+      const startDate = DateTime.fromISO(rawStartDate)
+      if (!startDate.isValid || startDate.startOf('day') < DateTime.now().startOf('day')) {
+        return response.badRequest({
+          message: 'Tanggal mulai tidak boleh sebelum hari ini.',
+        })
+      }
+    }
+
     try {
       const progress =
         body.progress !== undefined
@@ -638,7 +754,18 @@ export default class ProjectsController {
       project.budget = body.budget !== undefined ? Number(body.budget || 0) : project.budget
       project.overview = body.overview ?? project.overview
 
+      if (body.startDate !== undefined || body.start_date !== undefined) {
+        const val = body.startDate || body.start_date
+        project.startDate = val ? DateTime.fromISO(val) : null
+      }
+
+      if (body.team !== undefined) {
+        project.team = body.team || null
+      }
+
       await project.save()
+
+      await syncProjectCalendarEvents(project)
 
       if (Array.isArray(body.materials)) {
         await syncProjectMaterials(project.id, body.materials)
@@ -733,6 +860,9 @@ export default class ProjectsController {
     try {
       await restoreProjectMaterialsStock(project.id)
 
+      // Hapus event kalender terkait project
+      await CalendarEvent.query().where('project_id', project.id).delete()
+
       // Hapus semua file foto progress logs dari disk sebelum row dihapus
       deleteProgressLogImages(project)
 
@@ -801,6 +931,132 @@ export default class ProjectsController {
     } catch {
       return response.ok({
         projects: [],
+      })
+    }
+  }
+
+  // ============================================================
+  // GET /api/projects/critical
+  // Mengembalikan proyek yang deadline dalam 7 hari ke depan
+  // ============================================================
+  async critical({ response }: HttpContext) {
+    try {
+      const today = DateTime.now().startOf('day')
+      const sevenDaysLater = today.plus({ days: 7 })
+
+      const projects = await Project.query()
+        .where('status', '!=', 'done')
+        .whereNotNull('deadline')
+        .where('deadline', '<=', sevenDaysLater.toISODate())
+        .preload('client')
+        .preload('tasks')
+        .preload('progressLogs')
+        .preload('projectMaterials', (q) => {
+          q.preload('material')
+        })
+        .orderBy('deadline', 'asc')
+
+      const filtered = projects.filter((project) => {
+        // Exclude proyek yang semua tasks-nya sudah selesai (100%)
+        const tasks = project.tasks || []
+        if (tasks.length > 0) {
+          const doneCount = tasks.filter((t) => t.done).length
+          if (doneCount === tasks.length) return false
+        }
+        return true
+      })
+
+      return response.ok({
+        message: 'Data proyek kritis berhasil diambil.',
+        data: filtered.map((project) => {
+          const daysLeft = calcDaysUntilDeadline(project.deadline)
+          return {
+            ...projectResponse(project),
+            daysLeft,
+            isOverdue: daysLeft !== null ? daysLeft < 0 : false,
+          }
+        }),
+      })
+    } catch {
+      return response.ok({
+        message: 'Tidak ada proyek kritis.',
+        data: [],
+      })
+    }
+  }
+
+  // ============================================================
+  // POST /api/projects/remind-deadlines
+  // Membuat notifikasi untuk proyek yang deadline H-7 atau H-3
+  // Dipanggil dari frontend ketika dashboard di-load
+  // ============================================================
+  async remindDeadlines(ctx: HttpContext) {
+    const { response } = ctx
+
+    try {
+      const now = DateTime.now()
+
+      const projects = await Project.query()
+        .where('status', '!=', 'done')
+        .whereNotNull('deadline')
+        .preload('client')
+        .orderBy('deadline', 'asc')
+
+      const THRESHOLDS = [7, 3]
+      let createdCount = 0
+
+      for (const project of projects) {
+        if (!project.deadline) continue
+
+        const daysLeft = calcDaysUntilDeadline(project.deadline)
+        if (daysLeft === null) continue
+
+        for (const threshold of THRESHOLDS) {
+          if (daysLeft !== threshold) continue
+
+          // Cek apakah notifikasi sudah pernah dibuat dalam 24 jam terakhir
+          const existingLog = await db
+            .from('activity_logs')
+            .where('module', 'deadline_reminder')
+            .whereRaw("metadata->>'projectId' = ?", [String(project.id)])
+            .whereRaw("metadata->>'threshold' = ?", [String(threshold)])
+            .where('created_at', '>=', now.minus({ hours: 24 }).toISO())
+            .first()
+
+          if (existingLog) continue
+
+          const clientName = project.client?.name || '-'
+          const urgency = threshold <= 3 ? 'Kritis' : 'Mendekati'
+
+          await createActivityLog({
+            module: 'deadline_reminder',
+            action: 'deadline_reminder',
+            title: `Deadline ${urgency}: ${project.name}`,
+            description:
+              `Proyek "${project.name}" untuk client ${clientName} akan berakhir dalam ${daysLeft} hari! Segera selesaikan progres proyek.`,
+            icon: 'doc',
+            color: threshold <= 3 ? 'red' : 'yellow',
+            metadata: {
+              projectId: project.id,
+              projectName: project.name,
+              clientName,
+              deadline: formatDateValue(project.deadline),
+              daysLeft,
+              threshold,
+            },
+          })
+
+          createdCount++
+        }
+      }
+
+      return response.ok({
+        message: `${createdCount} notifikasi deadline berhasil dibuat.`,
+        total: createdCount,
+      })
+    } catch (error) {
+      return response.badRequest({
+        message: getErrorMessage(error, 'Gagal membuat notifikasi deadline.'),
       })
     }
   }

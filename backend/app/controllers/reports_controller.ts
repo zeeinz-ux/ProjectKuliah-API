@@ -62,7 +62,7 @@ function buildCsv(headers: string[], rows: unknown[][]) {
 
 function getReportTypeLabel(type: string) {
   if (type === 'stock') return 'Laporan Stok'
-  if (type === 'finance') return 'Laporan Keuangan'
+  if (type === 'keuangan') return 'Laporan Keuangan'
   return 'Laporan Project'
 }
 
@@ -144,7 +144,7 @@ export default class ReportsController {
     }
   }
 
-  private async getFinanceTotal(projectId: number | null) {
+  private async getKeuanganTotal(projectId: number | null) {
     try {
       const query = db.from('projects').sum('budget as total')
 
@@ -278,7 +278,7 @@ export default class ReportsController {
     return buildCsv(headers, rows)
   }
 
-  private async buildFinanceCsv(projectId: number | null, startDate?: string, endDate?: string) {
+  private async buildKeuanganCsv(projectId: number | null, startDate?: string, endDate?: string) {
     const query = db
       .from('projects')
       .leftJoin('clients', 'projects.client_id', 'clients.id')
@@ -350,13 +350,13 @@ export default class ReportsController {
       const projectId = parseNullableInt(request.input('projectId'))
       const projectCount = await this.getProjectCount(projectId)
       const stockCount = await this.getStockCount(projectId)
-      const financeTotal = await this.getFinanceTotal(projectId)
+      const keuanganTotal = await this.getKeuanganTotal(projectId)
 
       return response.ok({
         summary: {
           projectCount,
           stockCount,
-          financeTotal,
+          keuanganTotal,
         },
       })
     } catch (error) {
@@ -446,7 +446,7 @@ export default class ReportsController {
         csvContent = await this.buildStockCsv(projectId, startDate, endDate)
         reportTitle = `Laporan Stok - ${projectName}`
       } else if (type === 'finance') {
-        csvContent = await this.buildFinanceCsv(projectId, startDate, endDate)
+        csvContent = await this.buildKeuanganCsv(projectId, startDate, endDate)
         reportTitle = `Laporan Keuangan - ${projectName}`
       } else {
         csvContent = await this.buildProjectCsv(projectId, startDate, endDate)

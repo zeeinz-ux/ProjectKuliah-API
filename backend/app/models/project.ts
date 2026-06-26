@@ -38,6 +38,14 @@ export default class Project extends BaseModel {
   @column.date()
   declare deadline: DateTime | null
 
+  // Tanggal mulai proyek
+  @column.date()
+  declare startDate: DateTime | null
+
+  // Tim lapangan
+  @column()
+  declare team: string | null
+
   // Nilai kontrak / budget proyek
   @column()
   declare budget: number

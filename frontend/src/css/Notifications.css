@@ -13,6 +13,7 @@
       transparent 32%
     ),
     #f4f7fb;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #0f172a;
 }
 
@@ -64,7 +65,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   transition: 0.2s ease;
   white-space: nowrap;
 }
@@ -195,7 +196,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   transition: 0.2s ease;
 }
 
@@ -571,7 +572,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
 
   transition: 0.2s ease;
 }
@@ -748,4 +749,16 @@
     padding: 14px 12px;
     border-radius: 18px;
   }
+}
+
+/* =========================
+   Clickable notification item ? deep link to project
+   ========================= */
+.notification-item--link {
+  cursor: pointer;
+}
+
+.notification-item--link:hover {
+  border-color: #60a5fa;
+  background: #f0f7ff;
 }

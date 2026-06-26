@@ -11,6 +11,7 @@ import {
   Trash2,
   Pencil,
 } from "lucide-react";
+import AccessControl from "../components/AccessControl";
 import "../css/Calendar.css";
 
 const API_BASE_URL = (
@@ -126,19 +127,57 @@ function formatDateToYMD(date) {
   return `${year}-${month}-${day}`;
 }
 
+function getCriticalLevel(eventDate) {
+  if (!eventDate) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(eventDate);
+  deadline.setHours(0, 0, 0, 0);
+  const diffTime = deadline.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays > 7) return null;
+  if (diffDays <= 0) return "overdue";
+  if (diffDays <= 3) return "critical";
+  return "warning";
+}
+
+function getOverdueDays(eventDate) {
+  if (!eventDate) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadline = new Date(eventDate);
+  deadline.setHours(0, 0, 0, 0);
+  const diffTime = deadline.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays < 0 ? Math.abs(diffDays) : 0;
+}
+
 function normalizeCalendarEvent(event) {
   const extendedProps = event?.extendedProps || {};
+  const title = event?.title || "Acara Tanpa Judul";
+  const eventDate = event?.start || event?.date || event?.eventDate;
+  const isDeadlineEvent = title.startsWith("Deadline:");
+  const criticalLevel = isDeadlineEvent ? getCriticalLevel(eventDate) : null;
+
+  const overdueDays = criticalLevel === "overdue" ? getOverdueDays(eventDate) : 0;
+
+  let adjustedColorKey = extendedProps.colorKey || event?.colorKey || "emerald";
+  if (criticalLevel === "critical") adjustedColorKey = "red";
+  else if (criticalLevel === "overdue") adjustedColorKey = "red";
 
   return {
     id: String(event?.id),
-    title: event?.title || "Acara Tanpa Judul",
-    start: event?.start || event?.date || event?.eventDate,
+    title,
+    start: eventDate,
     allDay: true,
     extendedProps: {
-      colorKey: extendedProps.colorKey || event?.colorKey || "emerald",
+      colorKey: adjustedColorKey,
       description: extendedProps.description || event?.description || "",
       startTime: extendedProps.startTime || event?.startTime || "09:00",
       endTime: extendedProps.endTime || event?.endTime || "10:00",
+      criticalLevel,
+      overdueDays,
+      projectId: extendedProps.projectId || null,
     },
   };
 }
@@ -443,12 +482,16 @@ export default function Calendar() {
 
   const renderEventContent = (eventInfo) => {
     const colorMeta = getColorMeta(eventInfo.event.extendedProps?.colorKey);
+    const criticalLevel = eventInfo.event.extendedProps?.criticalLevel;
+    const overdueDays = eventInfo.event.extendedProps?.overdueDays;
+    const isOverdue = criticalLevel === "overdue";
 
     return (
       <div
-        className={`w-full truncate rounded-md px-2 py-1 text-[11px] font-semibold leading-tight ${colorMeta.badgeClass}`}
+        className={`w-full truncate rounded-md px-2 py-1 text-[11px] font-semibold leading-tight ${colorMeta.badgeClass} ${isOverdue || criticalLevel === "critical" ? "animate-pulse shadow-[0_0_0_2px_rgba(239,68,68,0.6)]" : ""}`}
         title={eventInfo.event.title}
       >
+        {isOverdue ? `🔴 Telat ${overdueDays}hr` : criticalLevel === "critical" ? "🔴 " : criticalLevel === "warning" ? "🟡 " : ""}
         {eventInfo.event.title}
       </div>
     );
@@ -468,16 +511,18 @@ export default function Calendar() {
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={() =>
-                openAddEventModal(selectedDate || getTodayString())
-              }
-              className={primaryButtonClass}
-            >
-              <Plus size={18} />
-              Tambah Acara
-            </button>
+            <AccessControl action="write" resource="calendar-events">
+              <button
+                type="button"
+                onClick={() =>
+                  openAddEventModal(selectedDate || getTodayString())
+                }
+                className={primaryButtonClass}
+              >
+                <Plus size={18} />
+                Tambah Acara
+              </button>
+            </AccessControl>
           </div>
 
           <div className="grid w-full grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px] 2xl:grid-cols-[minmax(0,1fr)_380px]">
@@ -521,7 +566,8 @@ export default function Calendar() {
                   initialView="dayGridMonth"
                   headerToolbar={false}
                   height="auto"
-                  dayMaxEvents={2}
+                  dayMaxEventRows={true}
+                  moreLinkText={(num) => `+${num} lainnya`}
                   fixedWeekCount={true}
                   showNonCurrentDates={true}
                   datesSet={(info) => {
@@ -583,21 +629,23 @@ export default function Calendar() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => openAddEventModal(selectedDate)}
-                          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                        >
-                          <Plus size={18} />
-                          Tambah
-                        </button>
+                        <AccessControl action="write" resource="calendar-events">
+                          <button
+                            type="button"
+                            onClick={() => openAddEventModal(selectedDate)}
+                            className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                          >
+                            <Plus size={18} />
+                            Tambah
+                          </button>
+                        </AccessControl>
 
                         <button
                           type="button"
                           onClick={() => setSelectedDate("")}
-                          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-slate-500 transition hover:bg-slate-100 hover:text-slate-700"
+                          className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-500 transition hover:bg-slate-200"
                         >
-                          <X size={20} />
+                          <X size={18} />
                         </button>
                       </div>
                     </div>
@@ -644,11 +692,14 @@ export default function Calendar() {
                           const colorMeta = getColorMeta(
                             event.extendedProps?.colorKey,
                           );
+                          const criticalLevel = event.extendedProps?.criticalLevel;
+                          const overdueDays = event.extendedProps?.overdueDays;
+                          const isOverdue = criticalLevel === "overdue";
 
                           return (
                             <div
                               key={event.id}
-                              className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm"
+                              className={`rounded-3xl border p-5 shadow-sm ${isOverdue ? "border-red-400 bg-red-50" : criticalLevel === "critical" ? "border-red-300 bg-red-50" : criticalLevel === "warning" ? "border-amber-300 bg-amber-50" : "border-slate-200 bg-white"}`}
                             >
                               <div className="mb-3 flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3">
@@ -658,6 +709,7 @@ export default function Calendar() {
 
                                   <div>
                                     <h4 className="text-sm font-bold text-slate-900">
+                                      {isOverdue ? "🔴 " : criticalLevel === "critical" ? "🔴 " : criticalLevel === "warning" ? "🟡 " : ""}
                                       {event.title}
                                     </h4>
                                     <p className="mt-1 text-xs font-medium text-slate-500">
@@ -668,25 +720,29 @@ export default function Calendar() {
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => openEditEventModal(event)}
-                                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100 hover:text-emerald-700"
-                                    title="Ubah acara"
-                                  >
-                                    <Pencil size={17} />
-                                  </button>
+                                  <AccessControl action="write" resource="calendar-events">
+                                    <button
+                                      type="button"
+                                      onClick={() => openEditEventModal(event)}
+                                      className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition hover:bg-emerald-100 hover:text-emerald-700"
+                                      title="Ubah acara"
+                                    >
+                                      <Pencil size={17} />
+                                    </button>
+                                  </AccessControl>
 
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      handleQuickDeleteEvent(event.id)
-                                    }
-                                    className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-500 transition hover:bg-red-100 hover:text-red-600"
-                                    title="Hapus acara"
-                                  >
-                                    <Trash2 size={18} />
-                                  </button>
+                                  <AccessControl action="delete" resource="calendar-events">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleQuickDeleteEvent(event.id)
+                                      }
+                                      className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-red-50 text-red-500 transition hover:bg-red-100 hover:text-red-600"
+                                      title="Hapus acara"
+                                    >
+                                      <Trash2 size={18} />
+                                    </button>
+                                  </AccessControl>
                                 </div>
                               </div>
 
@@ -695,11 +751,29 @@ export default function Calendar() {
                                   "Belum ada deskripsi."}
                               </p>
 
-                              <span
-                                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${colorMeta.badgeClass}`}
-                              >
-                                {colorMeta.shortLabel}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span
+                                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${colorMeta.badgeClass}`}
+                                >
+                                  {colorMeta.shortLabel}
+                                </span>
+
+                                {isOverdue && (
+                                  <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                    Telat {overdueDays} hari
+                                  </span>
+                                )}
+                                {criticalLevel === "critical" && !isOverdue && (
+                                  <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+                                    Kritis
+                                  </span>
+                                )}
+                                {criticalLevel === "warning" && (
+                                  <span className="inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                                    Mendekati Deadline
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           );
                         })}
@@ -925,14 +999,16 @@ export default function Calendar() {
                 Batal
               </button>
 
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                disabled={isDeletingEvent}
-                className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isDeletingEvent ? "Menghapus..." : "Hapus"}
-              </button>
+              <AccessControl action="delete" resource="calendar-events">
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  disabled={isDeletingEvent}
+                  className="inline-flex items-center justify-center rounded-2xl bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isDeletingEvent ? "Menghapus..." : "Hapus"}
+                </button>
+              </AccessControl>
             </div>
           </div>
         </div>

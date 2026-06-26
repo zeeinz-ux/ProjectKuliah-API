@@ -7,12 +7,12 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
 
-      table.string('name', 150).notNullable()
-      table.string('email', 150).notNullable().unique()
+      table.string('name', 100).notNullable()
+      table.string('email', 100).notNullable().unique()
       table.string('phone', 30).nullable()
       table.text('address').nullable()
 
-      table.string('status', 30).notNullable().defaultTo('Active')
+      table.string('status', 20).notNullable().defaultTo('Active')
       table.date('joined').notNullable()
 
       table.bigInteger('total_spent').notNullable().defaultTo(0)

@@ -16,7 +16,7 @@ export default class extends BaseSchema {
       table.string('stored_name', 255).notNullable()
       table.text('file_path').notNullable()
 
-      table.string('mime_type', 100).notNullable()
+      table.string('mime_type', 50).notNullable()
       table.bigInteger('file_size').notNullable().defaultTo(0)
 
       table.string('category', 50).notNullable().defaultTo('Dokumen Lain')

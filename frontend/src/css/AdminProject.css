@@ -43,7 +43,7 @@
   min-height: 100%;
   background: var(--project-bg);
   padding: clamp(16px, 2vw, 24px);
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--project-text);
 }
 
@@ -556,7 +556,7 @@
   background: transparent;
   color: var(--project-muted);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0;
   margin-bottom: 16px;
 }
@@ -629,7 +629,7 @@
   border: 1px solid var(--project-line);
   color: var(--project-muted);
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .detail-wrapper .tab-btn.active {

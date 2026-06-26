@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   FiGrid,
   FiArrowLeft,
@@ -21,6 +22,7 @@ import {
   FiImage,
   FiPackage,
 } from "react-icons/fi";
+import AccessControl from "../components/AccessControl";
 import "../css/AdminProject.css";
 
 const API_BASE_URL =
@@ -39,6 +41,8 @@ const EMPTY_FORM = {
   cover: "",
   location: "",
   deadline: "",
+  startDate: "",
+  team: "",
   budget: "",
   overview: "",
   materials: [],
@@ -114,6 +118,14 @@ function normalizeProjectMaterial(item) {
     stock: Number(material.stock ?? item.stock ?? 0),
     unit: material.unit || item.unit || "pcs",
   };
+}
+
+function getTodayDateString() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function formatDeadline(dateValue) {
@@ -446,23 +458,27 @@ function ProjectCard({ project, onClick, onEdit, onDelete }) {
           </div>
 
           <div className="card-actions">
-            <button
-              type="button"
-              className="icon-btn"
-              onClick={() => onEdit(project)}
-              title="Ubah proyek"
-            >
-              <FiEdit2 size={15} />
-            </button>
+            <AccessControl action="write" resource="projects">
+              <button
+                type="button"
+                className="icon-btn"
+                onClick={() => onEdit(project)}
+                title="Ubah proyek"
+              >
+                <FiEdit2 size={15} />
+              </button>
+            </AccessControl>
 
-            <button
-              type="button"
-              className="icon-btn danger"
-              onClick={() => onDelete(project)}
-              title="Hapus proyek"
-            >
-              <FiTrash2 size={15} />
-            </button>
+            <AccessControl action="delete" resource="projects">
+              <button
+                type="button"
+                className="icon-btn danger"
+                onClick={() => onDelete(project)}
+                title="Hapus proyek"
+              >
+                <FiTrash2 size={15} />
+              </button>
+            </AccessControl>
           </div>
         </div>
       </div>
@@ -816,116 +832,118 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
         </p>
       </div>
 
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h4 className="mb-5 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
-          Tambah Pembaruan Progres
-        </h4>
+      <AccessControl action="write" resource="projects">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h4 className="mb-5 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
+            Tambah Pembaruan Progres
+          </h4>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-800">
-              Nama Tim
-            </label>
-
-            <input
-              type="text"
-              value={author}
-              onChange={(event) => setAuthor(event.target.value)}
-              placeholder="Contoh: Tim Lapangan A"
-              className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-            />
-          </div>
-
-          <div>
-            <label className="mb-2 block text-sm font-bold text-slate-800">
-              Foto Progres
-            </label>
-
-            <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-300 bg-emerald-50 px-4 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
-              <FiCamera size={17} />
-              <span>Pilih Foto JPG / PNG</span>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-bold text-slate-800">
+                Nama Tim
+              </label>
 
               <input
-                type="file"
-                accept="image/jpeg,image/jpg,image/png"
-                onChange={handleFileChange}
-                className="hidden"
+                type="text"
+                value={author}
+                onChange={(event) => setAuthor(event.target.value)}
+                placeholder="Contoh: Tim Lapangan A"
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-800 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
               />
-            </label>
+            </div>
 
-            <p className="mt-2 text-xs font-medium text-slate-400">
-              Maksimal 5MB. Foto akan disimpan di server lokal.
-            </p>
+            <div>
+              <label className="mb-2 block text-sm font-bold text-slate-800">
+                Foto Progres
+              </label>
+
+              <label className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-dashed border-emerald-300 bg-emerald-50 px-4 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100">
+                <FiCamera size={17} />
+                <span>Pilih Foto JPG / PNG</span>
+
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+              </label>
+
+              <p className="mt-2 text-xs font-medium text-slate-400">
+                Maksimal 5MB. Foto akan disimpan di server lokal.
+              </p>
+            </div>
           </div>
-        </div>
 
-        {fileError && (
-          <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
-            {fileError}
-          </div>
-        )}
+          {fileError && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">
+              {fileError}
+            </div>
+          )}
 
-        {imagePreview && (
-          <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-                <FiImage size={16} className="text-emerald-600" />
-                Pratinjau Foto
+          {imagePreview && (
+            <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                  <FiImage size={16} className="text-emerald-600" />
+                  Pratinjau Foto
+                </div>
+
+                <button
+                  type="button"
+                  onClick={clearSelectedImage}
+                  className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-red-500 shadow-sm transition hover:bg-red-50"
+                >
+                  Hapus Foto
+                </button>
               </div>
 
               <button
                 type="button"
-                onClick={clearSelectedImage}
-                className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-red-500 shadow-sm transition hover:bg-red-50"
+                onClick={() =>
+                  setLightboxImage({
+                    src: imagePreview,
+                    alt: "Pratinjau progres",
+                  })
+                }
+                className="group block overflow-hidden rounded-2xl bg-slate-200"
               >
-                Hapus Foto
+                <img
+                  src={imagePreview}
+                  alt="Pratinjau progres"
+                  className="h-32 w-48 object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-90"
+                />
               </button>
             </div>
+          )}
 
+          <div className="mt-5">
+            <label className="mb-2 block text-sm font-bold text-slate-800">
+              Catatan Progres
+            </label>
+
+            <textarea
+              placeholder="Tuliskan progres hari ini, kendala, atau catatan penting..."
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              rows={4}
+              className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
+            />
+          </div>
+
+          <div className="mt-5 flex justify-end">
             <button
               type="button"
-              onClick={() =>
-                setLightboxImage({
-                  src: imagePreview,
-                  alt: "Pratinjau progres",
-                })
-              }
-              className="group block overflow-hidden rounded-2xl bg-slate-200"
+              onClick={handleSubmit}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 active:scale-[0.98]"
             >
-              <img
-                src={imagePreview}
-                alt="Pratinjau progres"
-                className="h-32 w-48 object-cover transition duration-300 group-hover:scale-105 group-hover:opacity-90"
-              />
+              <FiPlus size={16} />
+              Tambah Pembaruan
             </button>
           </div>
-        )}
-
-        <div className="mt-5">
-          <label className="mb-2 block text-sm font-bold text-slate-800">
-            Catatan Progres
-          </label>
-
-          <textarea
-            placeholder="Tuliskan progres hari ini, kendala, atau catatan penting..."
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            rows={4}
-            className="w-full resize-none rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100"
-          />
         </div>
-
-        <div className="mt-5 flex justify-end">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700 active:scale-[0.98]"
-          >
-            <FiPlus size={16} />
-            Tambah Pembaruan
-          </button>
-        </div>
-      </div>
+      </AccessControl>
 
       <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <h4 className="mb-5 text-xs font-black uppercase tracking-[0.2em] text-slate-400">
@@ -961,14 +979,16 @@ function TabProgress({ project, onAddProgress, onDeleteProgress }) {
               return (
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="group relative rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-100 hover:shadow-md">
-                    <button
-                      type="button"
-                      onClick={() => onDeleteProgress(project.id, item.id)}
-                      className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-red-500 transition hover:bg-red-100"
-                      title="Hapus pembaruan progres"
-                    >
-                      <FiTrash2 size={16} />
-                    </button>
+                    <AccessControl action="delete" resource="projects">
+                      <button
+                        type="button"
+                        onClick={() => onDeleteProgress(project.id, item.id)}
+                        className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-red-500 transition hover:bg-red-100"
+                        title="Hapus pembaruan progres"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </AccessControl>
 
                     <div className="flex flex-col gap-4 md:flex-row md:items-start">
                       {imageUrl ? (
@@ -1116,23 +1136,25 @@ function TabTask({ project, onToggleTask, onAddTask, onDeleteTask }) {
           <div className="task-prog-fill" style={{ width: `${percent}%` }} />
         </div>
 
-        <div className="inline-form">
-          <input
-            type="text"
-            className="mini-input grow"
-            placeholder="Tambah tugas baru..."
-            value={taskInput}
-            onChange={(event) => setTaskInput(event.target.value)}
-          />
+        <AccessControl action="write" resource="projects">
+          <div className="inline-form">
+            <input
+              type="text"
+              className="mini-input grow"
+              placeholder="Tambah tugas baru..."
+              value={taskInput}
+              onChange={(event) => setTaskInput(event.target.value)}
+            />
 
-          <button
-            type="button"
-            className="secondary-btn"
-            onClick={handleAddTask}
-          >
-            <FiPlus size={14} /> Tambah Tugas
-          </button>
-        </div>
+            <button
+              type="button"
+              className="secondary-btn"
+              onClick={handleAddTask}
+            >
+              <FiPlus size={14} /> Tambah Tugas
+            </button>
+          </div>
+        </AccessControl>
       </div>
 
       <div className="content-card">
@@ -1170,13 +1192,15 @@ function TabTask({ project, onToggleTask, onAddTask, onDeleteTask }) {
                     <span className="task-done-badge">Selesai</span>
                   )}
 
-                  <button
-                    type="button"
-                    className="icon-btn danger"
-                    onClick={() => onDeleteTask(project.id, task.id)}
-                  >
-                    <FiTrash2 size={14} />
-                  </button>
+                  <AccessControl action="delete" resource="projects">
+                    <button
+                      type="button"
+                      className="icon-btn danger"
+                      onClick={() => onDeleteTask(project.id, task.id)}
+                    >
+                      <FiTrash2 size={14} />
+                    </button>
+                  </AccessControl>
                 </div>
               </li>
             ))}
@@ -1487,7 +1511,12 @@ function ProjectModal({
                 }
               >
                 <option value="">Pilih klien</option>
-                {clients.map((client) => (
+                {clients
+                  .filter((client) => {
+                    const status = (client.status || '').toLowerCase();
+                    return status !== 'inactive' && status !== 'nonaktif';
+                  })
+                  .map((client) => (
                   <option key={client.id} value={client.id}>
                     {client.name}
                   </option>
@@ -1524,9 +1553,40 @@ function ProjectModal({
             </div>
 
             <div className="form-group">
+              <label>Tanggal Mulai</label>
+              <input
+                type="date"
+                min={getTodayDateString()}
+                value={form.startDate || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    startDate: event.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Tim Lapangan</label>
+              <input
+                type="text"
+                value={form.team || ""}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    team: event.target.value,
+                  }))
+                }
+                placeholder="Contoh: Tim Lapangan A"
+              />
+            </div>
+
+            <div className="form-group">
               <label>Deadline</label>
               <input
                 type="date"
+                min={getTodayDateString()}
                 value={form.deadline || ""}
                 onChange={(event) =>
                   setForm((prev) => ({
@@ -1730,15 +1790,17 @@ function ProjectModal({
             Batal
           </button>
 
-          <button
-            type="button"
-            className="primary-btn"
-            onClick={onSubmit}
-            disabled={submitLoading}
-          >
-            {submitLoading && <FiLoader className="spin-icon" size={16} />}
-            {isEdit ? "Simpan Perubahan" : "Tambah Proyek"}
-          </button>
+          <AccessControl action="write" resource="projects">
+            <button
+              type="button"
+              className="primary-btn"
+              onClick={onSubmit}
+              disabled={submitLoading}
+            >
+              {submitLoading && <FiLoader className="spin-icon" size={16} />}
+              {isEdit ? "Simpan Perubahan" : "Tambah Proyek"}
+            </button>
+          </AccessControl>
         </div>
       </div>
     </>,
@@ -1848,12 +1910,14 @@ function DeleteProjectModal({ project, loading, error, onClose, onConfirm }) {
 }
 
 export default function AdminProject() {
+  const [searchParams] = useSearchParams();
+  const idFromUrl = searchParams.get('id');
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [materialsLoading, setMaterialsLoading] = useState(false);
 
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedId, setSelectedId] = useState(idFromUrl ? Number(idFromUrl) : null);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
@@ -2049,6 +2113,8 @@ export default function AdminProject() {
       cover: project.cover || "",
       location: project.location || "",
       deadline: project.deadline || "",
+      startDate: project.startDate || project.start_date || "",
+      team: project.team || "",
       budget: String(project.budget || ""),
       overview: project.overview || "",
       materials: Array.isArray(project.materials)
@@ -2086,6 +2152,8 @@ export default function AdminProject() {
       cover: currentProject?.cover || form.cover || DEFAULT_COVER,
       location: form.location.trim(),
       deadline: form.deadline || null,
+      start_date: form.startDate || null,
+      team: form.team || null,
       budget: Number(form.budget || 0),
       overview: form.overview.trim(),
       materials: (form.materials || [])
@@ -2495,6 +2563,16 @@ export default function AdminProject() {
     }
   };
 
+  if (selectedId && loading) {
+    return (
+      <div className="admin-project">
+        <div className="page-shell">
+          <div className="loading-state">Memuat proyek...</div>
+        </div>
+      </div>
+    );
+  }
+
   if (selected) {
     return (
       <ProjectDetail
@@ -2524,13 +2602,15 @@ export default function AdminProject() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="new-project-btn"
-            onClick={openCreateModal}
-          >
-            <FiPlus size={16} /> Tambah Proyek
-          </button>
+          <AccessControl action="write" resource="projects">
+            <button
+              type="button"
+              className="new-project-btn"
+              onClick={openCreateModal}
+            >
+              <FiPlus size={16} /> Tambah Proyek
+            </button>
+          </AccessControl>
         </div>
 
         {errorMsg && (

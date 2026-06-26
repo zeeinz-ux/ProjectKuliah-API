@@ -41,6 +41,9 @@ export default class ActivityLog extends BaseModel {
   @column()
   declare metadata: Record<string, any> | null
 
+  @column()
+  declare dismissedBy: number[]
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

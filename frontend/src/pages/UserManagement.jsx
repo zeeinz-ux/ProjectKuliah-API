@@ -19,7 +19,7 @@ const ROLE_OPTIONS = [
 const DEPARTEMEN_OPTIONS = [
   { value: "Super User", label: "Super Pengguna" },
   { value: "Operator Data", label: "Operator Data" },
-  { value: "Accounting", label: "Accounting" },
+  { value: "Keuangan", label: "Keuangan" },
 ];
 
 const formatDateTime = (value) => {
@@ -157,6 +157,19 @@ export default function UserManagement() {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Auto-set departemen saat role dipilih
+  useEffect(() => {
+    const roleMap = {
+      admin: 'Super User',
+      project_manager: 'Operator Data',
+      finance: 'Keuangan',
+    }
+    const dept = roleMap[form.role]
+    if (dept) {
+      setForm((prev) => ({ ...prev, departemen: dept }))
+    }
+  }, [form.role]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -816,38 +829,41 @@ export default function UserManagement() {
 
                   <div className="user-form__group">
                     <label htmlFor="role">Role</label>
-                    <select
-                      id="role"
-                      name="role"
-                      value={form.role}
-                      onChange={handleFormChange}
-                      required
-                    >
-                      <option value="">Pilih role</option>
-                      {ROLE_OPTIONS.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
+                    {modalMode === 'create' ? (
+                      <select
+                        id="role"
+                        name="role"
+                        value={form.role}
+                        onChange={handleFormChange}
+                        required
+                      >
+                        <option value="">Pilih role</option>
+                        {ROLE_OPTIONS.map((item) => (
+                          <option key={item.value} value={item.value}>
+                            {item.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        id="role"
+                        type="text"
+                        value={form.role ? formatRoleLabel(form.role) : '-'}
+                        className="user-form__input-readonly"
+                        readOnly
+                      />
+                    )}
                   </div>
 
                   <div className="user-form__group">
                     <label htmlFor="departemen">Departemen</label>
-                    <select
+                    <input
                       id="departemen"
-                      name="departemen"
-                      value={form.departemen}
-                      onChange={handleFormChange}
-                      required
-                    >
-                      <option value="">Pilih departemen</option>
-                      {DEPARTEMEN_OPTIONS.map((item) => (
-                        <option key={item.value} value={item.value}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
+                      type="text"
+                      value={form.departemen || '-'}
+                      className="user-form__input-readonly"
+                      readOnly
+                    />
                   </div>
 
                   <div className="user-form__group">

@@ -1,19 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { register } from "../api/authApi";
-import "../css/Register.css";
+import "../css/Login.css";
 import logoMedtic from "../assets/logo.svg";
 
 const ROLE_OPTIONS = [
   { value: "admin", label: "Admin" },
-  { value: "project_manager", label: "Project Manager" },
+  { value: "project_manager", label: "PM" },
   { value: "finance", label: "Finance" },
-];
-
-const DEPARTEMEN_OPTIONS = [
-  { value: "Super User", label: "Super User" },
-  { value: "Operator Data", label: "Operator Data" },
-  { value: "Accounting", label: "Accounting" },
 ];
 
 const INITIAL_FORM = {
@@ -26,50 +21,34 @@ const INITIAL_FORM = {
 
 export default function Register() {
   const navigate = useNavigate();
-
   const [form, setForm] = useState(INITIAL_FORM);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const resetMessages = () => {
-    setError("");
-    setSuccess("");
-  };
+  useEffect(() => {
+    const roleMap = { admin: "Super User", project_manager: "Operator Data", finance: "Keuangan" };
+    const dept = roleMap[form.role];
+    if (dept) setForm((prev) => ({ ...prev, departemen: dept }));
+  }, [form.role]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (error || success) {
-      resetMessages();
-    }
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (error || success) { setError(""); setSuccess(""); }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    resetMessages();
+    setError("");
+    setSuccess("");
     setLoading(true);
-
     try {
-      const payload = {
-        ...form,
-        full_name: form.full_name.trim(),
-        email: form.email.trim(),
-      };
-
-      const data = await register(payload);
-
+      const data = await register({ ...form, full_name: form.full_name.trim(), email: form.email.trim() });
       setSuccess(data.message || "Registrasi berhasil. Silakan login.");
       setForm(INITIAL_FORM);
-
-      setTimeout(() => {
-        navigate("/login");
-      }, 1500);
+      setTimeout(() => navigate("/login"), 1500);
     } catch (err) {
       setError(err.message || "Terjadi kesalahan saat registrasi");
     } finally {
@@ -78,130 +57,67 @@ export default function Register() {
   };
 
   return (
-    <div className="register-page">
-      <div className="register-wrapper">
-        <div className="register-card">
-          <div className="register-brand-block">
-            <img
-              src={logoMedtic}
-              alt="Logo Medtic Indonesia"
-              className="register-company-logo"
-            />
-            <h2 className="register-company-name">Medtic Indonesia</h2>
+    <div className="auth-page">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <div className="auth-brand">
+            <img src={logoMedtic} alt="Logo" className="auth-logo" />
+            <h2 className="auth-brand-name">Medtic Indonesia</h2>
           </div>
 
-          <div className="register-header">
-            <p className="register-label">Pendaftaran</p>
-            <h1 className="register-title">Buat Akun</h1>
-            <p className="register-subtitle">
-              Silakan lengkapi data untuk membuat akun baru
-            </p>
+          <div className="auth-header">
+            <span className="auth-label">Pendaftaran</span>
+            <h1 className="auth-title">Buat Akun</h1>
+            <p className="auth-subtitle">Silakan lengkapi data untuk membuat akun baru</p>
           </div>
 
-          {error && (
-            <div className="register-alert register-alert-error">{error}</div>
-          )}
+          {error && <div className="auth-alert auth-alert--error">{error}</div>}
+          {success && <div className="auth-alert auth-alert--success">{success}</div>}
 
-          {success && (
-            <div className="register-alert register-alert-success">
-              {success}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="register-form">
-            <div className="register-field">
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
               <label htmlFor="full_name">Nama Lengkap</label>
-              <input
-                id="full_name"
-                type="text"
-                name="full_name"
-                value={form.full_name}
-                onChange={handleChange}
-                placeholder="Masukkan nama lengkap"
-                autoComplete="name"
-                required
-              />
+              <input id="full_name" type="text" name="full_name" value={form.full_name} onChange={handleChange} placeholder="Masukkan nama lengkap" autoComplete="name" required />
             </div>
 
-            <div className="register-field">
+            <div className="auth-field">
               <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="Masukkan email"
-                autoComplete="email"
-                required
-              />
+              <input id="email" type="email" name="email" value={form.email} onChange={handleChange} placeholder="Masukkan email" autoComplete="email" required />
             </div>
 
-            <div className="register-field">
+            <div className="auth-field">
               <label htmlFor="password">Kata Sandi</label>
-              <input
-                id="password"
-                type="password"
-                name="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder="Masukkan kata sandi"
-                autoComplete="new-password"
-                minLength={6}
-                required
-              />
+              <div className="auth-password-wrap">
+                <input id="password" type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleChange} placeholder="Masukkan kata sandi" autoComplete="new-password" minLength={6} required />
+                <button type="button" className="auth-password-toggle" onClick={() => setShowPassword((p) => !p)} tabIndex={-1}>
+                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                </button>
+              </div>
             </div>
 
-            <div className="register-field">
-              <label htmlFor="role">Role</label>
-              <select
-                id="role"
-                name="role"
-                value={form.role}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Pilih role</option>
-                {ROLE_OPTIONS.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
+            <div className="auth-field">
+              <label>Role</label>
+              <div className="auth-role-group">
+                {ROLE_OPTIONS.map((opt) => (
+                  <button key={opt.value} type="button" className={`auth-role-btn${form.role === opt.value ? " is-active" : ""}`} onClick={() => setForm((prev) => ({ ...prev, role: opt.value }))}>
+                    {opt.label}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
-            <div className="register-field">
+            <div className="auth-field">
               <label htmlFor="departemen">Departemen</label>
-              <select
-                id="departemen"
-                name="departemen"
-                value={form.departemen}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Pilih departemen</option>
-                {DEPARTEMEN_OPTIONS.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
+              <input id="departemen" type="text" value={form.departemen || "-"} className="auth-input-readonly" readOnly />
             </div>
 
-            <button
-              type="submit"
-              className={`register-submit-btn ${loading ? "is-loading" : ""}`}
-              disabled={loading}
-            >
+            <button type="submit" disabled={loading || !form.role} className="auth-submit">
               {loading ? "Memproses..." : "Daftar Sekarang"}
             </button>
           </form>
 
-          <p className="register-footer-text">
-            Sudah punya akun?{" "}
-            <Link to="/login" className="register-footer-link">
-              Masuk di sini
-            </Link>
+          <p className="auth-footer">
+            Sudah punya akun? <Link to="/login" className="auth-footer-link">Masuk di sini</Link>
           </p>
         </div>
       </div>

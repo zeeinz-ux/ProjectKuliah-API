@@ -1,132 +1,72 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import "../css/ForgotPassword.css";
+import "../css/Login.css";
 import logoMedtic from "../assets/logo.svg";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3333";
 
-function ForgotPassword() {
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
-  const [resetUrl, setResetUrl] = useState("");
-
-  const clearMessages = () => {
-    setErrorMsg("");
-    setSuccessMsg("");
-    setResetUrl("");
-  };
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
-    clearMessages();
-
+    setError("");
+    setSuccess("");
     try {
-      const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+      const res = await fetch(`${API_BASE_URL}/forgot-password`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Gagal membuat tautan reset kata sandi.",
-        );
-      }
-
-      const generatedResetUrl = data.resetUrl || data.reset_url || "";
-
-      setSuccessMsg(data.message || "Tautan reset kata sandi berhasil dibuat.");
-      setResetUrl(generatedResetUrl);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Gagal membuat tautan reset.");
+      setSuccess(data.message || "Tautan reset kata sandi berhasil dikirim.");
       setEmail("");
-    } catch (error) {
-      setErrorMsg(error.message || "Terjadi kesalahan. Silakan coba lagi.");
+    } catch (err) {
+      setError(err.message || "Terjadi kesalahan.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="forgot-page">
-      <div className="forgot-card">
-        <div className="forgot-brand-block">
-          <img
-            src={logoMedtic}
-            alt="Logo Medtic Indonesia"
-            className="forgot-company-logo"
-          />
-        </div>
-
-        <h1 className="forgot-title">Lupa Kata Sandi</h1>
-        <p className="forgot-subtitle">
-          Masukkan email akun Anda untuk membuat tautan reset kata sandi.
-        </p>
-
-        {errorMsg && (
-          <div className="forgot-alert forgot-alert-error">{errorMsg}</div>
-        )}
-
-        {successMsg && (
-          <div className="forgot-alert forgot-alert-success">
-            <p>{successMsg}</p>
-
-            {resetUrl ? (
-              <a href={resetUrl} className="forgot-reset-action">
-                Buka Halaman Reset Kata Sandi
-              </a>
-            ) : (
-              <p className="forgot-reset-link-warning">
-                Tautan reset kata sandi belum diterima dari server.
-              </p>
-            )}
-          </div>
-        )}
-
-        <form className="forgot-form" onSubmit={handleSubmit}>
-          <div className="forgot-form-group">
-            <label htmlFor="email" className="forgot-label">
-              Email
-            </label>
-
-            <input
-              id="email"
-              type="email"
-              className="forgot-input"
-              placeholder="Masukkan email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-
-                if (errorMsg || successMsg || resetUrl) {
-                  clearMessages();
-                }
-              }}
-              autoComplete="email"
-              required
-            />
+    <div className="auth-page">
+      <div className="auth-wrapper">
+        <div className="auth-card">
+          <div className="auth-brand">
+            <img src={logoMedtic} alt="Logo" className="auth-logo" />
+            <h2 className="auth-brand-name">Medtic Indonesia</h2>
           </div>
 
-          <button type="submit" className="forgot-button" disabled={loading}>
-            {loading ? "Membuat tautan..." : "Buat Tautan Reset"}
-          </button>
-        </form>
+          <div className="auth-header">
+            <span className="auth-label">Reset Kata Sandi</span>
+            <h1 className="auth-title">Lupa Kata Sandi</h1>
+            <p className="auth-subtitle">Masukkan email akun Anda untuk menerima tautan reset kata sandi.</p>
+          </div>
 
-        <div className="forgot-footer">
-          <Link to="/login" className="forgot-back-link">
-            ← Kembali ke Halaman Masuk
-          </Link>
+          {error && <div className="auth-alert auth-alert--error">{error}</div>}
+          {success && <div className="auth-alert auth-alert--success">{success}</div>}
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <label htmlFor="email">Email</label>
+              <input id="email" type="email" value={email} onChange={(e) => { setEmail(e.target.value); if (error || success) { setError(""); setSuccess(""); } }} placeholder="Masukkan email" autoComplete="email" required />
+            </div>
+
+            <button type="submit" disabled={loading} className="auth-submit">
+              {loading ? "Mengirim..." : "Kirim Tautan Reset"}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            <Link to="/login" className="auth-footer-link">← Kembali ke Halaman Masuk</Link>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-export default ForgotPassword;

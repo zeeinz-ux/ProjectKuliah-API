@@ -14,16 +14,24 @@ function toActivityResponse(activity: ActivityLog) {
     icon: activity.icon,
     color: activity.color,
     isRead: activity.isRead,
+    dismissedBy: activity.dismissedBy || [],
     metadata: activity.metadata || {},
     createdAt: activity.createdAt?.toISO(),
     updatedAt: activity.updatedAt?.toISO(),
   }
 }
 
+function getCurrentUserId(ctx: HttpContext) {
+  const user = (ctx as any).auth?.user
+  return user?.id ? Number(user.id) : null
+}
+
+function getCurrentUser(ctx: HttpContext) {
+  return (ctx as any).auth?.user || null
+}
+
 const MAX_ACTIVITY_LOGS = 10
 
-// Hapus log lama sehingga total tidak melebihi MAX_ACTIVITY_LOGS.
-// Dipanggil setiap kali log baru dibuat via createActivityLog service.
 export async function pruneActivityLogs() {
   try {
     const total = await ActivityLog.query().count('* as total').first()
@@ -31,7 +39,6 @@ export async function pruneActivityLogs() {
 
     if (count <= MAX_ACTIVITY_LOGS) return
 
-    // Ambil id log terlama yang harus dihapus
     const overflow = count - MAX_ACTIVITY_LOGS
 
     const oldest = await ActivityLog.query()
@@ -50,11 +57,19 @@ export async function pruneActivityLogs() {
 }
 
 export default class ActivityLogsController {
-  async index({ request, response }: HttpContext) {
+  async index(ctx: HttpContext) {
+    const { request, response } = ctx
     const module = request.input('module')
     const status = request.input('status')
+    const userId = getCurrentUserId(ctx)
 
-    const query = ActivityLog.query().orderBy('created_at', 'desc').limit(MAX_ACTIVITY_LOGS)
+    const query = ActivityLog.query()
+      .orderBy('created_at', 'desc')
+      .limit(MAX_ACTIVITY_LOGS)
+
+    if (userId) {
+      query.whereRaw('(dismissed_by IS NULL OR NOT (dismissed_by @> ?))', [JSON.stringify([userId])])
+    }
 
     if (module && module !== 'all') {
       query.where('module', module)
@@ -76,8 +91,17 @@ export default class ActivityLogsController {
     })
   }
 
-  async unreadCount({ response }: HttpContext) {
-    const totalUnread = await ActivityLog.query().where('is_read', false).count('* as total')
+  async unreadCount(ctx: HttpContext) {
+    const { response } = ctx
+    const userId = getCurrentUserId(ctx)
+
+    const query = ActivityLog.query().where('is_read', false)
+
+    if (userId) {
+      query.whereRaw('(dismissed_by IS NULL OR NOT (dismissed_by @> ?))', [JSON.stringify([userId])])
+    }
+
+    const totalUnread = await query.count('* as total')
 
     return response.ok({
       message: 'Jumlah notifikasi belum dibaca berhasil diambil.',
@@ -97,18 +121,40 @@ export default class ActivityLogsController {
     })
   }
 
-  async markAllAsRead({ response }: HttpContext) {
-    await ActivityLog.query().where('is_read', false).update({
-      isRead: true,
-    })
+  async markAllAsRead(ctx: HttpContext) {
+    const { response } = ctx
+    const userId = getCurrentUserId(ctx)
+
+    const query = ActivityLog.query().where('is_read', false)
+
+    if (userId) {
+      query.whereRaw('(dismissed_by IS NULL OR NOT (dismissed_by @> ?))', [JSON.stringify([userId])])
+    }
+
+    await query.update({ isRead: true })
 
     return response.ok({
       message: 'Semua notifikasi berhasil ditandai sudah dibaca.',
     })
   }
 
-  async destroy({ params, response }: HttpContext) {
+  async destroy(ctx: HttpContext) {
+    const { params, response } = ctx
     const activity = await ActivityLog.findOrFail(params.id)
+    const user = getCurrentUser(ctx)
+    const userId = getCurrentUserId(ctx)
+
+    if ((user?.role === 'finance' || user?.role === 'project_manager') && userId) {
+      const dismissedBy: number[] = (activity.dismissedBy as number[]) || []
+      if (!dismissedBy.includes(userId)) {
+        dismissedBy.push(userId)
+        activity.dismissedBy = dismissedBy
+        await activity.save()
+      }
+      return response.ok({
+        message: 'Notifikasi berhasil dihapus dari daftar Anda.',
+      })
+    }
 
     await activity.delete()
 

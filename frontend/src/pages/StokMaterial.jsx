@@ -18,6 +18,7 @@ import {
   FiTrash2,
   FiX,
 } from "react-icons/fi";
+import AccessControl from "../components/AccessControl";
 import "../css/StokMaterial.css";
 
 const API_BASE_URL =
@@ -995,10 +996,12 @@ export default function StokMaterial() {
             </p>
           </div>
 
-          <button type="button" className="stok-main-btn" onClick={openAdd}>
-            <FiPlus size={16} />
-            Tambah Material
-          </button>
+          <AccessControl action="write" resource="materials">
+            <button type="button" className="stok-main-btn" onClick={openAdd}>
+              <FiPlus size={16} />
+              Tambah Material
+            </button>
+          </AccessControl>
         </div>
 
         {errorMsg && <div className="stok-error">{errorMsg}</div>}
@@ -1321,9 +1324,11 @@ export default function StokMaterial() {
               </span>
 
               {selected.length > 0 && (
-                <button type="button" onClick={handleBulkDelete}>
-                  Hapus {selected.length} item dipilih
-                </button>
+                <AccessControl action="delete" resource="materials">
+                  <button type="button" onClick={handleBulkDelete}>
+                    Hapus {selected.length} item dipilih
+                  </button>
+                </AccessControl>
               )}
             </div>
 
@@ -1401,32 +1406,42 @@ export default function StokMaterial() {
               Detail
             </button>
 
-            <button type="button" onClick={() => openEdit(activeMenuItem)}>
-              <FiEdit2 size={13} />
-              Ubah
-            </button>
+            <AccessControl action="write" resource="materials">
+              <button type="button" onClick={() => openEdit(activeMenuItem)}>
+                <FiEdit2 size={13} />
+                Ubah
+              </button>
+            </AccessControl>
 
-            <hr />
+            <AccessControl action="write" resource="materials">
+              <hr />
+            </AccessControl>
 
-            <button
-              type="button"
-              className="success"
-              onClick={() => openMovementModal("in", activeMenuItem)}
-            >
-              <FiArrowDownCircle size={13} />
-              Barang Masuk
-            </button>
+            <AccessControl action="write" resource="materials">
+              <button
+                type="button"
+                className="success"
+                onClick={() => openMovementModal("in", activeMenuItem)}
+              >
+                <FiArrowDownCircle size={13} />
+                Barang Masuk
+              </button>
+            </AccessControl>
 
-            <hr />
+            <AccessControl action="write" resource="materials">
+              <hr />
+            </AccessControl>
 
-            <button
-              type="button"
-              className="danger"
-              onClick={() => handleDelete(activeMenuItem.id)}
-            >
-              <FiTrash2 size={13} />
-              Hapus
-            </button>
+            <AccessControl action="delete" resource="materials">
+              <button
+                type="button"
+                className="danger"
+                onClick={() => handleDelete(activeMenuItem.id)}
+              >
+                <FiTrash2 size={13} />
+                Hapus
+              </button>
+            </AccessControl>
           </div>,
           document.body,
         )}
@@ -1824,16 +1839,18 @@ export default function StokMaterial() {
               </div>
 
               <div className="stok-detail-actions">
-                <button
-                  type="button"
-                  className="stok-cancel-btn"
-                  onClick={() => {
-                    openEdit(detailItem);
-                    setDetailItem(null);
-                  }}
-                >
-                  Ubah Material
-                </button>
+                <AccessControl action="write" resource="materials">
+                  <button
+                    type="button"
+                    className="stok-cancel-btn"
+                    onClick={() => {
+                      openEdit(detailItem);
+                      setDetailItem(null);
+                    }}
+                  >
+                    Ubah Material
+                  </button>
+                </AccessControl>
 
                 <button
                   type="button"
@@ -1907,14 +1924,16 @@ export default function StokMaterial() {
                   Batal
                 </button>
 
-                <button
-                  type="button"
-                  className="stok-delete-danger-btn"
-                  onClick={handleConfirmDelete}
-                  disabled={deleteSaving}
-                >
-                  {deleteSaving ? "Menghapus..." : "Hapus"}
-                </button>
+                <AccessControl action="delete" resource="materials">
+                  <button
+                    type="button"
+                    className="stok-delete-danger-btn"
+                    onClick={handleConfirmDelete}
+                    disabled={deleteSaving}
+                  >
+                    {deleteSaving ? "Menghapus..." : "Hapus"}
+                  </button>
+                </AccessControl>
               </div>
             </div>
           </div>,

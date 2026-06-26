@@ -7,12 +7,12 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
 
-      table.string('name', 150).notNullable()
+      table.string('name', 100).notNullable()
       table.text('description').nullable()
-      table.string('category', 80).notNullable()
-      table.string('sku', 80).notNullable().unique()
+      table.string('category', 50).notNullable()
+      table.string('sku', 30).notNullable().unique()
       table.integer('stock').notNullable().defaultTo(0)
-      table.string('unit', 30).notNullable().defaultTo('pcs')
+      table.string('unit', 20).notNullable().defaultTo('pcs')
       table.bigInteger('price').notNullable().defaultTo(0)
 
       table.timestamp('created_at')

@@ -22,8 +22,12 @@ function safeFileName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_')
 }
 
+function getCurrentUser(ctx: HttpContext) {
+  return (ctx.request as any).user || null
+}
+
 function getCurrentUserId(ctx: HttpContext) {
-  const user = (ctx as any).auth?.user
+  const user = getCurrentUser(ctx)
   return user?.id ? Number(user.id) : null
 }
 
@@ -89,7 +93,13 @@ export default class FilesController {
     }
   }
 
-  private serializeFile(file: File, projectName: string = '-') {
+  private async serializeFile(file: File, projectName: string = '-') {
+    let uploaderRole = null
+    if (file.uploadedBy) {
+      const uploader = await db.from('users').where('id', file.uploadedBy).select('role').first()
+      uploaderRole = uploader?.role || null
+    }
+
     return {
       id: file.id,
       fileName: file.originalName,
@@ -101,6 +111,8 @@ export default class FilesController {
       category: file.category,
       uploadedAt: file.uploadedAt?.toISO() || file.createdAt?.toISO() || null,
       projectName,
+      uploadedBy: file.uploadedBy,
+      uploadedByRole: uploaderRole,
     }
   }
 
@@ -139,15 +151,17 @@ export default class FilesController {
 
       const projectNameMap = await this.getProjectNameMap(projectIds)
 
+      const serializedFiles = await Promise.all(
+        files.all().map((file) =>
+          this.serializeFile(
+            file,
+            file.projectId ? projectNameMap.get(file.projectId) || '-' : '-'
+          )
+        )
+      )
+
       return response.ok({
-        files: files
-          .all()
-          .map((file) =>
-            this.serializeFile(
-              file,
-              file.projectId ? projectNameMap.get(file.projectId) || '-' : '-'
-            )
-          ),
+        files: serializedFiles,
 
         pagination: {
           currentPage: files.currentPage,
@@ -253,7 +267,7 @@ export default class FilesController {
 
       return response.created({
         message: 'File berhasil diupload ke server dan metadata tersimpan.',
-        file: this.serializeFile(record, projectName),
+        file: await this.serializeFile(record, projectName),
       })
     } catch (error) {
       return response.badRequest({
@@ -335,6 +349,7 @@ export default class FilesController {
   async destroy(ctx: HttpContext) {
     const { params, response } = ctx
     const userId = getCurrentUserId(ctx)
+    const user = getCurrentUser(ctx)
 
     const file = await File.find(params.id)
 
@@ -342,6 +357,18 @@ export default class FilesController {
       return response.notFound({
         message: 'File tidak ditemukan.',
       })
+    }
+
+    // Ownership check: non-admin hanya bisa hapus file dari role yang sama
+    if (user && user.role !== 'admin' && file.uploadedBy) {
+      const uploader = await db.from('users').where('id', file.uploadedBy).select('role').first()
+      const uploaderRole = uploader?.role || null
+
+      if (uploaderRole !== user.role) {
+        return response.forbidden({
+          message: 'Anda hanya dapat menghapus file yang diupload oleh role yang sama.',
+        })
+      }
     }
 
     const deletedFile = {

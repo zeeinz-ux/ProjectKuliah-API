@@ -7,11 +7,11 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id').primary()
 
-      table.string('title').notNullable()
+      table.string('title', 100).notNullable()
       table.date('event_date').notNullable()
       table.time('start_time').notNullable()
       table.time('end_time').notNullable()
-      table.string('color_key').notNullable().defaultTo('emerald')
+      table.string('color_key', 20).notNullable().defaultTo('emerald')
       table.text('description').nullable()
 
       table.timestamp('created_at', { useTz: true }).notNullable()

@@ -49,7 +49,7 @@
   min-height: 100%;
   padding: clamp(16px, 2vw, 24px);
   background: var(--user-bg);
-  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--user-text);
 }
 
@@ -118,6 +118,7 @@
 
 .user-management-page .user-btn--primary,
 .user-modal .user-btn--primary {
+  font-weight: 700;
   background: linear-gradient(135deg, var(--user-primary), #10b981);
   color: #ffffff;
   box-shadow: 0 12px 24px rgba(5, 150, 105, 0.18);
@@ -911,6 +912,12 @@
 
 .user-modal .user-form__group input::placeholder {
   color: var(--user-soft);
+}
+
+.user-modal .user-form__input-readonly {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  cursor: default;
 }
 
 .user-modal .user-form__actions {

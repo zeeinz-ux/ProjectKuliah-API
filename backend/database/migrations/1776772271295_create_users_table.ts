@@ -7,9 +7,9 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.string('full_name', 150).notNullable()
-      table.string('email', 191).notNullable().unique()
-      table.string('password').notNullable()
+      table.string('full_name', 100).notNullable()
+      table.string('email', 100).notNullable().unique()
+      table.string('password', 150).notNullable()
 
       table
         .enum('role', ['admin', 'project_manager', 'finance'], {
@@ -20,14 +20,13 @@ export default class extends BaseSchema {
         .notNullable()
 
       table
-        .enum('departemen', ['Super User', 'Operator Data', 'Accounting'], {
+        .enum('departemen', ['Super User', 'Operator Data', 'Keuangan'], {
           useNative: true,
           enumName: 'user_departemen_enum',
           existingType: false,
         })
         .notNullable()
 
-      table.string('google_id').nullable()
       table.boolean('is_active').notNullable().defaultTo(true)
       table.text('bio').nullable()
       table.string('avatar').nullable()

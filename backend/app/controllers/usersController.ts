@@ -4,7 +4,7 @@ import hash from '@adonisjs/core/services/hash'
 import { createActivityLog } from '#services/activity_log_service'
 
 const ROLES = ['admin', 'project_manager', 'finance'] as const
-const DEPARTEMEN_LIST = ['Super User', 'Operator Data', 'Accounting'] as const
+const DEPARTEMEN_LIST = ['Super User', 'Operator Data', 'Keuangan'] as const
 
 type UserRole = (typeof ROLES)[number]
 type UserDepartemen = (typeof DEPARTEMEN_LIST)[number]
@@ -26,7 +26,6 @@ export default class UsersController {
       email: user.email,
       role: user.role,
       departemen: user.departemen,
-      google_id: user.googleId,
       is_active: user.isActive,
       bio: user.bio,
       avatar: user.avatar,
@@ -261,7 +260,6 @@ export default class UsersController {
       password,
       role,
       departemen,
-      googleId: null,
       isActive,
       bio: payload.bio?.trim() || null,
       avatar: payload.avatar?.trim() || null,
