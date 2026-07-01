@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 import CalendarEvent from '#models/calendar_event'
+import Project from '#models/project'
 import { createActivityLog } from '#services/activity_log_service'
 
 const ALLOWED_COLORS = ['emerald', 'blue', 'amber', 'red']
@@ -52,6 +53,9 @@ function toCalendarResponse(event: CalendarEvent) {
       computedColor = 'emerald'
       computedStatusLabel = 'Proyek Selesai'
       isOverdue = false
+      // Sanitize title: rename stale "Deadline:" / "deadline:" to "Selesai:"
+      // so frontend normalizeCalendarEvent doesn't flag it as overdue
+      event.title = event.title.replace(/^Deadline:\s*/i, 'Selesai: ')
     } else if (eventDate && eventDate < today) {
       const diffDays = Math.floor(today.diff(eventDate, 'days').days)
       computedColor = 'red'
@@ -86,14 +90,6 @@ export default class CalendarEventsController {
     const year = request.input('year')
 
     const query = CalendarEvent.query()
-      .where((builder) => {
-        builder.whereNull('project_id').orWhereExists((subQuery) => {
-          subQuery
-            .from('projects')
-            .whereColumn('projects.id', 'calendar_events.project_id')
-            .whereRaw('LOWER(status) != ?', ['done'])
-        })
-      })
       .orderBy('calendar_events.event_date', 'asc')
       .orderBy('calendar_events.start_time', 'asc')
       .select('calendar_events.*')
@@ -104,9 +100,23 @@ export default class CalendarEventsController {
 
     const events = await query
 
+    const projectIds = [...new Set(events.filter((e) => e.projectId).map((e) => e.projectId!))]
+    const projects =
+      projectIds.length > 0
+        ? await Project.query().whereIn('id', projectIds).select('id', 'status', 'progress')
+        : []
+    const projectMap = new Map(projects.map((p) => [p.id, p]))
+
+    const processed = events.map((event) => {
+      if (event.projectId) {
+        ;(event as any).project = projectMap.get(event.projectId) ?? null
+      }
+      return toCalendarResponse(event)
+    })
+
     return response.ok({
       message: 'Data event calendar berhasil diambil.',
-      events: events.map((event) => toCalendarResponse(event)),
+      events: processed,
     })
   }
 

@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Project from '#models/project'
 import ProjectTask from '#models/project_task'
 import { createActivityLog } from '#services/activity_log_service'
+import { syncProjectCalendarEvents } from '#services/calendar_sync_service'
 
 export default class ProjectTasksController {
   // =========================
@@ -30,6 +31,18 @@ export default class ProjectTasksController {
       label: String(label).trim(),
       done: false,
     })
+
+    if (project) {
+      const allTasks = await ProjectTask.query().where('project_id', project.id)
+      const doneCount = allTasks.filter((t) => t.done).length
+      const totalCount = allTasks.length
+      const calculatedProgress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
+
+      project.progress = calculatedProgress
+      project.status = calculatedProgress >= 100 && totalCount > 0 ? 'done' : 'progress'
+      await project.save()
+      await syncProjectCalendarEvents(project)
+    }
 
     const user = (request as any).user
 
@@ -98,16 +111,29 @@ export default class ProjectTasksController {
     const user = (request as any).user
     const project = await Project.find(params.projectId)
 
+    if (project && done !== undefined) {
+      const allTasks = await ProjectTask.query().where('project_id', project.id)
+      const doneCount = allTasks.filter((t) => t.done).length
+      const totalCount = allTasks.length
+      const calculatedProgress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
+
+      project.progress = calculatedProgress
+      project.status = calculatedProgress >= 100 && totalCount > 0 ? 'done' : 'progress'
+      await project.save()
+      await syncProjectCalendarEvents(project)
+    }
+
     await createActivityLog({
       userId: user?.id,
       module: 'project_task',
       action: 'updated',
       title: `Task "${task.label}" diperbarui`,
-      description: label !== undefined
-        ? `Label task diubah menjadi "${task.label}".`
-        : done !== undefined
-          ? `Status task "${task.label}" diubah menjadi ${done ? 'selesai' : 'belum selesai'}.`
-          : `Task "${task.label}" telah diperbarui.`,
+      description:
+        label !== undefined
+          ? `Label task diubah menjadi "${task.label}".`
+          : done !== undefined
+            ? `Status task "${task.label}" diubah menjadi ${done ? 'selesai' : 'belum selesai'}.`
+            : `Task "${task.label}" telah diperbarui.`,
       icon: 'doc',
       color: 'blue',
       metadata: {
@@ -149,6 +175,18 @@ export default class ProjectTasksController {
     const project = await Project.find(params.projectId)
 
     await task.delete()
+
+    if (project) {
+      const allTasks = await ProjectTask.query().where('project_id', project.id)
+      const doneCount = allTasks.filter((t) => t.done).length
+      const totalCount = allTasks.length
+      const calculatedProgress = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0
+
+      project.progress = calculatedProgress
+      project.status = calculatedProgress >= 100 && totalCount > 0 ? 'done' : 'progress'
+      await project.save()
+      await syncProjectCalendarEvents(project)
+    }
 
     const user = (request as any).user
 

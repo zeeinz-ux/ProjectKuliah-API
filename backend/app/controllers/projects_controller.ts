@@ -24,6 +24,7 @@ import Material from '#models/material'
 import ProjectMaterial from '#models/project_material'
 import CalendarEvent from '#models/calendar_event'
 import { createActivityLog } from '#services/activity_log_service'
+import { syncProjectCalendarEvents } from '#services/calendar_sync_service'
 
 // ============================================================
 // HELPER: Ambil user login dengan aman
@@ -471,60 +472,6 @@ function projectResponse(project: Project) {
   }
 }
 
-// ============================================================
-// HELPER: Auto-create / sync calendar events dari project
-// Dipanggil saat project dibuat atau diperbarui.
-// ============================================================
-async function syncProjectCalendarEvents(project: Project) {
-  // Hapus event kalender lama milik project ini (jika ada)
-  await CalendarEvent.query().where('project_id', project.id).delete()
-
-  const events: any[] = []
-
-  // Event untuk start date
-  if (project.startDate) {
-    events.push({
-      title: `Mulai: ${project.name}`,
-      eventDate: project.startDate,
-      startTime: '08:00',
-      endTime: '17:00',
-      colorKey: project.status === 'done' ? 'green' : 'blue',
-      description: `Proyek ${project.name} dimulai.`,
-      projectId: project.id,
-    })
-  }
-
-  // Event untuk deadline (hanya untuk proyek yang belum selesai)
-  if (project.deadline && project.status !== 'done') {
-    events.push({
-      title: `Deadline: ${project.name}`,
-      eventDate: project.deadline,
-      startTime: '08:00',
-      endTime: '17:00',
-      colorKey: 'red',
-      description: `Deadline proyek ${project.name}.`,
-      projectId: project.id,
-    })
-  }
-
-  // Event untuk tanggal selesai (hanya jika proyek sudah done)
-  if (project.status === 'done' && project.updatedAt) {
-    events.push({
-      title: `Selesai: ${project.name}`,
-      eventDate: project.updatedAt.toISODate(),
-      startTime: '08:00',
-      endTime: '17:00',
-      colorKey: 'green',
-      description: `Proyek ${project.name} telah selesai.`,
-      projectId: project.id,
-    })
-  }
-
-  for (const eventData of events) {
-    await CalendarEvent.create(eventData)
-  }
-}
-
 export default class ProjectsController {
   // ============================================================
   // GET /api/projects
@@ -611,7 +558,10 @@ export default class ProjectsController {
         cover: body.cover || null,
         location: body.location || null,
         deadline: body.deadline ? DateTime.fromISO(body.deadline) : null,
-        startDate: body.startDate || body.start_date ? DateTime.fromISO(body.startDate || body.start_date) : null,
+        startDate:
+          body.startDate || body.start_date
+            ? DateTime.fromISO(body.startDate || body.start_date)
+            : null,
         team: body.team || null,
         budget: Number(body.budget || 0),
         overview: body.overview || null,
@@ -1032,8 +982,7 @@ export default class ProjectsController {
             module: 'deadline_reminder',
             action: 'deadline_reminder',
             title: `Deadline ${urgency}: ${project.name}`,
-            description:
-              `Proyek "${project.name}" untuk client ${clientName} akan berakhir dalam ${daysLeft} hari! Segera selesaikan progres proyek.`,
+            description: `Proyek "${project.name}" untuk client ${clientName} akan berakhir dalam ${daysLeft} hari! Segera selesaikan progres proyek.`,
             icon: 'doc',
             color: threshold <= 3 ? 'red' : 'yellow',
             metadata: {
